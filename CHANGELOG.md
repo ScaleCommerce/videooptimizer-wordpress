@@ -6,7 +6,9 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
-First version, planned as 0.1.0 (version and tag to be confirmed before release). Licensed under MIT.
+## [0.1.0] - 2026-09-29
+
+First release. Licensed under MIT.
 
 ### Added
 - **Admin app** (WP-Admin → VideoOptimizer):
@@ -40,3 +42,6 @@ First version, planned as 0.1.0 (version and tag to be confirmed before release)
 - **WP-CLI**: `wp videooptimizer status|token|videos|send|sync|flush`.
 - **German (formal) translation** for PHP and JS.
 - **Quality tooling**: PHPUnit unit and integration tests, Jest, Playwright E2E, PHPCS (WPCS), PHPStan level 8, ESLint/Stylelint, Plugin Check, GitHub Actions CI.
+
+[Unreleased]: https://github.com/ScaleCommerce/videooptimizer-wordpress/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/ScaleCommerce/videooptimizer-wordpress/releases/tag/v0.1.0
