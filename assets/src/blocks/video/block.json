@@ -1,0 +1,110 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "videooptimizer/video",
+	"version": "0.1.0",
+	"title": "VideoOptimizer Video",
+	"category": "videooptimizer",
+	"description": "A fast, adaptive video from VideoOptimizer \u2014 as poster with play button, lightbox or player.",
+	"keywords": [
+		"video",
+		"player",
+		"hls",
+		"lightbox",
+		"embed",
+		"videooptimizer"
+	],
+	"textdomain": "videooptimizer",
+	"attributes": {
+		"uuid": {
+			"type": "string",
+			"default": ""
+		},
+		"title": {
+			"type": "string",
+			"default": ""
+		},
+		"player": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"hosted",
+				"native"
+			]
+		},
+		"presentation": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"facade",
+				"lightbox",
+				"direct"
+			]
+		},
+		"autoplay": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"muted": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"loop": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"controls": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"priority": {
+			"type": "boolean",
+			"default": false
+		},
+		"caption": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"left",
+			"center",
+			"right",
+			"wide",
+			"full"
+		],
+		"spacing": {
+			"margin": true
+		}
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "videooptimizer-frontend"
+}

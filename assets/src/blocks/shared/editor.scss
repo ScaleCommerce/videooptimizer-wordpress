@@ -1,0 +1,105 @@
+@use "../../components/components";
+
+.vo-block-placeholder {
+
+	.components-placeholder__fieldset {
+		flex-direction: column;
+	}
+}
+
+.vo-block-loading {
+	display: grid;
+	place-items: center;
+	min-height: 160px;
+	background: #f0f0f1;
+}
+
+// Editor canvas: previews are not interactive (Disabled), keep them visually normal.
+.wp-block[data-type^="videooptimizer/"] .components-disabled {
+	opacity: 1;
+}
+
+.vo-editor-split {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 32px;
+	align-items: center;
+
+	&--right .vo-editor-split__media {
+		order: 2;
+	}
+}
+
+.vo-editor-hero {
+	position: relative;
+	display: grid;
+	align-items: center;
+	min-height: 420px;
+	padding: 48px;
+	overflow: hidden;
+	color: var(--vo-hero-text, #fff);
+	background: #0f172a center / cover no-repeat;
+	isolation: isolate;
+
+	&--full {
+		min-height: 640px;
+	}
+
+	&--medium {
+		min-height: 320px;
+	}
+
+	&::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(180deg, rgba(2, 6, 23, 0.15) 0%, rgba(2, 6, 23, 0.65) 100%);
+	}
+
+	&--overlay-dark::before {
+		background: rgba(2, 6, 23, 0.55);
+	}
+
+	&--overlay-none::before {
+		background: none;
+	}
+
+	&__content {
+		max-width: 42rem;
+
+		h1,
+		h2,
+		h3 {
+			color: var(--vo-hero-heading, #fff);
+		}
+	}
+
+	&__badge {
+		position: absolute;
+		top: 12px;
+		right: 12px;
+		padding: 2px 8px;
+		border-radius: 3px;
+		background: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		font-size: 11px;
+	}
+}
+
+.vo-grid-items-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+
+	&__item {
+		padding-bottom: 16px;
+		border-bottom: 1px solid #e0e0e0;
+	}
+
+	&__row {
+		display: flex;
+		gap: 4px;
+		margin-top: 8px;
+	}
+}

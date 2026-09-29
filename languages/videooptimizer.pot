@@ -1,0 +1,1682 @@
+# Copyright (C) 2026 ScaleCommerce GmbH
+# This file is distributed under the MIT license.
+msgid ""
+msgstr ""
+"Project-Id-Version: VideoOptimizer 0.1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/videooptimizer\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-09-29T08:39:50+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: videooptimizer\n"
+
+#. Plugin Name of the plugin
+#: videooptimizer.php
+msgid "VideoOptimizer"
+msgstr ""
+
+#. Plugin URI of the plugin
+#: videooptimizer.php
+msgid "https://videooptimizer.eu"
+msgstr ""
+
+#. Description of the plugin
+#: videooptimizer.php
+msgid "Fast, adaptive video from the VideoOptimizer CDN for WordPress and WooCommerce — Gutenberg blocks, shortcode, Elementor widget, media library integration and product videos."
+msgstr ""
+
+#. Author of the plugin
+#: videooptimizer.php
+msgid "ScaleCommerce GmbH"
+msgstr ""
+
+#. Author URI of the plugin
+#: videooptimizer.php
+msgid "https://scale.sc"
+msgstr ""
+
+#: src/Admin/AdminPage.php:68
+#: src/Editor/Elementor/Widget.php:150
+#: assets/src/admin/index.js:71
+#: assets/src/blocks/video-grid/index.js:38
+msgid "Videos"
+msgstr ""
+
+#: src/Admin/AdminPage.php:69
+#: assets/src/admin/index.js:74
+msgid "Libraries"
+msgstr ""
+
+#: src/Admin/AdminPage.php:70
+#: src/Admin/AdminPage.php:185
+#: assets/src/admin/index.js:79
+#: assets/src/admin/pages/Send.js:139
+#: assets/src/media/index.js:55
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:77
+#: src/Woo/WooCommerce.php:109
+msgid "Loading…"
+msgstr ""
+
+#: src/Admin/AdminPage.php:142
+msgid "The stored API token can no longer be decrypted (the security keys in wp-config.php changed). Please enter it again."
+msgstr ""
+
+#: src/Admin/AdminPage.php:143
+msgid "Almost done — connect your VideoOptimizer account to deliver fast, adaptive video."
+msgstr ""
+
+#: src/Admin/AdminPage.php:146
+msgid "Connect now"
+msgstr ""
+
+#: src/Api/ApiException.php:56
+msgid "VideoOptimizer is not connected yet. Please enter your API token under VideoOptimizer → Settings."
+msgstr ""
+
+#. translators: %s: technical error message
+#: src/Api/ApiException.php:60
+#, php-format
+msgid "VideoOptimizer could not be reached (%s). Please try again in a moment."
+msgstr ""
+
+#: src/Api/ApiException.php:63
+msgid "The API token is invalid, expired or has been revoked. Please create a new organization token in VideoOptimizer."
+msgstr ""
+
+#. translators: %s: upstream message, e.g. "Video limit of your plan reached"
+#: src/Api/ApiException.php:67
+#, php-format
+msgid "Your VideoOptimizer plan limit has been reached (%s). Please upgrade your plan or delete unused videos."
+msgstr ""
+
+#. translators: %s: upstream message
+#: src/Api/ApiException.php:71
+#, php-format
+msgid "The API token is missing a permission for this action (%s). Use an organization token."
+msgstr ""
+
+#: src/Api/ApiException.php:74
+msgid "The video or library no longer exists in VideoOptimizer."
+msgstr ""
+
+#: src/Api/ApiException.php:77
+msgid "The file is too large for VideoOptimizer."
+msgstr ""
+
+#: src/Api/ApiException.php:80
+msgid "This file type is not supported."
+msgstr ""
+
+#: src/Api/ApiException.php:83
+msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
+msgstr ""
+
+#: src/Api/ApiException.php:86
+msgid "This library is delivery-only (not media-managed) — uploads and poster changes are not possible here."
+msgstr ""
+
+#: src/Api/ApiException.php:89
+msgid "The VideoOptimizer request failed."
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:102
+#: assets/src/blocks/shared/editor.js:35
+msgid "Default (VideoOptimizer player settings)"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:103
+#: assets/src/blocks/shared/editor.js:41
+msgid "On"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:104
+#: assets/src/blocks/shared/editor.js:42
+msgid "Off"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:107
+#: src/Editor/Elementor/Widget.php:115
+#: src/Editor/Elementor/Widget.php:126
+#: src/Editor/Elementor/Widget.php:136
+#: src/Render/Renderer.php:301
+#: src/Render/Renderer.php:521
+#: src/Woo/WooCommerce.php:330
+#: assets/src/admin/pages/Settings.js:637
+#: assets/src/blocks/media-split/index.js:110
+#: assets/src/blocks/shared/editor.js:185
+msgid "Video"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:111
+#: assets/src/blocks/background-hero/index.js:73
+#: assets/src/blocks/media-split/index.js:69
+msgid "Layout"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:116
+msgid "Video + text"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:117
+msgid "Background hero"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:118
+msgid "Spotlight"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:119
+msgid "Video grid"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:143
+#: assets/src/blocks/video-grid/index.js:68
+msgid "Label"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:160
+#: assets/src/blocks/video-grid/index.js:152
+msgid "Columns"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:173
+#: src/Editor/Elementor/Widget.php:179
+#: assets/src/blocks/background-hero/index.js:144
+#: assets/src/blocks/spotlight/index.js:34
+#: assets/src/blocks/video/index.js:53
+msgid "Text"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:176
+#: assets/src/blocks/spotlight/index.js:35
+msgid "Eyebrow"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:177
+#: assets/src/blocks/background-hero/index.js:138
+#: assets/src/blocks/media-split/index.js:25
+#: assets/src/blocks/spotlight/index.js:36
+#: assets/src/blocks/video-grid/index.js:135
+msgid "Headline"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:178
+msgid "Subline"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:180
+#: assets/src/blocks/video-grid/index.js:143
+msgid "Intro"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:181
+#: assets/src/blocks/spotlight/index.js:37
+#: assets/src/blocks/video/index.js:70
+msgid "Caption"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:182
+msgid "Button text"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:197
+msgid "Button link"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:204
+#: src/Editor/Elementor/Widget.php:208
+#: assets/src/blocks/shared/editor.js:63
+#: assets/src/blocks/shared/editor.js:69
+msgid "Player"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:212
+#: assets/src/blocks/shared/editor.js:74
+msgid "Default (plugin settings)"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:213
+#: assets/src/blocks/shared/editor.js:81
+msgid "VideoOptimizer player (iframe)"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:214
+#: assets/src/blocks/shared/editor.js:88
+msgid "Native HTML5 player"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:221
+#: assets/src/blocks/shared/editor.js:101
+msgid "Presentation"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:225
+#: assets/src/blocks/shared/editor.js:107
+msgid "Default"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:226
+#: assets/src/blocks/shared/editor.js:109
+msgid "Poster, plays in place"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:227
+#: assets/src/admin/pages/Settings.js:457
+#: assets/src/blocks/shared/editor.js:116
+msgid "Poster, plays in a lightbox"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:228
+#: assets/src/admin/pages/Settings.js:464
+#: assets/src/blocks/shared/editor.js:123
+msgid "Player directly"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:235
+#: assets/src/admin/pages/VideoDetail.js:571
+#: assets/src/blocks/shared/editor.js:136
+msgid "Autoplay (muted)"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:236
+#: assets/src/blocks/shared/editor.js:148
+msgid "Muted"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:237
+#: assets/src/admin/pages/VideoDetail.js:580
+#: assets/src/blocks/shared/editor.js:156
+msgid "Loop"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:238
+#: assets/src/blocks/shared/editor.js:164
+msgid "Controls"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:255
+msgid "Above the fold (load immediately)"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:263
+#: assets/src/blocks/media-split/index.js:73
+msgid "Video position"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:267
+#: assets/src/blocks/media-split/index.js:80
+msgid "Left"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:268
+#: assets/src/blocks/media-split/index.js:84
+msgid "Right"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:276
+#: assets/src/blocks/background-hero/index.js:77
+msgid "Height"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:280
+#: assets/src/blocks/background-hero/index.js:84
+msgid "Full screen"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:281
+#: assets/src/blocks/background-hero/index.js:88
+msgid "Large"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:282
+#: assets/src/blocks/background-hero/index.js:92
+msgid "Medium"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:290
+#: assets/src/blocks/background-hero/index.js:100
+msgid "Overlay"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:294
+#: assets/src/blocks/background-hero/index.js:107
+msgid "Gradient"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:295
+#: assets/src/blocks/background-hero/index.js:111
+msgid "Dark"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:296
+#: assets/src/blocks/background-hero/index.js:115
+msgid "None"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:304
+msgid "Headline color"
+msgstr ""
+
+#: src/Editor/Elementor/Widget.php:312
+msgid "Text color"
+msgstr ""
+
+#: src/Media/Attachments.php:145
+msgid "The video was deleted in VideoOptimizer."
+msgstr ""
+
+#: src/Media/MediaLibrary.php:156
+#: src/Media/MediaLibrary.php:171
+#: assets/src/media/index.js:137
+msgid "Send to VideoOptimizer"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:156
+msgid "Send to VideoOptimizer again"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:281
+#: assets/src/components/ui.js:13
+msgid "Not sent"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:282
+#: assets/src/components/ui.js:14
+msgid "Waiting for transfer"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:283
+#: assets/src/components/ui.js:10
+#: assets/src/media/index.js:218
+msgid "Processing"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:284
+#: assets/src/media/index.js:216
+msgid "Optimized"
+msgstr ""
+
+#: src/Media/MediaLibrary.php:285
+#: assets/src/components/ui.js:12
+#: assets/src/components/VideoBrowser.js:85
+#: assets/src/media/index.js:217
+msgid "Failed"
+msgstr ""
+
+#: src/Media/Sender.php:80
+msgid "This attachment is not a video."
+msgstr ""
+
+#: src/Media/Sender.php:93
+msgid "VideoOptimizer did not return a video id."
+msgstr ""
+
+#: src/Media/Sender.php:124
+msgid "No media-managed library found. Please create a library under VideoOptimizer → Libraries."
+msgstr ""
+
+#: src/Render/Assets.php:53
+msgid "Close video"
+msgstr ""
+
+#: src/Render/Assets.php:54
+msgid "Play video"
+msgstr ""
+
+#. translators: %s: video title
+#: src/Render/Renderer.php:340
+#, php-format
+msgid "Play video: %s"
+msgstr ""
+
+#: src/Render/Renderer.php:563
+msgid "No video selected yet."
+msgstr ""
+
+#. translators: %s: video uuid
+#: src/Render/Renderer.php:565
+#, php-format
+msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
+msgstr ""
+
+#: src/Rest/AdminController.php:266
+msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN) and cannot be changed here."
+msgstr ""
+
+#: src/Rest/AdminController.php:270
+msgid "This does not look like a VideoOptimizer API token (vp_…)."
+msgstr ""
+
+#: src/Rest/AdminController.php:334
+msgid "Please enter a name."
+msgstr ""
+
+#: src/Rest/AdminController.php:422
+msgid "Please enter a public https:// URL."
+msgstr ""
+
+#: src/Rest/AdminController.php:441
+#: src/Rest/AdminController.php:467
+msgid "Invalid upload request."
+msgstr ""
+
+#: src/Rest/AdminController.php:550
+msgid "Invalid frame."
+msgstr ""
+
+#: src/Rest/AdminController.php:568
+#: assets/src/components/uploader.js:172
+msgid "Please choose a JPEG, PNG or WebP image."
+msgstr ""
+
+#: src/Rest/AdminController.php:598
+msgid "Invalid poster source."
+msgstr ""
+
+#: src/Rest/AdminController.php:657
+msgid "This video is no longer waiting for a decision."
+msgstr ""
+
+#: src/Rest/AdminController.php:660
+msgid "You are not allowed to delete videos in VideoOptimizer."
+msgstr ""
+
+#: src/Rest/AdminController.php:692
+msgid "Invalid video id."
+msgstr ""
+
+#: src/Rest/AdminController.php:723
+msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
+msgstr ""
+
+#: src/Woo/WooCommerce.php:95
+msgid "Product videos (VideoOptimizer)"
+msgstr ""
+
+#: src/Woo/WooCommerce.php:160
+msgid "Variation video (VideoOptimizer)"
+msgstr ""
+
+#: src/Woo/WooCommerce.php:163
+msgid "Shown in the product gallery; the gallery jumps to it when shoppers select this variation."
+msgstr ""
+
+#. translators: %s: product name
+#: src/Woo/WooCommerce.php:248
+#: src/Woo/WooCommerce.php:265
+#: src/Woo/WooCommerce.php:273
+#, php-format
+msgid "Video: %s"
+msgstr ""
+
+#: assets/src/admin/index.js:118
+msgid "VideoOptimizer sections"
+msgstr ""
+
+#: assets/src/admin/index.js:149
+msgid "Open VideoOptimizer app"
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Libraries.js:72
+#, js-format
+msgid "Encoding settings saved — %d video is being re-encoded in the background."
+msgid_plural "Encoding settings saved — %d videos are being re-encoded in the background."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/Libraries.js:102
+msgid "Encoding settings saved."
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:113
+msgid "Codecs"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:114
+msgid "Resolutions"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:134
+msgid "Add-on"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:147
+msgid "This library is delivery-only (managed outside VideoOptimizer media) — encoding settings are read-only and uploads go to other libraries."
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:173
+msgid "Save encoding settings"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:181
+msgid "New uploads use the new settings. Re-encode the existing videos of this library too?"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:193
+msgid "Re-encode now"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:199
+msgid "Re-encode existing videos?"
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Libraries.js:208
+#, js-format
+msgid "The new settings apply to new uploads right away. %d existing video of this library only gets the new codecs and resolutions when it is re-encoded. This runs in the background and can take a while."
+msgid_plural "The new settings apply to new uploads right away. The %d existing videos of this library only get the new codecs and resolutions when they are re-encoded. This runs in the background and can take a while, depending on the number and length of the videos."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/Libraries.js:222
+#: assets/src/admin/pages/Libraries.js:301
+#: assets/src/components/ui.js:120
+msgid "Cancel"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:228
+msgid "Only save"
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Libraries.js:236
+#, js-format
+msgid "Save & re-encode %d video"
+msgid_plural "Save & re-encode %d videos"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/Libraries.js:276
+msgid "Edit library"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:277
+#: assets/src/admin/pages/Libraries.js:377
+msgid "New library"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:289
+msgid "Name"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:295
+msgid "Description"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:310
+#: assets/src/admin/pages/Settings.js:307
+#: assets/src/admin/pages/VideoDetail.js:482
+msgid "Save"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:311
+msgid "Create library"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:355
+msgid "Library deleted."
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:371
+msgid "Libraries group your videos and define how they are encoded (codecs and resolutions). New uploads go to the default library from the settings."
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Libraries.js:399
+#, js-format
+msgid "%d videos"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:422
+msgid "Encoding settings"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:428
+msgid "Rename"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:437
+msgid "Show videos"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:444
+msgid "Delete"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:471
+msgid "Library saved."
+msgstr ""
+
+#. translators: %s: library name
+#: assets/src/admin/pages/Libraries.js:481
+#, js-format
+msgid "Delete \"%s\"?"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:487
+msgid "Delete library and all its videos"
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Libraries.js:498
+#, js-format
+msgid "All %d videos of this library are deleted permanently and disappear from every page that embeds them."
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:121
+msgid "Send media library videos to VideoOptimizer"
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:127
+msgid "The original files stay in your media library. As soon as VideoOptimizer has optimized a video, it is delivered adaptively wherever it is used — no content changes needed."
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:134
+msgid "Please connect VideoOptimizer first."
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:144
+msgid "No videos selected."
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:176
+#: assets/src/admin/pages/VideoDetail.js:463
+msgid "Details"
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:195
+msgid "Transferring… please keep this page open"
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/Send.js:200
+#, js-format
+msgid "Send %d videos"
+msgstr ""
+
+#: assets/src/admin/pages/Send.js:208
+msgid "Back to the media library"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:59
+msgid "Token removed."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:67
+msgid "Connection"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:72
+msgid "The stored token can no longer be decrypted (the security keys in wp-config.php changed). Please enter it again."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:81
+msgid "Connected"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:85
+msgid "Not connected"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:89
+msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN)."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:104
+msgid "Replace API token"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:108
+msgid "API token"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:115
+msgid "Create an organization token in VideoOptimizer under Organization → API tokens. It is stored encrypted and never shown again."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:132
+msgid "Save & test"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:146
+#: assets/src/admin/pages/Settings.js:175
+msgid "Test connection"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:157
+msgid "Remove token"
+msgstr ""
+
+#. translators: 1: number of libraries, 2: number of media-managed libraries
+#: assets/src/admin/pages/Settings.js:187
+#, js-format
+msgid "Connection works. %1$d libraries found (%2$d accept uploads)."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:198
+msgid "Create a library under \"Libraries\" to start uploading."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:214
+msgid "Not configured."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:217
+msgid "Active. No delivery received yet — use \"Send test\" in the VideoOptimizer app."
+msgstr ""
+
+#. translators: 1: event name, 2: date/time
+#: assets/src/admin/pages/Settings.js:224
+#, js-format
+msgid "Last delivery: %1$s at %2$s."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:243
+msgid "Webhook secret saved."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:244
+msgid "Webhook disabled."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:254
+msgid "Webhook (optional)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:258
+msgid "Without a webhook, WordPress checks every five minutes whether media library videos are ready. With a webhook, VideoOptimizer reports it instantly. Webhooks are created in the VideoOptimizer app under Organization → Webhooks (events video.ready and video.failed). Your site must be publicly reachable."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:267
+msgid "Webhook URL"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:277
+#: assets/src/admin/pages/VideoDetail.js:292
+msgid "Copied."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:281
+#: assets/src/admin/pages/VideoDetail.js:296
+msgid "Copy"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:292
+msgid "Replace signing secret"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:296
+msgid "Signing secret"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:316
+msgid "Disable"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:365
+msgid "Settings saved."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:387
+msgid "Defaults"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:393
+msgid "Library for new uploads"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:401
+msgid "Automatic (first library that accepts uploads)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:414
+msgid "Used for media library transfers. In the upload dialogs you can pick any library."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:422
+msgid "Default player"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:427
+msgid "VideoOptimizer player (iframe, design from your VideoOptimizer account)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:434
+msgid "Native HTML5 player (part of the page)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:445
+msgid "Default presentation"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:450
+msgid "Poster, plays in place (fastest)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:474
+msgid "Add schema.org VideoObject data (SEO)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:478
+msgid "Helps search engines show your videos in results."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:488
+msgid "Media library"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:493
+msgid "Show \"Send to VideoOptimizer\" in the media library"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:500
+msgid "Deliver optimized media library videos via VideoOptimizer"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:504
+msgid "Video blocks, [video] shortcodes and Elementor video widgets automatically use VideoOptimizer once the video is ready. Nothing changes in your content."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:511
+msgid "Send new video uploads automatically"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:515
+msgid "On public sites the transfer runs on the server; otherwise it runs in the background of your browser while WP-Admin is open."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:523
+msgid "Transfer method"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:528
+msgid "Automatic (server for public sites, otherwise browser)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:535
+msgid "Always upload from the browser"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:542
+msgid "Choose \"browser\" if your site is protected (password, maintenance mode, IP allowlist)."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:550
+msgid "When a linked media library video is deleted"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:558
+msgid "Ask whether to delete it in VideoOptimizer too"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:565
+msgid "Keep the video in VideoOptimizer"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:572
+msgid "Delete it in VideoOptimizer too (only if unused)"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:579
+msgid "Videos that are still used in pages, products or other media files are never deleted without asking."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:595
+msgid "Product videos in the product gallery"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:604
+msgid "Position in the gallery"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:612
+msgid "After the product images"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:619
+msgid "Right after the main image"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:630
+msgid "\"Video\" product tab"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:636
+msgid "Tab title"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:644
+msgid "Hover preview in shop and category grids"
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:648
+msgid "Only on devices with a mouse; respects \"reduce motion\"."
+msgstr ""
+
+#: assets/src/admin/pages/Settings.js:664
+msgid "Save settings"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:47
+msgid "Poster updated."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:60
+msgid "Frames are available once the video has been processed."
+msgstr ""
+
+#. translators: %d: frame number
+#: assets/src/admin/pages/VideoDetail.js:85
+#, js-format
+msgid "Use frame %d as poster"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:122
+msgid "The poster image could not be processed."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:129
+#: assets/src/admin/pages/VideoDetail.js:216
+msgid "Custom poster is active."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:138
+msgid "Choose a poster image"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:193
+msgid "Upload image"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:203
+msgid "From media library"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:223
+msgid "Use uploaded poster"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:234
+msgid "Custom poster removed."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:238
+msgid "Remove uploaded poster"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:244
+msgid "JPEG, PNG or WebP. Use the same aspect ratio as the video for best results."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:257
+msgid "Shortcode"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:261
+msgid "Shortcode (lightbox, native player)"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:268
+msgid "Video ID (blocks, Elementor, WooCommerce)"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:340
+#: assets/src/admin/pages/VideoDetail.js:392
+msgid "All videos"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:357
+msgid "Saved."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:367
+msgid "Title saved."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:377
+msgid "Video deleted."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:419
+msgid "VideoOptimizer is encoding this video. This page updates automatically."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:435
+msgid "Poster"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:439
+msgid "Pick one of the frames or upload your own image. The change is live everywhere within seconds."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:445
+msgid "Custom poster"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:452
+msgid "Embed"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:470
+msgid "Title"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:486
+msgid "Status"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:493
+msgid "Duration"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:506
+msgid "Resolution"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:517
+msgid "Renditions"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:535
+msgid "Views"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:543
+msgid "Size"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:559
+msgid "Player defaults"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:564
+msgid "Used by the VideoOptimizer player unless a block overrides them."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:586
+msgid "Start muted"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:592
+msgid "Preload"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:607
+msgid "Delete video"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:617
+msgid "Delete this video?"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:618
+msgid "Delete permanently"
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:627
+msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:11
+msgid "Welcome to VideoOptimizer"
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:13
+msgid "Deliver your videos adaptively from a European CDN — fast on every device, without YouTube branding or tracking."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:20
+msgid "Create an organization API token in VideoOptimizer (Organization → API tokens)."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:33
+msgid "Paste it under Settings and click \"Save & test\"."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:39
+msgid "Upload videos here — or send existing ones from the media library — and add them with the VideoOptimizer blocks, the [videooptimizer] shortcode or the Elementor widget."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:47
+msgid "Connect VideoOptimizer"
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:51
+msgid "Please ask an administrator to connect VideoOptimizer."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:69
+msgid "Upload videos (drag & drop works too), then use them in blocks, the shortcode, Elementor or as WooCommerce product videos. Click a video for poster, options and embed code."
+msgstr ""
+
+#: assets/src/admin/pages/Videos.js:74
+msgid "Send existing media library videos"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:21
+msgid "Big headline"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:25
+msgid "A short subline…"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:33
+msgid "Call to action"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:71
+#: assets/src/blocks/background-hero/index.js:162
+msgid "Background video"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:122
+#: assets/src/blocks/shared/editor.js:171
+msgid "Above the fold"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:123
+msgid "Loads the video immediately. Recommended when the hero is the first block."
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:134
+msgid "Colors"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:155
+msgid "Background video plays on the website"
+msgstr ""
+
+#: assets/src/blocks/background-hero/index.js:163
+msgid "Short, muted clips without important audio work best."
+msgstr ""
+
+#: assets/src/blocks/media-split/index.js:29
+msgid "Tell your story…"
+msgstr ""
+
+#: assets/src/blocks/media-split/index.js:37
+msgid "Button"
+msgstr ""
+
+#: assets/src/blocks/media-split/index.js:56
+msgid "Switch video side"
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:92
+msgid "The VideoOptimizer player uses the design configured in your VideoOptimizer account. The native player is part of your page and styled by the browser."
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:127
+msgid "\"Poster\" loads no video data until visitors click play — the fastest option."
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:140
+msgid "Only for \"Player directly\": starts muted once the video is visible. Browsers never autoplay with sound."
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:172
+msgid "Loads the poster with high priority and the player immediately. Use only for the first visible video of a page."
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:206
+#: assets/src/components/VideoBrowser.js:61
+msgid "VideoOptimizer is not connected yet."
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:212
+#: assets/src/components/VideoBrowser.js:66
+msgid "Enter your API token"
+msgstr ""
+
+#: assets/src/blocks/shared/editor.js:215
+msgid "Please ask an administrator to connect it."
+msgstr ""
+
+#: assets/src/blocks/spotlight/index.js:49
+msgid "VideoOptimizer Spotlight"
+msgstr ""
+
+#: assets/src/blocks/spotlight/index.js:50
+msgid "A centered headline with a large video. Headline and caption are edited in the sidebar."
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:84
+#: assets/src/woo/index.js:70
+msgid "Move up"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:94
+#: assets/src/woo/index.js:77
+msgid "Move down"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:105
+#: assets/src/components/VideoSelectControl.js:96
+msgid "Remove"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:124
+#: assets/src/blocks/video-grid/index.js:187
+msgid "Add video"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:129
+msgid "Text & layout"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:174
+msgid "VideoOptimizer Video Grid"
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:177
+msgid "Add a few videos — visitors open them in a lightbox."
+msgstr ""
+
+#: assets/src/blocks/video-grid/index.js:195
+msgid "Add a video to the grid"
+msgstr ""
+
+#: assets/src/blocks/video/index.js:29
+msgid "VideoOptimizer Video"
+msgstr ""
+
+#: assets/src/blocks/video/index.js:30
+msgid "Choose a video from VideoOptimizer or upload a new one."
+msgstr ""
+
+#: assets/src/blocks/video/index.js:44
+#: assets/src/components/VideoSelectControl.js:86
+msgid "Replace"
+msgstr ""
+
+#: assets/src/blocks/video/index.js:59
+msgid "Accessible title"
+msgstr ""
+
+#: assets/src/blocks/video/index.js:60
+msgid "Used for screen readers and search engines. Defaults to the video title."
+msgstr ""
+
+#: assets/src/components/api.js:15
+msgid "The request failed."
+msgstr ""
+
+#: assets/src/components/api.js:173
+msgid "Untitled video"
+msgstr ""
+
+#: assets/src/components/transfer.js:48
+msgid "The video file could not be read from the media library."
+msgstr ""
+
+#: assets/src/components/ui.js:11
+#: assets/src/components/VideoBrowser.js:83
+msgid "Ready"
+msgstr ""
+
+#: assets/src/components/ui.js:15
+msgid "Uploading"
+msgstr ""
+
+#. translators: %d: HTTP status code
+#: assets/src/components/uploader.js:42
+#, js-format
+msgid "Upload failed (HTTP %d)."
+msgstr ""
+
+#: assets/src/components/uploader.js:52
+msgid "Network error while uploading. Please check your connection."
+msgstr ""
+
+#: assets/src/components/uploader.js:59
+#: assets/src/components/uploader.js:114
+msgid "Upload canceled."
+msgstr ""
+
+#: assets/src/components/uploader.js:88
+msgid "Please choose a video file."
+msgstr ""
+
+#: assets/src/components/uploader.js:137
+msgid "The storage did not return an ETag (CORS must expose the ETag header). Please contact VideoOptimizer support."
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:80
+msgid "Uploaded – processing…"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:229
+msgid "Library"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:235
+msgid "All libraries"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:248
+msgid "Search videos"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:252
+msgid "Ready only"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:269
+msgid "Upload"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:278
+msgid "Import URL"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:290
+msgid "Public https:// URL of a video file"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:304
+msgid "Import"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:340
+msgid "No videos match your filter."
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:344
+msgid "No videos yet. Upload your first video or drop a file here."
+msgstr ""
+
+#. translators: 1: shown videos, 2: total videos
+#: assets/src/components/VideoBrowser.js:364
+#, js-format
+msgid "%1$d of %2$d videos"
+msgstr ""
+
+#: assets/src/components/VideoPicker.js:13
+msgid "Choose a video"
+msgstr ""
+
+#: assets/src/components/VideoSelectControl.js:70
+msgid "This video no longer exists."
+msgstr ""
+
+#: assets/src/components/VideoSelectControl.js:87
+msgid "Choose video"
+msgstr ""
+
+#. translators: %s: media file title
+#: assets/src/media/DeleteOffers.js:59
+#, js-format
+msgid "\"%s\" was deleted from the media library. The optimized copy still exists in VideoOptimizer."
+msgstr ""
+
+#. translators: %d: number of places
+#: assets/src/media/DeleteOffers.js:71
+#, js-format
+msgid "The video is still used in %d place — deleting it removes it there too:"
+msgid_plural "The video is still used in %d places — deleting it removes it there too:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/media/DeleteOffers.js:109
+msgid "Delete in VideoOptimizer too"
+msgstr ""
+
+#: assets/src/media/DeleteOffers.js:120
+msgid "Keep in VideoOptimizer"
+msgstr ""
+
+#: assets/src/media/index.js:20
+msgid "Starting transfer…"
+msgstr ""
+
+#: assets/src/media/index.js:21
+msgid "Reading file…"
+msgstr ""
+
+#: assets/src/media/index.js:22
+msgid "Uploading to VideoOptimizer…"
+msgstr ""
+
+#: assets/src/media/index.js:23
+msgid "Finishing…"
+msgstr ""
+
+#: assets/src/media/index.js:50
+msgid "Connect VideoOptimizer to deliver this video adaptively."
+msgstr ""
+
+#: assets/src/media/index.js:110
+msgid "Delivered via VideoOptimizer wherever this video is used (video block, [video] shortcode, Elementor)."
+msgstr ""
+
+#: assets/src/media/index.js:118
+msgid "VideoOptimizer is encoding the video. Until it is ready, the original file is used."
+msgstr ""
+
+#: assets/src/media/index.js:136
+msgid "Send again"
+msgstr ""
+
+#: assets/src/media/index.js:153
+msgid "Poster & details"
+msgstr ""
+
+#: assets/src/media/index.js:163
+msgid "Unlink"
+msgstr ""
+
+#. translators: 1: file name, 2: percent, 3: remaining videos
+#: assets/src/media/index.js:272
+#, js-format
+msgid "VideoOptimizer: uploading %1$s (%2$d%%) — %3$d more in queue. Please keep this page open."
+msgstr ""
+
+#. translators: %s: error
+#: assets/src/media/index.js:286
+#, js-format
+msgid "VideoOptimizer: transfer failed — %s"
+msgstr ""
+
+#: assets/src/woo/index.js:34
+msgid "Gallery videos"
+msgstr ""
+
+#: assets/src/woo/index.js:36
+msgid "Shown as extra slides in the product image gallery."
+msgstr ""
+
+#: assets/src/woo/index.js:43
+msgid "Using the new \"Product Gallery\" block? It only shows WooCommerce's own gallery videos: add the video from the media library in the product gallery and send it to VideoOptimizer — it is then delivered from VideoOptimizer (adaptive HLS) automatically."
+msgstr ""
+
+#: assets/src/woo/index.js:85
+msgid "Add gallery video"
+msgstr ""
+
+#: assets/src/woo/index.js:90
+msgid "Video tab"
+msgstr ""
+
+#: assets/src/woo/index.js:95
+msgid "Adds a \"Video\" tab next to the description."
+msgstr ""
+
+#: assets/src/woo/index.js:103
+msgid "Hover preview"
+msgstr ""
+
+#: assets/src/woo/index.js:108
+msgid "Plays muted when shoppers hover the product in the shop and category pages. Short clips (3–10 s) work best."
+msgstr ""
+
+#: assets/src/woo/index.js:117
+msgid "Add a gallery video"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Background Hero"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block description"
+msgid "Full-width, muted looping background video with headline and button."
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block keyword"
+msgid "hero"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block keyword"
+msgid "background"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block keyword"
+msgid "cover"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block keyword"
+msgid "banner"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+msgctxt "block keyword"
+msgid "loop"
+msgstr ""
+
+#: assets/src/blocks/background-hero/block.json
+#: assets/src/blocks/media-split/block.json
+#: assets/src/blocks/spotlight/block.json
+#: assets/src/blocks/video-grid/block.json
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "videooptimizer"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video + Text"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block description"
+msgid "Video next to text and a button — ideal for features and product stories."
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+#: assets/src/blocks/spotlight/block.json
+#: assets/src/blocks/video-grid/block.json
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "video"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block keyword"
+msgid "text"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block keyword"
+msgid "media"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block keyword"
+msgid "split"
+msgstr ""
+
+#: assets/src/blocks/media-split/block.json
+msgctxt "block keyword"
+msgid "feature"
+msgstr ""
+
+#: assets/src/blocks/spotlight/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Spotlight"
+msgstr ""
+
+#: assets/src/blocks/spotlight/block.json
+msgctxt "block description"
+msgid "A centered headline with a large video and caption."
+msgstr ""
+
+#: assets/src/blocks/spotlight/block.json
+msgctxt "block keyword"
+msgid "spotlight"
+msgstr ""
+
+#: assets/src/blocks/spotlight/block.json
+msgctxt "block keyword"
+msgid "showcase"
+msgstr ""
+
+#: assets/src/blocks/spotlight/block.json
+#: assets/src/blocks/video-grid/block.json
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "lightbox"
+msgstr ""
+
+#: assets/src/blocks/video-grid/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video Grid"
+msgstr ""
+
+#: assets/src/blocks/video-grid/block.json
+msgctxt "block description"
+msgid "Several videos in a grid — opens them in a lightbox."
+msgstr ""
+
+#: assets/src/blocks/video-grid/block.json
+msgctxt "block keyword"
+msgid "grid"
+msgstr ""
+
+#: assets/src/blocks/video-grid/block.json
+msgctxt "block keyword"
+msgid "gallery"
+msgstr ""
+
+#: assets/src/blocks/video-grid/block.json
+msgctxt "block keyword"
+msgid "playlist"
+msgstr ""
+
+#: assets/src/blocks/video/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video"
+msgstr ""
+
+#: assets/src/blocks/video/block.json
+msgctxt "block description"
+msgid "A fast, adaptive video from VideoOptimizer — as poster with play button, lightbox or player."
+msgstr ""
+
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "player"
+msgstr ""
+
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "hls"
+msgstr ""
+
+#: assets/src/blocks/video/block.json
+msgctxt "block keyword"
+msgid "embed"
+msgstr ""

@@ -1,0 +1,70 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "videooptimizer/background-hero",
+	"version": "0.1.0",
+	"title": "VideoOptimizer Background Hero",
+	"category": "videooptimizer",
+	"description": "Full-width, muted looping background video with headline and button.",
+	"keywords": [
+		"hero",
+		"background",
+		"cover",
+		"banner",
+		"loop",
+		"videooptimizer"
+	],
+	"textdomain": "videooptimizer",
+	"attributes": {
+		"uuid": {
+			"type": "string",
+			"default": ""
+		},
+		"height": {
+			"type": "string",
+			"default": "large",
+			"enum": [
+				"full",
+				"large",
+				"medium"
+			]
+		},
+		"overlay": {
+			"type": "string",
+			"default": "gradient",
+			"enum": [
+				"gradient",
+				"dark",
+				"none"
+			]
+		},
+		"headlineColor": {
+			"type": "string",
+			"default": ""
+		},
+		"textColor": {
+			"type": "string",
+			"default": ""
+		},
+		"priority": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		],
+		"spacing": {
+			"margin": true
+		}
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "videooptimizer-frontend"
+}

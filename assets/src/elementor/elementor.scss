@@ -1,0 +1,26 @@
+// Elementor panel is dark/light themed and narrow.
+.videooptimizer-elementor-control {
+	flex-direction: column;
+	align-items: stretch !important;
+
+	.elementor-control-input-wrapper {
+		width: 100%;
+	}
+
+	.vo-select__current {
+		grid-template-columns: 80px 1fr;
+	}
+
+	.vo-select__info strong {
+		color: var(--e-a-color-txt, inherit);
+	}
+}
+
+// Picker modal opens above the Elementor editor.
+.vo-picker.components-modal__frame {
+	z-index: 100001;
+}
+
+.components-modal__screen-overlay:has(.vo-picker) {
+	z-index: 100000;
+}

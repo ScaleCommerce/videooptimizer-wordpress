@@ -1,0 +1,293 @@
+// Shared admin/editor UI (picker, cards, badges, select control).
+
+.vo-badge {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.6;
+	background: #f0f0f1;
+	color: #50575e;
+	white-space: nowrap;
+
+	&--ready {
+		background: #edfaef;
+		color: #00701a;
+	}
+
+	&--processing,
+	&--uploading,
+	&--pending {
+		background: #fcf9e8;
+		color: #8a6100;
+	}
+
+	&--failed {
+		background: #fcf0f1;
+		color: #b32d2e;
+	}
+}
+
+.vo-progress {
+	flex: 1;
+	min-width: 80px;
+	height: 6px;
+	overflow: hidden;
+	border-radius: 3px;
+	background: #e0e0e0;
+
+	&__bar {
+		height: 100%;
+		background: var(--wp-admin-theme-color, #3858e9);
+		transition: width 0.2s ease;
+	}
+}
+
+.vo-poster {
+	position: relative;
+	aspect-ratio: 16 / 9;
+	overflow: hidden;
+	border-radius: 4px;
+	background: #1e1e1e;
+
+	img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	&__empty {
+		position: absolute;
+		inset: 0;
+		display: grid;
+		place-items: center;
+		width: 100%;
+		height: 100%;
+		color: #8c8f94;
+		font-size: 28px;
+	}
+
+	&__duration {
+		position: absolute;
+		right: 6px;
+		bottom: 6px;
+		padding: 1px 6px;
+		border-radius: 3px;
+		background: rgba(0, 0, 0, 0.72);
+		color: #fff;
+		font-size: 11px;
+		font-variant-numeric: tabular-nums;
+	}
+}
+
+.vo-grid-cards {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+	gap: 16px;
+}
+
+.vo-card {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: 1px solid #dcdcde;
+	border-radius: 6px;
+	background: #fff;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+	&.is-clickable:hover {
+		border-color: var(--wp-admin-theme-color, #3858e9);
+	}
+
+	&.is-selected {
+		border-color: var(--wp-admin-theme-color, #3858e9);
+		box-shadow: 0 0 0 1px var(--wp-admin-theme-color, #3858e9);
+	}
+
+	&__main {
+		display: block;
+		width: 100%;
+		margin: 0;
+		padding: 8px 8px 0;
+		border: 0;
+		background: none;
+		text-align: left;
+		cursor: pointer;
+
+		&:disabled {
+			cursor: default;
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--wp-admin-theme-color, #3858e9);
+			outline-offset: -2px;
+		}
+	}
+
+	&__title {
+		display: block;
+		overflow: hidden;
+		margin-top: 8px;
+		font-weight: 600;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	&__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		align-items: center;
+		padding: 6px 8px 8px;
+	}
+
+	&__res {
+		color: #757575;
+		font-size: 11px;
+	}
+
+	&__error {
+		margin: 0 8px 8px;
+		color: #b32d2e;
+		font-size: 12px;
+	}
+}
+
+.vo-toolbar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	align-items: center;
+	margin-bottom: 16px;
+
+	.components-search-control {
+		min-width: 220px;
+	}
+
+	.components-toggle-control {
+		margin: 0;
+	}
+
+	&__spacer {
+		flex: 1;
+	}
+}
+
+.vo-url-import {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+	margin-bottom: 16px;
+
+	.components-base-control {
+		flex: 1;
+	}
+}
+
+.vo-uploads {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: flex;
+		gap: 12px;
+		align-items: center;
+		padding: 6px 0;
+		border-bottom: 1px solid #f0f0f1;
+	}
+
+	&__name {
+		overflow: hidden;
+		width: 40%;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.vo-picker {
+
+	.components-modal__content {
+		min-height: 60vh;
+	}
+
+}
+
+.vo-browser__grid-wrap {
+	position: relative;
+	min-height: 200px;
+}
+
+.vo-center {
+	display: grid;
+	place-items: center;
+	padding: 40px;
+}
+
+.vo-empty,
+.vo-count {
+	color: #757575;
+	text-align: center;
+}
+
+.vo-select {
+
+	&__label {
+		margin-bottom: 8px;
+		font-size: 11px;
+		font-weight: 500;
+		text-transform: uppercase;
+	}
+
+	&__current {
+		display: grid;
+		grid-template-columns: 96px 1fr;
+		gap: 10px;
+		align-items: center;
+		margin-bottom: 8px;
+	}
+
+	&__info {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-width: 0;
+
+		strong {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.vo-badge {
+			align-self: flex-start;
+		}
+	}
+
+	&__actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	&__help {
+		margin: 8px 0 0;
+		color: #757575;
+		font-size: 12px;
+	}
+
+	&__error {
+		grid-column: 1 / -1;
+		margin: 0;
+		color: #b32d2e;
+	}
+}
+
+.vo-modal-actions {
+	display: flex;
+	gap: 8px;
+	justify-content: flex-end;
+	margin-top: 24px;
+}

@@ -1,0 +1,29 @@
+# Excluded from the release ZIP (bin/zip.sh). Source (assets/src) stays included for
+# wordpress.org's "human readable code" guideline.
+/.git
+/.github
+/node_modules
+/vendor
+/tests
+/bin
+/dist
+/.phpunit.cache
+/test-results
+/playwright-report
+.distignore
+.gitattributes
+.gitignore
+.editorconfig
+.eslintrc.json
+.stylelintrc.json
+composer.json
+composer.lock
+package-lock.json
+phpcs.xml.dist
+phpstan.neon.dist
+phpunit.xml.dist
+playwright.config.js
+CLAUDE.md
+README.md
+CHANGELOG.md
+languages/js-map.json

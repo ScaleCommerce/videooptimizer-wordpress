@@ -1,0 +1,10 @@
+/vendor/
+/node_modules/
+/build/
+/dist/
+/.phpunit.cache/
+/test-results/
+/playwright-report/
+.DS_Store
+.idea/
+.vscode/

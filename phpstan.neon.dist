@@ -1,0 +1,18 @@
+includes:
+	- vendor/szepeviktor/phpstan-wordpress/extension.neon
+
+parameters:
+	level: 8
+	paths:
+		- videooptimizer.php
+		- uninstall.php
+		- src
+	excludePaths:
+		# Elementor is an optional runtime dependency without published stubs.
+		- src/Editor/Elementor/VideoControl.php
+		- src/Editor/Elementor/Widget.php
+	scanFiles:
+		- vendor/php-stubs/woocommerce-stubs/woocommerce-stubs.php
+		- vendor/php-stubs/wp-cli-stubs/wp-cli-stubs.php
+	bootstrapFiles:
+		- tests/phpstan-bootstrap.php

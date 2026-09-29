@@ -1,0 +1,118 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "videooptimizer/video-grid",
+	"version": "0.1.0",
+	"title": "VideoOptimizer Video Grid",
+	"category": "videooptimizer",
+	"description": "Several videos in a grid \u2014 opens them in a lightbox.",
+	"keywords": [
+		"video",
+		"grid",
+		"gallery",
+		"playlist",
+		"lightbox",
+		"videooptimizer"
+	],
+	"textdomain": "videooptimizer",
+	"attributes": {
+		"items": {
+			"type": "array",
+			"default": [],
+			"items": {
+				"type": "object"
+			}
+		},
+		"headline": {
+			"type": "string",
+			"default": ""
+		},
+		"intro": {
+			"type": "string",
+			"default": ""
+		},
+		"columns": {
+			"type": "number",
+			"default": 3
+		},
+		"player": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"hosted",
+				"native"
+			]
+		},
+		"presentation": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"facade",
+				"lightbox",
+				"direct"
+			]
+		},
+		"autoplay": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"muted": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"loop": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"controls": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"priority": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		],
+		"spacing": {
+			"margin": true
+		},
+		"color": {
+			"background": true,
+			"text": true
+		}
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "videooptimizer-frontend"
+}

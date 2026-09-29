@@ -1,0 +1,29 @@
+{
+	"name": "videooptimizer-wordpress",
+	"version": "0.1.0",
+	"private": true,
+	"description": "VideoOptimizer for WordPress & WooCommerce — build tooling.",
+	"license": "MIT",
+	"author": "ScaleCommerce GmbH",
+	"scripts": {
+		"build": "wp-scripts build --webpack-src-dir=assets/src --webpack-copy-php",
+		"start": "wp-scripts start --webpack-src-dir=assets/src --webpack-copy-php",
+		"lint": "npm run lint:js && npm run lint:css",
+		"lint:js": "wp-scripts lint-js assets/src tests/js",
+		"lint:css": "wp-scripts lint-style \"assets/src/**/*.{css,scss}\"",
+		"lint:fix": "wp-scripts lint-js --fix assets/src tests/js && wp-scripts lint-style --fix \"assets/src/**/*.{css,scss}\"",
+		"test:unit": "wp-scripts test-unit-js --config tests/js/jest.config.js",
+		"test:e2e": "playwright test"
+	},
+	"dependencies": {
+		"hls.js": "~1.6.16"
+	},
+	"devDependencies": {
+		"@playwright/test": "^1.55.0",
+		"@wordpress/api-fetch": "^7.56.0",
+		"@wordpress/i18n": "^6.29.0",
+		"@wordpress/scripts": "^30.25.0",
+		"copy-webpack-plugin": "^12.0.2",
+		"typescript": "^5.9.3"
+	}
+}

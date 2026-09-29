@@ -1,0 +1,54 @@
+{
+	"name": "scalecommerce/videooptimizer-wordpress",
+	"description": "VideoOptimizer for WordPress & WooCommerce — adaptive video delivery from the VideoOptimizer CDN.",
+	"type": "wordpress-plugin",
+	"license": "MIT",
+	"homepage": "https://videooptimizer.eu",
+	"authors": [
+		{
+			"name": "ScaleCommerce GmbH",
+			"homepage": "https://scale.sc"
+		}
+	],
+	"require": {
+		"php": ">=8.1"
+	},
+	"require-dev": {
+		"brain/monkey": "^2.6",
+		"phpunit/phpunit": "^9.6",
+		"yoast/phpunit-polyfills": "^3.0",
+		"wp-phpunit/wp-phpunit": "^6.8",
+		"wp-coding-standards/wpcs": "^3.1",
+		"phpcompatibility/phpcompatibility-wp": "^2.1",
+		"dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+		"phpstan/phpstan": "^2.1",
+		"szepeviktor/phpstan-wordpress": "^2.0",
+		"php-stubs/woocommerce-stubs": "^9.0",
+		"php-stubs/wp-cli-stubs": "^2.11"
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"ScaleCommerce\\VideoOptimizer\\": "src/",
+			"ScaleCommerce\\VideoOptimizer\\Tests\\": "tests/"
+		}
+	},
+	"scripts": {
+		"lint": [
+			"@phpcs",
+			"@phpstan"
+		],
+		"phpcs": "phpcs",
+		"phpstan": "phpstan analyse --memory-limit=1G",
+		"fix": "phpcbf",
+		"test": "phpunit --testsuite unit"
+	},
+	"config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		},
+		"sort-packages": true,
+		"platform": {
+			"php": "8.1.0"
+		}
+	}
+}

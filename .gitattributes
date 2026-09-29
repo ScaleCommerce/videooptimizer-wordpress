@@ -1,0 +1,16 @@
+* text=auto eol=lf
+*.mo binary
+*.png binary
+*.jpg binary
+
+# Not part of `git archive` exports.
+/.github export-ignore
+/tests export-ignore
+/.distignore export-ignore
+/.editorconfig export-ignore
+/.eslintrc.json export-ignore
+/.stylelintrc.json export-ignore
+/phpcs.xml.dist export-ignore
+/phpstan.neon.dist export-ignore
+/phpunit.xml.dist export-ignore
+/playwright.config.js export-ignore

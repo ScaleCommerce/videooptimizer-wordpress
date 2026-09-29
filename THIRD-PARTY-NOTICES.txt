@@ -1,0 +1,16 @@
+# Third-party notices
+
+VideoOptimizer for WordPress is licensed under the MIT License (see LICENSE). It bundles the
+following third-party software.
+
+## hls.js
+
+- Version: 1.6.x (`build/vendor/hls.light.min.js`, copied from the `hls.js` npm package)
+- License: Apache License 2.0
+- Source: https://github.com/video-dev/hls.js
+- Copyright: © Dailymotion and hls.js contributors
+
+Loaded on demand only in browsers without native HLS playback.
+
+WordPress packages (`@wordpress/*`) are used as externals provided by WordPress itself and are
+not bundled.
