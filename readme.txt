@@ -92,4 +92,4 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 
 == Third-party code ==
 
-* hls.js 1.6 — Apache License 2.0 — https://github.com/video-dev/hls.js (loaded on demand in browsers without native HLS).
+* hls.js 1.7 — Apache License 2.0 — https://github.com/video-dev/hls.js (loaded on demand in browsers without native HLS).

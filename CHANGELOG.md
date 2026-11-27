@@ -13,6 +13,7 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ### Changed
 - Default player host is `https://player.videooptimizer.eu` (was `videooptimizer.eu`); `VIDEOOPTIMIZER_EMBED_BASE_URL` and the `videooptimizer_embed_base_url` filter still override it, old embed URLs keep working ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
 - App links point to `https://app.videooptimizer.eu` ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
+- hls.js updated to 1.7.4 ([#4](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/4)).
 
 ### Fixed
 - Libraries no longer send the unknown `encoding_tier` field, which the API dropped silently ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
