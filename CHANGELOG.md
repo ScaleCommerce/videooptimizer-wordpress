@@ -4,6 +4,9 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Changed
+- After a transport error, rate limit or gateway error the plugin stops asking the API for uncached embeds for 60 seconds (cached videos are still served) ([#13](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/13)).
+
 ## [0.1.3] - 2026-11-27
 
 ### Upgrade

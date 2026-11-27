@@ -30,6 +30,20 @@ abstract class TestCase extends PolyfillTestCase {
 	 */
 	protected array $transients = array();
 
+	/**
+	 * Expiration passed to set_transient(), per transient name.
+	 *
+	 * @var array<string, int>
+	 */
+	protected array $transient_ttls = array();
+
+	/**
+	 * Number of set_transient() calls, per transient name.
+	 *
+	 * @var array<string, int>
+	 */
+	protected array $transient_writes = array();
+
 	protected function set_up(): void {
 		parent::set_up();
 		Monkey\setUp();
@@ -64,8 +78,10 @@ abstract class TestCase extends PolyfillTestCase {
 					return true;
 				},
 				'get_transient'        => fn ( $name ) => $this->transients[ $name ] ?? false,
-				'set_transient'        => function ( $name, $value ) {
-					$this->transients[ $name ] = $value;
+				'set_transient'        => function ( $name, $value, $expiration = 0 ) {
+					$this->transients[ $name ]       = $value;
+					$this->transient_ttls[ $name ]   = (int) $expiration;
+					$this->transient_writes[ $name ] = ( $this->transient_writes[ $name ] ?? 0 ) + 1;
 					return true;
 				},
 				'delete_transient'     => function ( $name ) {
