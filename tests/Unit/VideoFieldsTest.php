@@ -1,6 +1,6 @@
 <?php
 /**
- * Tag and metadata validation.
+ * Tag, metadata and subtitle language validation.
  *
  * @package VideoOptimizer
  */
@@ -71,5 +71,26 @@ final class VideoFieldsTest extends TestCase {
 
 	public function test_metadata_strips_control_characters(): void {
 		$this->assertSame( array( 'k' => 'ab' ), VideoFields::metadata( array( 'k' => "a\x00b\n" ) ) );
+	}
+
+	public function test_language_codes_are_validated_as_bcp47(): void {
+		foreach ( array( 'de', 'en-US', 'de-x-simple', 'zh-Hans-CN' ) as $code ) {
+			$this->assertSame( $code, VideoFields::language( $code ) );
+		}
+		foreach ( array( '', 'd', 'de_DE', 'de/../x', str_repeat( 'a', 40 ), 'de en' ) as $code ) {
+			try {
+				VideoFields::language( $code );
+				$this->fail( 'Expected an exception for ' . $code );
+			} catch ( \InvalidArgumentException $e ) {
+				$this->assertNotSame( '', $e->getMessage() );
+			}
+		}
+	}
+
+	public function test_subtitle_kind_defaults_and_validates(): void {
+		$this->assertSame( 'captions', VideoFields::subtitle_kind( 'captions' ) );
+		$this->assertNull( VideoFields::subtitle_kind( '' ) );
+		$this->expectException( \InvalidArgumentException::class );
+		VideoFields::subtitle_kind( 'lyrics' );
 	}
 }

@@ -10,7 +10,7 @@ namespace ScaleCommerce\VideoOptimizer\Api;
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Applies the API rules to tags and metadata before they are sent, so editors get a
+ * Applies the API rules to tags, metadata and subtitle fields before they are sent, so editors get a
  * clear message instead of a generic 400.
  */
 final class VideoFields {
@@ -82,5 +82,37 @@ final class VideoFields {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * A BCP 47 language code (`de`, `en-US`, `de-x-simple`), at most 35 characters.
+	 *
+	 * @param string $code Language code.
+	 * @throws \InvalidArgumentException When the code is malformed.
+	 */
+	public static function language( string $code ): string {
+		$code = trim( $code );
+		if ( strlen( $code ) > 35 || ! preg_match( '/^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/', $code ) ) {
+			throw new \InvalidArgumentException( __( 'Please enter a valid language code such as de or en-US.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+		}
+
+		return $code;
+	}
+
+	/**
+	 * Subtitle kind; null when not given (the API keeps or defaults it).
+	 *
+	 * @param string $kind subtitles|captions or empty.
+	 * @throws \InvalidArgumentException When the kind is unknown.
+	 */
+	public static function subtitle_kind( string $kind ): ?string {
+		if ( '' === $kind ) {
+			return null;
+		}
+		if ( ! in_array( $kind, array( 'subtitles', 'captions' ), true ) ) {
+			throw new \InvalidArgumentException( __( 'The kind must be "subtitles" or "captions".', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+		}
+
+		return $kind;
 	}
 }

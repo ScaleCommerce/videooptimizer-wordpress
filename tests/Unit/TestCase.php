@@ -54,6 +54,7 @@ abstract class TestCase extends PolyfillTestCase {
 			array(
 				'wp_json_encode'       => static fn ( $data, $flags = 0 ) => json_encode( $data, $flags ),
 				'sanitize_text_field'  => static fn ( $v ) => trim( strip_tags( (string) $v ) ),
+				'sanitize_file_name'   => static fn ( $v ) => preg_replace( '/[^A-Za-z0-9._-]/', '-', basename( (string) $v ) ),
 				'sanitize_key'         => static fn ( $v ) => preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $v ) ),
 				'wp_kses_post'         => static fn ( $v ) => strip_tags( (string) $v, '<p><a><strong><em><br><ul><ol><li>' ),
 				'esc_url_raw'          => static fn ( $v ) => (string) $v,

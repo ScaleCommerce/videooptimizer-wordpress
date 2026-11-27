@@ -51,6 +51,33 @@ export const api = {
 
 	tags: () => get( '/tags' ),
 
+	subtitleLanguages: () => get( '/subtitle-languages' ),
+	createSubtitleLanguage: ( data ) => post( '/subtitle-languages', data ),
+	deleteSubtitleLanguage: ( code ) =>
+		del( '/subtitle-languages/' + enc( code ) ),
+	subtitles: ( uuid ) => get( '/videos/' + enc( uuid ) + '/subtitles' ),
+	uploadSubtitle: (
+		uuid,
+		file,
+		{ language, kind = '', isDefault = false }
+	) => {
+		const form = new window.FormData();
+		form.append( 'file', file, file.name );
+		form.append( 'language', language );
+		if ( kind ) {
+			form.append( 'kind', kind );
+		}
+		form.append( 'is_default', isDefault ? 'true' : 'false' );
+		return request( '/videos/' + enc( uuid ) + '/subtitles', {
+			method: 'POST',
+			body: form,
+		} );
+	},
+	downloadSubtitle: ( uuid, language ) =>
+		get( '/videos/' + enc( uuid ) + '/subtitles/' + enc( language ) ),
+	deleteSubtitle: ( uuid, language ) =>
+		del( '/videos/' + enc( uuid ) + '/subtitles/' + enc( language ) ),
+
 	videosPage: ( {
 		libraryId = '',
 		cursor = '',

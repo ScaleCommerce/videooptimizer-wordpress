@@ -126,6 +126,40 @@ class Client {
 		return self::list_of_arrays( $this->request( 'GET', '/tags' )['body']['data'] ?? null );
 	}
 
+	/**
+	 * The organization's subtitle languages (code, label, video_count), in player order.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	public function list_subtitle_languages(): array {
+		return self::list_of_arrays( $this->request( 'GET', '/subtitle-languages' )['body']['data'] ?? null );
+	}
+
+	/**
+	 * Adds a subtitle language (BCP 47 code; the label defaults to the language's own name).
+	 *
+	 * @param string $code  Language code.
+	 * @param string $label Optional label shown in the player menu.
+	 * @return array<string, mixed>
+	 */
+	public function create_subtitle_language( string $code, string $label = '' ): array {
+		$payload = array( 'code' => $code );
+		if ( '' !== $label ) {
+			$payload['label'] = $label;
+		}
+
+		return $this->request_data( 'POST', '/subtitle-languages', $payload );
+	}
+
+	/**
+	 * Removes a subtitle language (409 while videos still have subtitles in it).
+	 *
+	 * @param string $code Language code.
+	 */
+	public function delete_subtitle_language( string $code ): void {
+		$this->request( 'DELETE', '/subtitle-languages/' . rawurlencode( $code ) );
+	}
+
 	/* ---------------------------------------------------------------- Videos */
 
 	/**
@@ -196,6 +230,92 @@ class Client {
 	 */
 	public function update_video( string $uuid, array $payload ): array {
 		return $this->request_data( 'PATCH', '/videos/' . rawurlencode( $uuid ), $payload );
+	}
+
+	/**
+	 * The subtitles of a video, one per language (empty when it has none).
+	 *
+	 * @param string $uuid Video uuid.
+	 * @return array<int, array<string, mixed>>
+	 * @throws ApiException On any failure except a missing video.
+	 */
+	public function list_subtitles( string $uuid ): array {
+		try {
+			$body = $this->request( 'GET', '/videos/' . rawurlencode( $uuid ) . '/subtitles' )['body'];
+		} catch ( ApiException $e ) {
+			if ( 404 === $e->status() ) {
+				return array();
+			}
+			throw $e;
+		}
+
+		return self::list_of_arrays( $body['data'] ?? null );
+	}
+
+	/**
+	 * Uploads (or replaces) the subtitle of one language: an SRT or WebVTT file of up to 2 MB.
+	 *
+	 * @param string      $uuid       Video uuid.
+	 * @param string      $filename   File name (.srt or .vtt).
+	 * @param string      $contents   File contents, bytes as uploaded (UTF-8, UTF-16 or Windows-1252).
+	 * @param string      $language   BCP 47 code from the organization's subtitle languages.
+	 * @param string|null $kind       subtitles|captions; null keeps the existing kind.
+	 * @param bool        $is_default Show this track automatically.
+	 * @return array<string, mixed> {subtitle, skipped_cues}
+	 * @throws \Exception When no random boundary can be generated.
+	 */
+	public function upload_subtitle( string $uuid, string $filename, string $contents, string $language, ?string $kind = null, bool $is_default = false ): array {
+		$boundary = 'videooptimizer' . bin2hex( random_bytes( 12 ) );
+		$filename = preg_replace( '/[^A-Za-z0-9._ -]/', '_', basename( $filename ) );
+		$fields   = array(
+			'language'   => $language,
+			'is_default' => $is_default ? 'true' : 'false',
+		);
+		if ( null !== $kind ) {
+			$fields['kind'] = $kind;
+		}
+
+		$body = '';
+		foreach ( $fields as $name => $value ) {
+			$body .= '--' . $boundary . "\r\n" . 'Content-Disposition: form-data; name="' . $name . '"' . "\r\n\r\n" . $value . "\r\n";
+		}
+		$body .= '--' . $boundary . "\r\n" . 'Content-Disposition: form-data; name="file"; filename="' . ( '' !== (string) $filename ? $filename : 'subtitle.vtt' ) . '"' . "\r\n" . 'Content-Type: application/octet-stream' . "\r\n\r\n" . $contents . "\r\n" . '--' . $boundary . "--\r\n";
+
+		$data = $this->request(
+			'POST',
+			'/videos/' . rawurlencode( $uuid ) . '/subtitles',
+			null,
+			array(),
+			true,
+			self::TIMEOUT,
+			true,
+			array(
+				'body'         => $body,
+				'content_type' => 'multipart/form-data; boundary=' . $boundary,
+			)
+		)['body']['data'] ?? null;
+
+		return is_array( $data ) ? $data : array();
+	}
+
+	/**
+	 * The stored WebVTT file of one subtitle.
+	 *
+	 * @param string $uuid     Video uuid.
+	 * @param string $language Language code.
+	 */
+	public function download_subtitle( string $uuid, string $language ): string {
+		return $this->request( 'GET', '/videos/' . rawurlencode( $uuid ) . '/subtitles/' . rawurlencode( $language ) )['raw'];
+	}
+
+	/**
+	 * Removes the subtitle of one language.
+	 *
+	 * @param string $uuid     Video uuid.
+	 * @param string $language Language code.
+	 */
+	public function delete_subtitle( string $uuid, string $language ): void {
+		$this->request( 'DELETE', '/videos/' . rawurlencode( $uuid ) . '/subtitles/' . rawurlencode( $language ) );
 	}
 
 	/**
@@ -369,17 +489,18 @@ class Client {
 	/**
 	 * Performs a request; throws ApiException on transport errors and HTTP >= 400.
 	 *
-	 * @param string                    $method     HTTP method.
-	 * @param string                    $path       API path.
-	 * @param array<string, mixed>|null $json       JSON body.
-	 * @param array<string, mixed>      $query      Query parameters.
-	 * @param bool                      $auth       Send the bearer token.
-	 * @param int                       $timeout    Timeout in seconds.
-	 * @param bool                      $retry_429  Retry once after Retry-After on 429.
-	 * @return array{status: int, body: array<string, mixed>}
+	 * @param string                     $method     HTTP method.
+	 * @param string                     $path       API path.
+	 * @param array<string, mixed>|null  $json       JSON body.
+	 * @param array<string, mixed>       $query      Query parameters.
+	 * @param bool                       $auth       Send the bearer token.
+	 * @param int                        $timeout    Timeout in seconds.
+	 * @param bool                       $retry_429  Retry once after Retry-After on 429.
+	 * @param array<string, string>|null $upload    Raw body and content type (multipart uploads).
+	 * @return array{status: int, body: array<string, mixed>, raw: string}
 	 * @throws ApiException On failure.
 	 */
-	private function request( string $method, string $path, ?array $json = null, array $query = array(), bool $auth = true, int $timeout = self::TIMEOUT, bool $retry_429 = true ): array {
+	private function request( string $method, string $path, ?array $json = null, array $query = array(), bool $auth = true, int $timeout = self::TIMEOUT, bool $retry_429 = true, ?array $upload = null ): array {
 		if ( 0 !== stripos( $this->base_url, 'https://' ) ) {
 			throw new ApiException( 'The VideoOptimizer API base URL must use https.', 400 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 		}
@@ -409,6 +530,10 @@ class Client {
 		if ( null !== $json ) {
 			$args['headers']['Content-Type'] = 'application/json';
 			$args['body']                    = (string) wp_json_encode( (object) $json );
+		}
+		if ( null !== $upload ) {
+			$args['headers']['Content-Type'] = $upload['content_type'];
+			$args['body']                    = $upload['body'];
 		}
 
 		$url = $this->base_url . $path;
@@ -457,6 +582,7 @@ class Client {
 		return array(
 			'status' => $status,
 			'body'   => $decoded,
+			'raw'    => $raw,
 		);
 	}
 

@@ -4,7 +4,13 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Upgrade
+- Subtitles, tags, metadata and subtitle languages are written with the API token you already use: it needs `video:edit` (subtitles, tags, metadata) and `library:edit` (subtitle languages); without them the editor sees the API's message ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8), [#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
+
 ### Added
+- Subtitles per video: list, upload (.vtt / .srt, replaces per language), download and delete, with kind (subtitles / captions) and default track ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
+- Settings manage the organization's subtitle languages (add, remove; languages still in use are refused) ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
+- Plugin REST routes `/subtitle-languages` and `/videos/{uuid}/subtitles[/{language}]`; changing subtitles drops the cached embed data ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
 - Video detail shows and edits tags (with suggestions) and metadata key/values; URL import and upload accept them on the plugin REST routes ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
 - The video browser filters by tag on the server; `GET /videooptimizer/v1/videos` accepts `tags` and `metadata[key]`, new route `GET /videooptimizer/v1/tags` ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
 - Running uploads can be canceled in the video browser, and failed processing shows the API's error ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).

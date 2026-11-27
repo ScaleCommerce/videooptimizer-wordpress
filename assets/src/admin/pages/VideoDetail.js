@@ -28,6 +28,7 @@ import {
 } from '../../components/ui';
 import { useNotify } from '../notices';
 import { MetadataCard, TagsCard } from './VideoTagsMetadata';
+import VideoSubtitles from './VideoSubtitles';
 
 const config = window.videooptimizerAdmin || {};
 
@@ -431,6 +432,8 @@ export default function VideoDetail( { uuid } ) {
 							<CustomPoster video={ video } onChanged={ load } />
 						</CardBody>
 					</Card>
+
+					<VideoSubtitles video={ video } />
 
 					<Card>
 						<CardHeader>

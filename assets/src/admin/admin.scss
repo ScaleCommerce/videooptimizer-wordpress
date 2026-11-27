@@ -395,3 +395,50 @@
 		justify-content: space-between;
 	}
 }
+
+.vo-subtitles {
+	margin: 0 0 16px;
+	padding: 0;
+	list-style: none;
+
+	li {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 8px 16px;
+		align-items: center;
+		padding: 8px 0;
+		border-bottom: 1px solid #f0f0f1;
+	}
+
+	&__name {
+		display: flex;
+		gap: 8px;
+		align-items: center;
+		min-width: 160px;
+		font-weight: 500;
+	}
+
+	&__facts {
+		display: flex;
+		flex: 1;
+		flex-wrap: wrap;
+		gap: 8px;
+		align-items: center;
+		color: #757575;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 4px;
+	}
+
+	&__form {
+		display: grid;
+		gap: 16px;
+
+		&--row {
+			grid-template-columns: 1fr 1fr auto;
+			align-items: end;
+		}
+	}
+}

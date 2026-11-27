@@ -99,6 +99,50 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 				)
 			);
 		}
+		if ( str_ends_with( $path, '/subtitle-languages' ) && 'POST' === $args['method'] ) {
+			return self::json( 201, array( 'data' => (array) json_decode( (string) $args['body'], true ) ) );
+		}
+		if ( str_ends_with( $path, '/subtitle-languages' ) ) {
+			return self::json(
+				200,
+				array(
+					'data' => array(
+						array(
+							'code'        => 'de',
+							'label'       => 'Deutsch',
+							'video_count' => 1,
+						),
+					),
+				)
+			);
+		}
+		if ( str_ends_with( $path, '/tags' ) ) {
+			return self::json(
+				200,
+				array(
+					'data' => array(
+						array(
+							'name'        => 'promo',
+							'video_count' => 2,
+						),
+					),
+				)
+			);
+		}
+		if ( preg_match( '~/videos/[0-9a-f-]{36}/subtitles$~', $path ) && 'POST' === $args['method'] ) {
+			return self::json(
+				200,
+				array(
+					'data' => array(
+						'subtitle'     => array( 'language' => 'de' ),
+						'skipped_cues' => 1,
+					),
+				)
+			);
+		}
+		if ( preg_match( '~/videos/[0-9a-f-]{36}/subtitles$~', $path ) ) {
+			return self::json( 200, array( 'data' => array( array( 'language' => 'de' ) ) ) );
+		}
 		if ( str_ends_with( $path, '/reprocess' ) ) {
 			return self::json( 200, array( 'data' => array( 'queued' => 2 ) ) );
 		}

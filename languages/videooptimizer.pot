@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T21:41:54+00:00\n"
+"POT-Creation-Date: 2026-11-27T21:45:57+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -107,31 +107,35 @@ msgid "The video or library no longer exists in VideoOptimizer."
 msgstr ""
 
 #: src/Api/ApiException.php:97
-msgid "The file is too large for VideoOptimizer."
+msgid "Videos still have subtitles in this language. Delete those subtitles first."
 msgstr ""
 
 #: src/Api/ApiException.php:100
-msgid "This file type is not supported."
+msgid "The file is too large for VideoOptimizer."
 msgstr ""
 
 #: src/Api/ApiException.php:103
-msgid "The re-encode limit has been reached (5 per hour). Please try again later."
+msgid "This file type is not supported."
 msgstr ""
 
 #: src/Api/ApiException.php:106
-msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
+msgid "The re-encode limit has been reached (5 per hour). Please try again later."
 msgstr ""
 
 #: src/Api/ApiException.php:109
+msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
+msgstr ""
+
+#: src/Api/ApiException.php:112
 #: assets/src/components/VideoBrowser.js:433
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr ""
 
-#: src/Api/ApiException.php:112
+#: src/Api/ApiException.php:115
 msgid "This library is delivery-only (not media-managed) — uploads and poster changes are not possible here."
 msgstr ""
 
-#: src/Api/ApiException.php:115
+#: src/Api/ApiException.php:118
 msgid "The VideoOptimizer request failed."
 msgstr ""
 
@@ -153,6 +157,14 @@ msgstr ""
 
 #: src/Api/VideoFields.php:81
 msgid "A video can have at most 10 metadata keys."
+msgstr ""
+
+#: src/Api/VideoFields.php:96
+msgid "Please enter a valid language code such as de or en-US."
+msgstr ""
+
+#: src/Api/VideoFields.php:113
+msgid "The kind must be \"subtitles\" or \"captions\"."
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:102
@@ -177,7 +189,7 @@ msgstr ""
 #: src/Render/Renderer.php:301
 #: src/Render/Renderer.php:521
 #: src/Woo/WooCommerce.php:330
-#: assets/src/admin/pages/Settings.js:637
+#: assets/src/admin/pages/Settings.js:638
 #: assets/src/blocks/media-split/index.js:113
 #: assets/src/blocks/shared/editor.js:185
 msgid "Video"
@@ -287,6 +299,7 @@ msgid "Presentation"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:225
+#: assets/src/admin/pages/VideoSubtitles.js:134
 #: assets/src/blocks/shared/editor.js:107
 msgid "Default"
 msgstr ""
@@ -297,19 +310,19 @@ msgid "Poster, plays in place"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:227
-#: assets/src/admin/pages/Settings.js:457
+#: assets/src/admin/pages/Settings.js:458
 #: assets/src/blocks/shared/editor.js:116
 msgid "Poster, plays in a lightbox"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:228
-#: assets/src/admin/pages/Settings.js:464
+#: assets/src/admin/pages/Settings.js:465
 #: assets/src/blocks/shared/editor.js:123
 msgid "Player directly"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:235
-#: assets/src/admin/pages/VideoDetail.js:559
+#: assets/src/admin/pages/VideoDetail.js:562
 #: assets/src/blocks/shared/editor.js:136
 msgid "Autoplay (muted)"
 msgstr ""
@@ -320,7 +333,7 @@ msgid "Muted"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:237
-#: assets/src/admin/pages/VideoDetail.js:568
+#: assets/src/admin/pages/VideoDetail.js:571
 #: assets/src/blocks/shared/editor.js:156
 msgid "Loop"
 msgstr ""
@@ -475,65 +488,76 @@ msgstr ""
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr ""
 
-#: src/Rest/AdminController.php:270
+#: src/Rest/AdminController.php:280
 msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN) and cannot be changed here."
 msgstr ""
 
-#: src/Rest/AdminController.php:274
+#: src/Rest/AdminController.php:284
 msgid "This does not look like a VideoOptimizer API token (vp_…)."
 msgstr ""
 
-#: src/Rest/AdminController.php:341
+#: src/Rest/AdminController.php:351
 msgid "Please enter a name."
 msgstr ""
 
-#: src/Rest/AdminController.php:415
+#: src/Rest/AdminController.php:425
 msgid "The encoding quality must be \"performance\" or \"quality\"."
 msgstr ""
 
-#: src/Rest/AdminController.php:420
+#: src/Rest/AdminController.php:430
 msgid "Please keep at least one codec and one resolution."
 msgstr ""
 
-#: src/Rest/AdminController.php:510
+#: src/Rest/AdminController.php:520
 msgid "Filter by at most 5 metadata keys."
 msgstr ""
 
-#: src/Rest/AdminController.php:580
+#: src/Rest/AdminController.php:590
 msgid "Please enter a public https:// URL."
 msgstr ""
 
-#: src/Rest/AdminController.php:599
-#: src/Rest/AdminController.php:625
+#: src/Rest/AdminController.php:609
+#: src/Rest/AdminController.php:635
 msgid "Invalid upload request."
 msgstr ""
 
-#: src/Rest/AdminController.php:718
+#: src/Rest/AdminController.php:775
+#: src/Rest/AdminController.php:779
+#: assets/src/components/subtitles.js:16
+msgid "Please choose a .vtt or .srt file (up to 2 MB)."
+msgstr ""
+
+#: src/Rest/AdminController.php:782
+#: assets/src/components/subtitles.js:22
+msgid "The subtitle file is larger than 2 MB."
+msgstr ""
+
+#: src/Rest/AdminController.php:865
 msgid "Invalid frame."
 msgstr ""
 
-#: src/Rest/AdminController.php:736
+#: src/Rest/AdminController.php:883
 #: assets/src/components/uploader.js:172
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr ""
 
-#: src/Rest/AdminController.php:766
+#: src/Rest/AdminController.php:913
 msgid "Invalid poster source."
 msgstr ""
 
-#: src/Rest/AdminController.php:825
+#: src/Rest/AdminController.php:972
 msgid "This video is no longer waiting for a decision."
 msgstr ""
 
-#: src/Rest/AdminController.php:828
+#: src/Rest/AdminController.php:975
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr ""
 
-#: src/Rest/AdminController.php:860
+#: src/Rest/AdminController.php:1007
 msgid "Invalid video id."
 msgstr ""
 
-#: src/Rest/AdminController.php:891
+#: src/Rest/AdminController.php:1038
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr ""
 
@@ -688,8 +712,8 @@ msgid "Description"
 msgstr ""
 
 #: assets/src/admin/pages/Libraries.js:401
-#: assets/src/admin/pages/Settings.js:307
-#: assets/src/admin/pages/VideoDetail.js:467
+#: assets/src/admin/pages/Settings.js:308
+#: assets/src/admin/pages/VideoDetail.js:470
 msgid "Save"
 msgstr ""
 
@@ -724,6 +748,7 @@ msgid "Show videos"
 msgstr ""
 
 #: assets/src/admin/pages/Libraries.js:535
+#: assets/src/admin/pages/VideoSubtitles.js:181
 msgid "Delete"
 msgstr ""
 
@@ -764,7 +789,7 @@ msgid "No videos selected."
 msgstr ""
 
 #: assets/src/admin/pages/Send.js:176
-#: assets/src/admin/pages/VideoDetail.js:448
+#: assets/src/admin/pages/VideoDetail.js:451
 msgid "Details"
 msgstr ""
 
@@ -782,418 +807,480 @@ msgstr ""
 msgid "Back to the media library"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:59
+#: assets/src/admin/pages/Settings.js:60
 msgid "Token removed."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:67
+#: assets/src/admin/pages/Settings.js:68
 msgid "Connection"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:72
+#: assets/src/admin/pages/Settings.js:73
 msgid "The stored token can no longer be decrypted (the security keys in wp-config.php changed). Please enter it again."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:81
+#: assets/src/admin/pages/Settings.js:82
 msgid "Connected"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:85
+#: assets/src/admin/pages/Settings.js:86
 msgid "Not connected"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:89
+#: assets/src/admin/pages/Settings.js:90
 msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN)."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:104
+#: assets/src/admin/pages/Settings.js:105
 msgid "Replace API token"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:108
+#: assets/src/admin/pages/Settings.js:109
 msgid "API token"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:115
+#: assets/src/admin/pages/Settings.js:116
 msgid "Create an organization token in VideoOptimizer under Organization → API tokens. It is stored encrypted and never shown again."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:132
+#: assets/src/admin/pages/Settings.js:133
 msgid "Save & test"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:146
-#: assets/src/admin/pages/Settings.js:175
+#: assets/src/admin/pages/Settings.js:147
+#: assets/src/admin/pages/Settings.js:176
 msgid "Test connection"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:157
+#: assets/src/admin/pages/Settings.js:158
 msgid "Remove token"
 msgstr ""
 
 #. translators: 1: number of libraries, 2: number of media-managed libraries
-#: assets/src/admin/pages/Settings.js:187
+#: assets/src/admin/pages/Settings.js:188
 #, js-format
 msgid "Connection works. %1$d libraries found (%2$d accept uploads)."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:198
+#: assets/src/admin/pages/Settings.js:199
 msgid "Create a library under \"Libraries\" to start uploading."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:214
+#: assets/src/admin/pages/Settings.js:215
 msgid "Not configured."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:217
+#: assets/src/admin/pages/Settings.js:218
 msgid "Active. No delivery received yet — use \"Send test\" in the VideoOptimizer app."
 msgstr ""
 
 #. translators: 1: event name, 2: date/time
-#: assets/src/admin/pages/Settings.js:224
+#: assets/src/admin/pages/Settings.js:225
 #, js-format
 msgid "Last delivery: %1$s at %2$s."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:243
+#: assets/src/admin/pages/Settings.js:244
 msgid "Webhook secret saved."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:244
+#: assets/src/admin/pages/Settings.js:245
 msgid "Webhook disabled."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:254
+#: assets/src/admin/pages/Settings.js:255
 msgid "Webhook (optional)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:258
+#: assets/src/admin/pages/Settings.js:259
 msgid "Without a webhook, WordPress checks every five minutes whether media library videos are ready. With a webhook, VideoOptimizer reports it instantly. Webhooks are created in the VideoOptimizer app under Organization → Webhooks (events video.ready and video.failed). Your site must be publicly reachable."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:267
+#: assets/src/admin/pages/Settings.js:268
 msgid "Webhook URL"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:277
-#: assets/src/admin/pages/VideoDetail.js:274
+#: assets/src/admin/pages/Settings.js:278
+#: assets/src/admin/pages/VideoDetail.js:275
 msgid "Copied."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:281
-#: assets/src/admin/pages/VideoDetail.js:278
+#: assets/src/admin/pages/Settings.js:282
+#: assets/src/admin/pages/VideoDetail.js:279
 msgid "Copy"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:292
+#: assets/src/admin/pages/Settings.js:293
 msgid "Replace signing secret"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:296
+#: assets/src/admin/pages/Settings.js:297
 msgid "Signing secret"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:316
+#: assets/src/admin/pages/Settings.js:317
 msgid "Disable"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:365
+#: assets/src/admin/pages/Settings.js:366
 msgid "Settings saved."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:387
+#: assets/src/admin/pages/Settings.js:388
 msgid "Defaults"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:393
+#: assets/src/admin/pages/Settings.js:394
 msgid "Library for new uploads"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:401
+#: assets/src/admin/pages/Settings.js:402
 msgid "Automatic (first library that accepts uploads)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:414
+#: assets/src/admin/pages/Settings.js:415
 msgid "Used for media library transfers. In the upload dialogs you can pick any library."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:422
+#: assets/src/admin/pages/Settings.js:423
 msgid "Default player"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:427
+#: assets/src/admin/pages/Settings.js:428
 msgid "VideoOptimizer player (iframe, design from your VideoOptimizer account)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:434
+#: assets/src/admin/pages/Settings.js:435
 msgid "Native HTML5 player (part of the page)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:445
+#: assets/src/admin/pages/Settings.js:446
 msgid "Default presentation"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:450
+#: assets/src/admin/pages/Settings.js:451
 msgid "Poster, plays in place (fastest)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:474
+#: assets/src/admin/pages/Settings.js:475
 msgid "Add schema.org VideoObject data (SEO)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:478
+#: assets/src/admin/pages/Settings.js:479
 msgid "Helps search engines show your videos in results."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:488
+#: assets/src/admin/pages/Settings.js:489
 msgid "Media library"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:493
+#: assets/src/admin/pages/Settings.js:494
 msgid "Show \"Send to VideoOptimizer\" in the media library"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:500
+#: assets/src/admin/pages/Settings.js:501
 msgid "Deliver optimized media library videos via VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:504
+#: assets/src/admin/pages/Settings.js:505
 msgid "Video blocks, [video] shortcodes and Elementor video widgets automatically use VideoOptimizer once the video is ready. Nothing changes in your content."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:511
+#: assets/src/admin/pages/Settings.js:512
 msgid "Send new video uploads automatically"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:515
+#: assets/src/admin/pages/Settings.js:516
 msgid "On public sites the transfer runs on the server; otherwise it runs in the background of your browser while WP-Admin is open."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:523
+#: assets/src/admin/pages/Settings.js:524
 msgid "Transfer method"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:528
+#: assets/src/admin/pages/Settings.js:529
 msgid "Automatic (server for public sites, otherwise browser)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:535
+#: assets/src/admin/pages/Settings.js:536
 msgid "Always upload from the browser"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:542
+#: assets/src/admin/pages/Settings.js:543
 msgid "Choose \"browser\" if your site is protected (password, maintenance mode, IP allowlist)."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:550
+#: assets/src/admin/pages/Settings.js:551
 msgid "When a linked media library video is deleted"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:558
+#: assets/src/admin/pages/Settings.js:559
 msgid "Ask whether to delete it in VideoOptimizer too"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:565
+#: assets/src/admin/pages/Settings.js:566
 msgid "Keep the video in VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:572
+#: assets/src/admin/pages/Settings.js:573
 msgid "Delete it in VideoOptimizer too (only if unused)"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:579
+#: assets/src/admin/pages/Settings.js:580
 msgid "Videos that are still used in pages, products or other media files are never deleted without asking."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:595
+#: assets/src/admin/pages/Settings.js:596
 msgid "Product videos in the product gallery"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:604
+#: assets/src/admin/pages/Settings.js:605
 msgid "Position in the gallery"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:612
+#: assets/src/admin/pages/Settings.js:613
 msgid "After the product images"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:619
+#: assets/src/admin/pages/Settings.js:620
 msgid "Right after the main image"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:630
+#: assets/src/admin/pages/Settings.js:631
 msgid "\"Video\" product tab"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:636
+#: assets/src/admin/pages/Settings.js:637
 msgid "Tab title"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:644
+#: assets/src/admin/pages/Settings.js:645
 msgid "Hover preview in shop and category grids"
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:648
+#: assets/src/admin/pages/Settings.js:649
 msgid "Only on devices with a mouse; respects \"reduce motion\"."
 msgstr ""
 
-#: assets/src/admin/pages/Settings.js:664
+#: assets/src/admin/pages/Settings.js:665
 msgid "Save settings"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:48
+#: assets/src/admin/pages/SubtitleLanguages.js:45
+msgid "Language added."
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:56
+msgid "Language removed."
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:70
+#: assets/src/admin/pages/VideoSubtitles.js:292
+msgid "Subtitle languages"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:74
+msgid "Subtitles can only be uploaded in these languages. The label is what viewers see in the player menu."
+msgstr ""
+
+#. translators: %d: number of videos
+#: assets/src/admin/pages/SubtitleLanguages.js:91
+#, js-format
+msgid "%d video"
+msgid_plural "%d videos"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:106
+#: assets/src/admin/pages/VideoTagsMetadata.js:191
+#: assets/src/blocks/video-grid/index.js:104
+#: assets/src/components/VideoSelectControl.js:96
+msgid "Remove"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:117
+msgid "Language code"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:123
+msgid "Use a BCP 47 code such as de or en-US."
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:133
+msgid "Label (optional)"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:145
+msgid "Add language"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:151
+msgid "Remove this language?"
+msgstr ""
+
+#: assets/src/admin/pages/SubtitleLanguages.js:152
+msgid "Remove language"
+msgstr ""
+
+#. translators: %s: language name
+#: assets/src/admin/pages/SubtitleLanguages.js:160
+#, js-format
+msgid "%s can no longer be used for new subtitles. It cannot be removed while videos still have subtitles in it."
+msgstr ""
+
+#: assets/src/admin/pages/VideoDetail.js:49
 msgid "Poster updated."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:61
+#: assets/src/admin/pages/VideoDetail.js:62
 msgid "Frames are available once the video has been processed."
 msgstr ""
 
 #. translators: %d: frame number
-#: assets/src/admin/pages/VideoDetail.js:86
+#: assets/src/admin/pages/VideoDetail.js:87
 #, js-format
 msgid "Use frame %d as poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:111
-#: assets/src/admin/pages/VideoDetail.js:198
+#: assets/src/admin/pages/VideoDetail.js:112
+#: assets/src/admin/pages/VideoDetail.js:199
 msgid "Custom poster is active."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:120
+#: assets/src/admin/pages/VideoDetail.js:121
 msgid "Choose a poster image"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:175
+#: assets/src/admin/pages/VideoDetail.js:176
 msgid "Upload image"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:185
+#: assets/src/admin/pages/VideoDetail.js:186
 msgid "From media library"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:205
+#: assets/src/admin/pages/VideoDetail.js:206
 msgid "Use uploaded poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:216
+#: assets/src/admin/pages/VideoDetail.js:217
 msgid "Custom poster removed."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:220
+#: assets/src/admin/pages/VideoDetail.js:221
 msgid "Remove uploaded poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:226
+#: assets/src/admin/pages/VideoDetail.js:227
 msgid "JPEG, PNG or WebP. Use the same aspect ratio as the video for best results."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:239
+#: assets/src/admin/pages/VideoDetail.js:240
 msgid "Shortcode"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:243
+#: assets/src/admin/pages/VideoDetail.js:244
 msgid "Shortcode (lightbox, native player)"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:250
+#: assets/src/admin/pages/VideoDetail.js:251
 msgid "Video ID (blocks, Elementor, WooCommerce)"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:322
-#: assets/src/admin/pages/VideoDetail.js:374
+#: assets/src/admin/pages/VideoDetail.js:323
+#: assets/src/admin/pages/VideoDetail.js:375
 msgid "All videos"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:339
+#: assets/src/admin/pages/VideoDetail.js:340
 msgid "Saved."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:349
+#: assets/src/admin/pages/VideoDetail.js:350
 msgid "Title saved."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:359
+#: assets/src/admin/pages/VideoDetail.js:360
 msgid "Video deleted."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:404
+#: assets/src/admin/pages/VideoDetail.js:405
 msgid "VideoOptimizer is encoding this video. This page updates automatically."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:420
+#: assets/src/admin/pages/VideoDetail.js:421
 msgid "Poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:424
+#: assets/src/admin/pages/VideoDetail.js:425
 msgid "Pick one of the frames or upload your own image. The change is live everywhere within seconds."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:430
+#: assets/src/admin/pages/VideoDetail.js:431
 msgid "Custom poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:437
+#: assets/src/admin/pages/VideoDetail.js:440
 msgid "Embed"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:455
+#: assets/src/admin/pages/VideoDetail.js:458
 msgid "Title"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:471
+#: assets/src/admin/pages/VideoDetail.js:474
 msgid "Status"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:478
+#: assets/src/admin/pages/VideoDetail.js:481
 msgid "Duration"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:491
+#: assets/src/admin/pages/VideoDetail.js:494
 msgid "Resolution"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:502
+#: assets/src/admin/pages/VideoDetail.js:505
 msgid "Renditions"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:520
+#: assets/src/admin/pages/VideoDetail.js:523
 msgid "Views"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:528
+#: assets/src/admin/pages/VideoDetail.js:531
 msgid "Size"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:547
+#: assets/src/admin/pages/VideoDetail.js:550
 msgid "Player defaults"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:552
+#: assets/src/admin/pages/VideoDetail.js:555
 msgid "Used by the VideoOptimizer player unless a block overrides them."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:574
+#: assets/src/admin/pages/VideoDetail.js:577
 msgid "Start muted"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:580
+#: assets/src/admin/pages/VideoDetail.js:583
 msgid "Preload"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:595
+#: assets/src/admin/pages/VideoDetail.js:598
 msgid "Delete video"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:605
+#: assets/src/admin/pages/VideoDetail.js:608
 msgid "Delete this video?"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:606
+#: assets/src/admin/pages/VideoDetail.js:609
 msgid "Delete permanently"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:615
+#: assets/src/admin/pages/VideoDetail.js:618
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr ""
 
@@ -1231,6 +1318,110 @@ msgstr ""
 
 #: assets/src/admin/pages/Videos.js:74
 msgid "Send existing media library videos"
+msgstr ""
+
+#. translators: %d: number of skipped cues
+#: assets/src/admin/pages/VideoSubtitles.js:75
+#, js-format
+msgid "Subtitle saved; %d malformed cue was skipped."
+msgid_plural "Subtitle saved; %d malformed cues were skipped."
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:83
+msgid "Subtitle saved."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:106
+msgid "Subtitle deleted."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:117
+#: assets/src/admin/pages/VideoSubtitles.js:131
+#: assets/src/admin/pages/VideoSubtitles.js:241
+msgid "Subtitles"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:130
+msgid "Captions"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:143
+msgid "Taken over automatically from a subtitle track inside the video file."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:148
+msgid "From video file"
+msgstr ""
+
+#. translators: %d: number of subtitle cues
+#: assets/src/admin/pages/VideoSubtitles.js:157
+#, js-format
+msgid "%d cue"
+msgid_plural "%d cues"
+msgstr[0] ""
+msgstr[1] ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:172
+msgid "Download"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:189
+msgid "No subtitles yet. Upload a .vtt or .srt file per language; the player offers them in its menu."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:201
+msgid "Language"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:206
+msgid "Choose a language"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:219
+msgid "This language already has a subtitle; uploading replaces it."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:229
+msgid "Type"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:234
+msgid "Keep or default (subtitles)"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:245
+msgid "Captions (for deaf and hard-of-hearing viewers)"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:255
+msgid "Show automatically when playback starts"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:275
+msgid "Upload subtitle file"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:287
+msgid "Add the languages you need first."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:299
+msgid "Ask an administrator to add subtitle languages first."
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:309
+msgid "Delete this subtitle?"
+msgstr ""
+
+#: assets/src/admin/pages/VideoSubtitles.js:310
+msgid "Delete subtitle"
+msgstr ""
+
+#. translators: %s: language name
+#: assets/src/admin/pages/VideoSubtitles.js:318
+#, js-format
+msgid "The %s subtitle is removed from the video and the CDN."
 msgstr ""
 
 #: assets/src/admin/pages/VideoTagsMetadata.js:51
@@ -1286,12 +1477,6 @@ msgstr ""
 
 #: assets/src/admin/pages/VideoTagsMetadata.js:177
 msgid "Value"
-msgstr ""
-
-#: assets/src/admin/pages/VideoTagsMetadata.js:191
-#: assets/src/blocks/video-grid/index.js:104
-#: assets/src/components/VideoSelectControl.js:96
-msgid "Remove"
 msgstr ""
 
 #: assets/src/admin/pages/VideoTagsMetadata.js:206
@@ -1446,7 +1631,7 @@ msgstr ""
 msgid "The request failed."
 msgstr ""
 
-#: assets/src/components/api.js:167
+#: assets/src/components/api.js:194
 msgid "Untitled video"
 msgstr ""
 

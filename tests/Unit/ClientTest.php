@@ -393,4 +393,105 @@ final class ClientTest extends TestCase {
 
 		$this->assertSame( '{"tags":["a"],"metadata":{"k":"v","x":null}}', $this->requests[0][1]['body'] );
 	}
+
+	public function test_subtitle_languages_are_listed_added_and_deleted(): void {
+		$this->responses[] = $this->response(
+			200,
+			array(
+				'data' => array(
+					array(
+						'code'        => 'de',
+						'label'       => 'Deutsch',
+						'video_count' => 1,
+					),
+				),
+			)
+		);
+		$languages = $this->client()->list_subtitle_languages();
+		$this->assertSame( 'de', $languages[0]['code'] );
+
+		$this->client()->create_subtitle_language( 'en-US', 'English' );
+		$this->client()->delete_subtitle_language( 'en-US' );
+
+		$this->assertStringEndsWith( '/subtitle-languages', $this->requests[0][0] );
+		$this->assertSame( 'POST', $this->requests[1][1]['method'] );
+		$this->assertSame( '{"code":"en-US","label":"English"}', $this->requests[1][1]['body'] );
+		$this->assertSame( 'DELETE', $this->requests[2][1]['method'] );
+		$this->assertStringEndsWith( '/subtitle-languages/en-US', $this->requests[2][0] );
+	}
+
+	public function test_a_video_without_subtitles_yields_an_empty_list_on_404(): void {
+		$this->responses[] = $this->response( 404, array( 'message' => 'Video not found' ) );
+
+		$this->assertSame( array(), $this->client()->list_subtitles( 'abc' ) );
+	}
+
+	public function test_uploads_a_subtitle_as_multipart_form_data(): void {
+		$this->responses[] = $this->response(
+			200,
+			array(
+				'data' => array(
+					'subtitle'     => array( 'language' => 'de' ),
+					'skipped_cues' => 2,
+				),
+			)
+		);
+
+		$result = $this->client()->upload_subtitle( 'abc', 'de.srt', "1\n00:00:01,000 --> 00:00:02,000\nHallo\n", 'de', 'captions', true );
+
+		$this->assertSame( 2, $result['skipped_cues'] );
+		[ $url, $args ] = $this->requests[0];
+		$this->assertStringEndsWith( '/videos/abc/subtitles', $url );
+		$this->assertSame( 'POST', $args['method'] );
+		$this->assertSame( 'Bearer vp_secret', $args['headers']['Authorization'] );
+		$this->assertSame( 1, preg_match( '#^multipart/form-data; boundary=(\S+)$#', $args['headers']['Content-Type'], $m ) );
+		$body = $args['body'];
+		$this->assertStringContainsString( 'name="language"' . "\r\n\r\n" . 'de' . "\r\n", $body );
+		$this->assertStringContainsString( 'name="kind"' . "\r\n\r\n" . 'captions' . "\r\n", $body );
+		$this->assertStringContainsString( 'name="is_default"' . "\r\n\r\n" . 'true' . "\r\n", $body );
+		$this->assertStringContainsString( 'name="file"; filename="de.srt"', $body );
+		$this->assertStringContainsString( 'Hallo', $body );
+		$this->assertStringEndsWith( '--' . $m[1] . "--\r\n", $body );
+	}
+
+	public function test_subtitle_filename_cannot_break_the_multipart_headers(): void {
+		$this->client()->upload_subtitle( 'abc', "a\"\r\nX: y.vtt", 'WEBVTT', 'de' );
+
+		$body = $this->requests[0][1]['body'];
+		$this->assertStringNotContainsString( "\r\nX: y", $body );
+		$this->assertStringContainsString( 'filename="', $body );
+	}
+
+	public function test_downloads_and_deletes_a_subtitle(): void {
+		$vtt              = "WEBVTT\n\n00:00.000 --> 00:01.000\nHi\n";
+		$this->responses[] = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => $vtt,
+			'headers'  => array( 'content-type' => 'text/vtt' ),
+		);
+
+		$this->assertSame( $vtt, $this->client()->download_subtitle( 'abc', 'en-US' ) );
+		$this->assertStringEndsWith( '/videos/abc/subtitles/en-US', $this->requests[0][0] );
+
+		$this->client()->delete_subtitle( 'abc', 'en-US' );
+		$this->assertSame( 'DELETE', $this->requests[1][1]['method'] );
+	}
+
+	public function test_subtitle_language_in_use_is_explained(): void {
+		$this->responses[] = $this->response(
+			409,
+			array(
+				'message' => 'Language in use',
+				'data'    => array( 'code' => 'subtitle_language_in_use' ),
+			)
+		);
+
+		try {
+			$this->client()->delete_subtitle_language( 'de' );
+			$this->fail( 'Expected ApiException' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 409, $e->status() );
+			$this->assertStringContainsString( 'still', $e->user_message() );
+		}
+	}
 }

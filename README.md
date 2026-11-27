@@ -30,6 +30,7 @@ Sister projects: [videooptimizer-shopware](https://github.com/ScaleCommerce/vide
 - **Admin**:
   - Upload by drag & drop. Presigned multipart uploads go straight to storage, so no PHP limits apply.
   - Import by URL, pick poster frames or upload custom posters, edit player defaults.
+  - Subtitles per video (.vtt / .srt) in the organization's subtitle languages, tags and metadata, and the storage and bandwidth savings.
   - Manage libraries and their encoding ladder. When you change the ladder, the plugin offers to re-encode the library's existing videos right away.
 - **SEO**: schema.org `VideoObject` JSON-LD.
 - **Security**:

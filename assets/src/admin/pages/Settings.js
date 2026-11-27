@@ -13,6 +13,7 @@ import {
 } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import { api } from '../../components/api';
+import SubtitleLanguages from './SubtitleLanguages';
 import { resetLibraries } from '../../components/VideoBrowser';
 import { copyToClipboard } from '../../components/ui';
 import { useNotify } from '../notices';
@@ -664,6 +665,8 @@ export default function SettingsPage() {
 					{ __( 'Save settings', 'videooptimizer' ) }
 				</Button>
 			</div>
+
+			{ config.configured ? <SubtitleLanguages /> : null }
 
 			<Webhook settings={ settings } onChange={ setSettings } />
 

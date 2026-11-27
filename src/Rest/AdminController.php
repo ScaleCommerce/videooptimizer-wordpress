@@ -32,6 +32,8 @@ class AdminController {
 	private const UUID               = '(?P<uuid>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})';
 	private const ENCODING_QUALITIES = array( 'performance', 'quality' );
 	private const LIB_ID             = '(?P<id>[A-Za-z0-9-]{1,64})';
+	private const LANGUAGE           = '(?P<language>[A-Za-z0-9-]{2,35})';
+	private const SUBTITLE_MAX_BYTES = 2 * 1024 * 1024;
 
 	/**
 	 * Settings.
@@ -114,6 +116,9 @@ class AdminController {
 			array( 'GET', '/upload-library', 'upload_library', 'upload_files' ),
 
 			array( 'GET', '/tags', 'list_tags', 'upload_files' ),
+			array( 'GET', '/subtitle-languages', 'list_subtitle_languages', 'upload_files' ),
+			array( 'POST', '/subtitle-languages', 'create_subtitle_language', 'manage_options' ),
+			array( 'DELETE', '/subtitle-languages/' . self::LANGUAGE, 'delete_subtitle_language', 'manage_options' ),
 			array( 'GET', '/videos', 'list_videos', 'upload_files' ),
 			array( 'POST', '/videos/ingest', 'ingest', 'upload_files' ),
 			array( 'POST', '/videos/upload/initiate', 'initiate_upload', 'upload_files' ),
@@ -127,6 +132,11 @@ class AdminController {
 			array( 'POST', '/videos/' . self::UUID . '/poster/complete', 'complete_poster', 'upload_files' ),
 			array( 'POST', '/videos/' . self::UUID . '/poster/select', 'select_poster', 'upload_files' ),
 			array( 'DELETE', '/videos/' . self::UUID . '/poster', 'delete_poster', 'upload_files' ),
+
+			array( 'GET', '/videos/' . self::UUID . '/subtitles', 'list_subtitles', 'upload_files' ),
+			array( 'POST', '/videos/' . self::UUID . '/subtitles', 'upload_subtitle', 'upload_files' ),
+			array( 'GET', '/videos/' . self::UUID . '/subtitles/' . self::LANGUAGE, 'download_subtitle', 'upload_files' ),
+			array( 'DELETE', '/videos/' . self::UUID . '/subtitles/' . self::LANGUAGE, 'delete_subtitle', 'upload_files' ),
 
 			array( 'GET', '/videos/' . self::UUID . '/usage', 'video_usage', 'upload_files' ),
 			array( 'GET', '/delete-offers', 'list_delete_offers', 'upload_files' ),
@@ -692,6 +702,143 @@ class AdminController {
 		foreach ( $this->attachments->find_by_uuid( $uuid ) as $id ) {
 			$this->attachments->unlink( $id );
 		}
+
+		return array( 'deleted' => true );
+	}
+
+	/* ---------------------------------------------------------------- Subtitles */
+
+	/**
+	 * The organization's subtitle languages.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function list_subtitle_languages(): array {
+		return $this->client->list_subtitle_languages();
+	}
+
+	/**
+	 * Adds a subtitle language.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private function create_subtitle_language( \WP_REST_Request $request ) {
+		$body = (array) $request->get_json_params();
+		try {
+			$code = VideoFields::language( is_string( $body['code'] ?? null ) ? $body['code'] : '' );
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+		$label = is_string( $body['label'] ?? null ) ? mb_substr( sanitize_text_field( $body['label'] ), 0, 60 ) : '';
+
+		return $this->client->create_subtitle_language( $code, $label );
+	}
+
+	/**
+	 * Removes a subtitle language (the API refuses while videos still use it).
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, bool>|\WP_Error
+	 */
+	private function delete_subtitle_language( \WP_REST_Request $request ) {
+		try {
+			$code = VideoFields::language( (string) $request['language'] );
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+		$this->client->delete_subtitle_language( $code );
+
+		return array( 'deleted' => true );
+	}
+
+	/**
+	 * The subtitles of a video.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function list_subtitles( \WP_REST_Request $request ): array {
+		return $this->client->list_subtitles( (string) $request['uuid'] );
+	}
+
+	/**
+	 * Uploads or replaces a subtitle (multipart form: file, language, kind?, is_default?).
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private function upload_subtitle( \WP_REST_Request $request ) {
+		$files = $request->get_file_params();
+		$file  = is_array( $files['file'] ?? null ) ? $files['file'] : null;
+		if ( null === $file || UPLOAD_ERR_OK !== (int) ( $file['error'] ?? UPLOAD_ERR_NO_FILE ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'Please choose a .vtt or .srt file (up to 2 MB).', 'videooptimizer' ), array( 'status' => 400 ) );
+		}
+		$name = sanitize_file_name( (string) ( $file['name'] ?? '' ) );
+		if ( ! preg_match( '/\.(vtt|srt)$/i', $name ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'Please choose a .vtt or .srt file (up to 2 MB).', 'videooptimizer' ), array( 'status' => 415 ) );
+		}
+		if ( (int) ( $file['size'] ?? 0 ) > self::SUBTITLE_MAX_BYTES ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'The subtitle file is larger than 2 MB.', 'videooptimizer' ), array( 'status' => 413 ) );
+		}
+
+		try {
+			$language = VideoFields::language( (string) $request->get_param( 'language' ) );
+			$kind     = VideoFields::subtitle_kind( (string) $request->get_param( 'kind' ) );
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+
+		$contents = (string) file_get_contents( (string) ( $file['tmp_name'] ?? '' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reads PHP's own upload temp file.
+		$uuid     = (string) $request['uuid'];
+		$result   = $this->client->upload_subtitle(
+			$uuid,
+			$name,
+			$contents,
+			$language,
+			$kind,
+			(bool) filter_var( $request->get_param( 'is_default' ), FILTER_VALIDATE_BOOLEAN )
+		);
+		// The player tracks come from the cached embed data.
+		$this->embeds->forget( $uuid );
+
+		return $result;
+	}
+
+	/**
+	 * The stored WebVTT of one subtitle, for a download in the browser.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, string>|\WP_Error
+	 */
+	private function download_subtitle( \WP_REST_Request $request ) {
+		try {
+			$language = VideoFields::language( (string) $request['language'] );
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+
+		return array(
+			'language' => $language,
+			'content'  => $this->client->download_subtitle( (string) $request['uuid'], $language ),
+		);
+	}
+
+	/**
+	 * Removes the subtitle of one language.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, bool>|\WP_Error
+	 */
+	private function delete_subtitle( \WP_REST_Request $request ) {
+		try {
+			$language = VideoFields::language( (string) $request['language'] );
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+		$uuid = (string) $request['uuid'];
+		$this->client->delete_subtitle( $uuid, $language );
+		$this->embeds->forget( $uuid );
 
 		return array( 'deleted' => true );
 	}
