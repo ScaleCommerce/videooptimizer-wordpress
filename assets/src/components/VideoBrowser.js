@@ -291,6 +291,10 @@ export default function VideoBrowser( {
 							'Public https:// URL of a video file',
 							'videooptimizer'
 						) }
+						help={ __(
+							'Link to the video file itself, not to a video page such as YouTube.',
+							'videooptimizer'
+						) }
 						value={ url }
 						onChange={ setUrl }
 						placeholder="https://…/video.mp4"

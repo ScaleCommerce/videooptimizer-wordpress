@@ -8,6 +8,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 - Libraries show and set the encoding quality (`performance` | `quality`); changing it re-encodes existing videos with `force` ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
 - `POST /libraries/{id}/reprocess` accepts `{"force": true}` ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
 
+- URL import explains rejected video platform links (`source_url_video_platform`) and hints at the URL field to link a video file ([#3](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/3)).
+
 ### Changed
 - Default player host is `https://player.videooptimizer.eu` (was `videooptimizer.eu`); `VIDEOOPTIMIZER_EMBED_BASE_URL` and the `videooptimizer_embed_base_url` filter still override it, old embed URLs keep working ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
 - App links point to `https://app.videooptimizer.eu` ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).

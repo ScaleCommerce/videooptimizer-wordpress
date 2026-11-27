@@ -99,6 +99,25 @@ final class PluginTest extends IntegrationTestCase {
 		$this->assertSame( '', $this->api_bodies[2], 'only a real boolean true forces' );
 	}
 
+	public function test_ingest_of_a_video_platform_link_returns_the_hint(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+		add_filter(
+			'pre_http_request',
+			fn ( $pre, $args, $url ) => ( 'POST' === $args['method'] && str_ends_with( $url, '/videos' ) )
+				? self::json( 400, array( 'statusCode' => 400, 'message' => 'Not supported', 'data' => array( 'code' => 'source_url_video_platform' ) ) )
+				: $pre,
+			20,
+			3
+		);
+
+		$response = $this->rest( 'POST', '/videos/ingest', array( 'library_id' => 'lib-1', 'source_url' => 'https://www.youtube.com/watch?v=x' ) );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertStringContainsString( 'not to a video page', $response->get_data()['message'] );
+		$this->assertSame( 'source_url_video_platform', $response->get_data()['data']['upstream_code'] );
+	}
+
 	public function test_ingest_requires_https(): void {
 		$this->login_as( 'administrator' );
 		$this->configure_token();

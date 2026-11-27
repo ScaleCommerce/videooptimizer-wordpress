@@ -215,6 +215,25 @@ final class ClientTest extends TestCase {
 		}
 	}
 
+	public function test_rejected_video_platform_link_is_explained(): void {
+		$this->responses[] = $this->response(
+			400,
+			array(
+				'statusCode' => 400,
+				'message'    => 'Video platform links are not supported',
+				'data'       => array( 'code' => 'source_url_video_platform' ),
+			)
+		);
+
+		try {
+			$this->client()->ingest_url( array( 'source_url' => 'https://youtu.be/x' ) );
+			$this->fail( 'Expected exception' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 'source_url_video_platform', $e->api_code() );
+			$this->assertStringContainsString( 'not to a video page', $e->user_message() );
+		}
+	}
+
 	public function test_missing_token_and_insecure_base_url(): void {
 		try {
 			$this->client( null )->list_libraries();

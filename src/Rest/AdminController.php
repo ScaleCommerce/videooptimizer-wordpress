@@ -220,6 +220,7 @@ class AdminController {
 					'status'          => $status >= 400 && $status < 600 ? $status : 502,
 					'upstream_status' => $status,
 					'upstream'        => $e->getMessage(),
+					'upstream_code'   => $e->api_code(),
 				)
 			);
 		}

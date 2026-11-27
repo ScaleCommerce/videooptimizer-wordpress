@@ -26,15 +26,31 @@ class ApiException extends \RuntimeException {
 	private string $upstream_message;
 
 	/**
+	 * Machine-readable API error code (`data.code` of the error body), empty when absent.
+	 *
+	 * @var string
+	 */
+	private string $api_code;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param string          $message  Upstream (English) message.
 	 * @param int             $status   HTTP status.
 	 * @param \Throwable|null $previous Previous exception.
+	 * @param string          $api_code API error code, e.g. `source_url_video_platform`.
 	 */
-	public function __construct( string $message, int $status = 0, ?\Throwable $previous = null ) {
+	public function __construct( string $message, int $status = 0, ?\Throwable $previous = null, string $api_code = '' ) {
 		parent::__construct( $message, $status, $previous );
 		$this->upstream_message = $message;
+		$this->api_code         = $api_code;
+	}
+
+	/**
+	 * Machine-readable API error code, empty when the API sent none.
+	 */
+	public function api_code(): string {
+		return $this->api_code;
 	}
 
 	/**
@@ -81,6 +97,9 @@ class ApiException extends \RuntimeException {
 		}
 		if ( 429 === $status ) {
 			return __( 'Too many requests to VideoOptimizer. Please wait a minute and try again.', 'videooptimizer' );
+		}
+		if ( 400 === $status && 'source_url_video_platform' === $this->api_code ) {
+			return __( 'Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube.', 'videooptimizer' );
 		}
 		if ( 400 === $status && false !== stripos( $message, 'managed' ) ) {
 			return __( 'This library is delivery-only (not media-managed) — uploads and poster changes are not possible here.', 'videooptimizer' );

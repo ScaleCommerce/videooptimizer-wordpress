@@ -416,7 +416,8 @@ class Client {
 					break;
 				}
 			}
-			throw new ApiException( $message, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+			$code = is_array( $decoded['data'] ?? null ) && is_string( $decoded['data']['code'] ?? null ) ? $decoded['data']['code'] : '';
+			throw new ApiException( $message, $status, null, $code ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 		}
 
 		return array(

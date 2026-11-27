@@ -16,6 +16,8 @@ function request( path, options = {} ) {
 		);
 		err.code = error && error.code;
 		err.status = error && error.data ? error.data.status : null;
+		err.upstreamCode =
+			error && error.data ? error.data.upstream_code : null;
 		err.upstreamStatus =
 			error && error.data ? error.data.upstream_status : null;
 		throw err;
