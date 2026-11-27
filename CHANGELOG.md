@@ -6,6 +6,11 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+### Changed
+- Requests to the VideoOptimizer API now identify the plugin with the User-Agent
+  `VideoOptimizer-WordPress/<version> (WordPress <version>; PHP <version>; +<site URL>)`, so VideoOptimizer can show
+  which plugin versions an organization runs. This also applies to the public embed requests.
+
 ## [0.1.0] - 2026-09-29
 
 First release. Licensed under MIT.

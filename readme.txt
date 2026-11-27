@@ -38,7 +38,7 @@ This plugin connects WordPress and WooCommerce to your [VideoOptimizer](https://
 
 This plugin connects to the VideoOptimizer service operated by ScaleCommerce GmbH (Germany) to manage and deliver your videos:
 
-* **VideoOptimizer API** (`https://api.videooptimizer.eu`): used from your server when you browse, upload, edit or delete videos in WP-Admin, and to read the public playback data (sources, poster) of the videos you embed. Your API token is sent with admin requests. Video files you upload are transferred directly from your browser to VideoOptimizer storage.
+* **VideoOptimizer API** (`https://api.videooptimizer.eu`): used from your server when you browse, upload, edit or delete videos in WP-Admin, and to read the public playback data (sources, poster) of the videos you embed. Your API token is sent with admin requests. Every request identifies the plugin with its version, the WordPress and PHP versions and your site address (in the User-Agent header). Video files you upload are transferred directly from your browser to VideoOptimizer storage.
 * **VideoOptimizer player and CDN** (`https://videooptimizer.eu`, `*.cdn.videooptimizer.eu`): visitors' browsers load posters, video files and — if you use the VideoOptimizer player — the player iframe from there.
 
 Privacy policy: https://scale.sc/ueber-uns/datenschutz — Legal notice: https://scale.sc/ueber-uns/impressum

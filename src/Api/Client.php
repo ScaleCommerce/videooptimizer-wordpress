@@ -374,7 +374,8 @@ class Client {
 			'method'     => $method,
 			'timeout'    => $timeout,
 			'headers'    => $headers,
-			'user-agent' => 'VideoOptimizer-WordPress/' . ( defined( 'VIDEOOPTIMIZER_VERSION' ) ? VIDEOOPTIMIZER_VERSION : 'dev' ) . '; ' . home_url( '/' ),
+			// Identifies plugin, WordPress and PHP version plus the site to VideoOptimizer.
+			'user-agent' => UserAgent::get(),
 		);
 		if ( null !== $json ) {
 			$args['headers']['Content-Type'] = 'application/json';

@@ -10,6 +10,7 @@ namespace ScaleCommerce\VideoOptimizer\Tests\Unit;
 use Brain\Monkey\Functions;
 use ScaleCommerce\VideoOptimizer\Api\ApiException;
 use ScaleCommerce\VideoOptimizer\Api\Client;
+use ScaleCommerce\VideoOptimizer\Api\UserAgent;
 
 final class ClientTest extends TestCase {
 
@@ -39,6 +40,9 @@ final class ClientTest extends TestCase {
 		Functions\when( 'wp_remote_retrieve_response_code' )->alias( static fn ( $r ) => $r['response']['code'] );
 		Functions\when( 'wp_remote_retrieve_body' )->alias( static fn ( $r ) => $r['body'] );
 		Functions\when( 'wp_remote_retrieve_header' )->alias( static fn ( $r, $h ) => $r['headers'][ $h ] ?? '' );
+		Functions\when( 'get_bloginfo' )->justReturn( '6.8.1' );
+		// The User-Agent is memoized per request; start every test from a fresh one.
+		( new \ReflectionProperty( UserAgent::class, 'cached' ) )->setValue( null, null );
 	}
 
 	/**
@@ -161,6 +165,20 @@ final class ClientTest extends TestCase {
 		$this->assertCount( 1, $this->requests );
 		$this->assertArrayNotHasKey( 'Authorization', $this->requests[0][1]['headers'] );
 		$this->assertSame( Client::EMBED_TIMEOUT, $this->requests[0][1]['timeout'] );
+		$this->assertStringStartsWith( UserAgent::PRODUCT . '/', $this->requests[0][1]['user-agent'] );
+	}
+
+	public function test_every_request_identifies_the_plugin(): void {
+		$this->client()->get_video( 'abc' );
+		$this->client()->delete_video( 'abc' );
+
+		$this->assertCount( 2, $this->requests );
+		foreach ( $this->requests as [ , $args ] ) {
+			$this->assertMatchesRegularExpression(
+				'#^VideoOptimizer-WordPress/0\.1\.0-test \(WordPress 6\.8\.1; PHP [^;()]+; \+https://shop\.example/?\)$#',
+				$args['user-agent']
+			);
+		}
 	}
 
 	public function test_encodings_are_not_unwrapped(): void {
