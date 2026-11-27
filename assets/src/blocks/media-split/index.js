@@ -96,6 +96,7 @@ function Edit( { attributes, setAttributes } ) {
 					setAttributes={ setAttributes }
 				/>
 				<PlayerPanel
+					scrollPlay
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 					initialOpen={ false }

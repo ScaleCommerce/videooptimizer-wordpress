@@ -106,6 +106,10 @@
 		"focalY": {
 			"type": "number",
 			"default": 50
+		},
+		"scrollPlay": {
+			"type": "boolean",
+			"default": false
 		}
 	},
 	"supports": {

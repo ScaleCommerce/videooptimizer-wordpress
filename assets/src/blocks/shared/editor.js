@@ -50,12 +50,16 @@ const TRI = [
  * @param {Object}  props.attributes
  * @param {Object}  props.setAttributes
  * @param {boolean} props.presentation  Show the presentation select.
+ * @param {boolean} props.scrollPlay    Offer "Play while scrolling".
+ * @param {boolean} props.miniPlayer    Offer the floating mini player.
  * @param {boolean} props.initialOpen   Panel initially open.
  */
 export function PlayerPanel( {
 	attributes,
 	setAttributes,
 	presentation = true,
+	scrollPlay = false,
+	miniPlayer = false,
 	initialOpen = true,
 } ) {
 	const { player, autoplay, muted, loop, controls, priority } = attributes;
@@ -167,6 +171,34 @@ export function PlayerPanel( {
 				onChange={ ( value ) => setAttributes( { controls: value } ) }
 				options={ TRI }
 			/>
+			{ scrollPlay ? (
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __( 'Play while scrolling', 'videooptimizer' ) }
+					help={ __(
+						'Only for "Player directly": starts muted when the video is half visible and pauses when it leaves. Not for visitors who prefer reduced motion or save data.',
+						'videooptimizer'
+					) }
+					checked={ !! attributes.scrollPlay }
+					onChange={ ( value ) =>
+						setAttributes( { scrollPlay: value } )
+					}
+				/>
+			) : null }
+			{ miniPlayer ? (
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __( 'Floating mini player', 'videooptimizer' ) }
+					help={ __(
+						'Only for "Player directly": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it.',
+						'videooptimizer'
+					) }
+					checked={ !! attributes.miniPlayer }
+					onChange={ ( value ) =>
+						setAttributes( { miniPlayer: value } )
+					}
+				/>
+			) : null }
 			<ToggleControl
 				__nextHasNoMarginBottom
 				label={ __( 'Above the fold', 'videooptimizer' ) }

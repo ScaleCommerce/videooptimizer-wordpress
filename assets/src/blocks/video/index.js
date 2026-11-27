@@ -78,6 +78,8 @@ function Edit( { attributes, setAttributes } ) {
 					setAttributes={ setAttributes }
 				/>
 				<PlayerPanel
+					scrollPlay
+					miniPlayer
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 				/>

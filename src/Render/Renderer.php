@@ -180,12 +180,40 @@ class Renderer {
 			return $this->missing_notice( $a['uuid'] );
 		}
 
-		$html = $this->surface( $embed, $a, $a['title'], '(min-width: 1200px) 1200px, 100vw', $a['priority'] );
+		$html = $this->mini( $this->surface( $embed, $a, $a['title'], '(min-width: 1200px) 1200px, 100vw', $a['priority'] ), $embed, $a );
 		if ( '' !== $a['caption'] ) {
 			$html .= '<figcaption class="vo-caption">' . esc_html( $a['caption'] ) . '</figcaption>';
 		}
 
 		return '<figure class="vo-video">' . $html . '</figure>';
+	}
+
+	/**
+	 * Floating mini player: wraps a directly shown player so the script can pin it to the bottom
+	 * right once playback started and it scrolls out of view (CSS only, the player is never moved).
+	 *
+	 * @param string               $html  Surface markup.
+	 * @param array<string, mixed> $embed Normalized embed.
+	 * @param array<string, mixed> $a     Attributes.
+	 */
+	private function mini( string $html, array $embed, array $a ): string {
+		if ( empty( $a['miniPlayer'] ) || 'direct' !== $a['presentation'] ) {
+			return $html;
+		}
+		$format = (string) ( $a['format'] ?? '' );
+		if ( '' !== $format && in_array( $format, Attributes::FORMATS, true ) ) {
+			[ $fw, $fh ] = array_map( 'intval', explode( ':', $format ) );
+			$narrow      = $fw < $fh;
+		} else {
+			$narrow = 'portrait' === $embed['orientation'];
+		}
+
+		return sprintf(
+			'<div class="vo-mini%1$s" data-vo-mini><div class="vo-mini__box">%2$s<button type="button" class="vo-mini__close" aria-label="%3$s"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>',
+			$narrow ? ' vo-mini--narrow' : '',
+			$html,
+			esc_attr__( 'Close mini player', 'videooptimizer' )
+		);
 	}
 
 	/**
@@ -356,12 +384,29 @@ class Renderer {
 			$frame_attrs['style'] = implode( ';', $styles );
 		}
 
+		$scroll  = ! $click && ! empty( $a['scrollPlay'] );
 		$poster  = $this->poster_img( $embed, $sizes, $priority );
-		$preload = $this->poster_preload( $embed, $click ? $sizes : null, $priority && ( $click || 'native' === $player ) );
+		$preload = $this->poster_preload( $embed, $click || ( $scroll && 'hosted' === $player ) ? $sizes : null, $priority && ( $click || 'native' === $player || $scroll ) );
 
 		if ( ! $click ) {
 			if ( 'native' === $player ) {
 				$inner = $this->native_video( $embed, $a, $priority, ! $priority );
+			} elseif ( $scroll ) {
+				// Play while scrolling: the script injects the player once it is half visible
+				// (muted autoplay) or, for visitors who must not get motion, as a plain player.
+				$frame_attrs['data-vo-scroll-url']      = $this->embed_url(
+					$embed['uuid'],
+					array_merge(
+						$a,
+						array(
+							'autoplay' => '1',
+							'muted'    => '1',
+						)
+					),
+					false
+				);
+				$frame_attrs['data-vo-scroll-fallback'] = $url;
+				$inner                                  = $poster . '<noscript>' . $this->iframe( $url, $label, false ) . '</noscript>';
 			} elseif ( $priority ) {
 				$inner = $this->iframe( $url, $label, true );
 			} else {
@@ -454,6 +499,15 @@ class Renderer {
 		$muted    = self::resolve( $a['muted'], ! empty( $theme['mutedStart'] ) );
 		$loop     = self::resolve( $a['loop'], ! empty( $theme['loopButton'] ) );
 
+		// Play while scrolling (direct players only): muted, started and paused by the script.
+		$scroll = ( $eager || $autoload ) && ! empty( $a['scrollPlay'] );
+		if ( $scroll ) {
+			$autoplay = true;
+			$muted    = true;
+			$eager    = false;
+			$autoload = true;
+		}
+
 		$direct = $eager || $autoload;
 		// The theme hides the controls only for a video that really starts by itself (muted);
 		// otherwise it could not be played. An explicit block setting always wins.
@@ -495,7 +549,9 @@ class Renderer {
 		} elseif ( $muted || ( $autoload && $autoplay ) ) {
 			$attrs['muted'] = true;
 		}
-		if ( $autoload && $autoplay ) {
+		if ( $scroll ) {
+			$attrs['data-vo-scroll-play'] = true;
+		} elseif ( $autoload && $autoplay ) {
 			$attrs['data-vo-native-autoload'] = true;
 		}
 		if ( ! $controls ) {
@@ -738,7 +794,7 @@ class Renderer {
 				continue;
 			}
 			$value = (string) $value;
-			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'href', 'data-hls', 'data-mp4', 'data-vo-autoload' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
+			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'href', 'data-hls', 'data-mp4', 'data-vo-autoload', 'data-vo-scroll-url', 'data-vo-scroll-fallback' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
 		}
 
 		return $out;

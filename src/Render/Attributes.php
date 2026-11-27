@@ -52,6 +52,8 @@ final class Attributes {
 			'loop'          => array( 'enum', '', $tri ),
 			'controls'      => array( 'enum', '', $tri ),
 			'priority'      => array( 'bool', false ),
+			'scrollPlay'    => array( 'bool', false ),
+			'miniPlayer'    => array( 'bool', false ),
 			'caption'       => array( 'text', '' ),
 			// Format: '' = the video's own ratio; focal point in percent (object-position).
 			'format'        => array( 'enum', '', self::FORMATS ),

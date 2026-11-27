@@ -303,6 +303,26 @@ class Widget extends \Elementor\Widget_Base {
 			)
 		);
 		$this->add_control(
+			'scrollPlay',
+			array(
+				'label'        => __( 'Play while scrolling', 'videooptimizer' ),
+				'description'  => __( 'Only for "Player directly": starts muted when the video is half visible and pauses when it leaves. Not for visitors who prefer reduced motion or save data.', 'videooptimizer' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'condition'    => array( 'layout' => array( 'video', 'media-split' ) ),
+			)
+		);
+		$this->add_control(
+			'miniPlayer',
+			array(
+				'label'        => __( 'Floating mini player', 'videooptimizer' ),
+				'description'  => __( 'Only for "Player directly": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it.', 'videooptimizer' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'condition'    => array( 'layout' => 'video' ),
+			)
+		);
+		$this->add_control(
 			'side',
 			array(
 				'label'     => __( 'Video position', 'videooptimizer' ),
@@ -379,6 +399,9 @@ class Widget extends \Elementor\Widget_Base {
 
 		$attrs             = $settings;
 		$attrs['priority'] = 'yes' === ( $settings['priority'] ?? '' );
+		foreach ( array( 'scrollPlay', 'miniPlayer' ) as $flag ) {
+			$attrs[ $flag ] = 'yes' === ( $settings[ $flag ] ?? '' );
+		}
 		$attrs['ctaUrl']   = is_array( $settings['ctaUrl'] ?? null ) ? (string) ( $settings['ctaUrl']['url'] ?? '' ) : '';
 		if ( is_array( $settings['items'] ?? null ) ) {
 			$attrs['items'] = array_map(

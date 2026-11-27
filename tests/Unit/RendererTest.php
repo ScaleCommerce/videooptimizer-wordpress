@@ -117,6 +117,68 @@ final class RendererTest extends TestCase {
 		}
 	}
 
+	public function test_scroll_play_native_is_deferred_muted_and_driven_by_the_script(): void {
+		foreach ( array( false, true ) as $priority ) {
+			$html = $this->renderer->render(
+				'video',
+				array(
+					'uuid'         => self::UUID,
+					'player'       => 'native',
+					'presentation' => 'direct',
+					'scrollPlay'   => true,
+					'priority'     => $priority,
+				)
+			);
+
+			$this->assertStringContainsString( 'data-vo-scroll-play', $html );
+			$this->assertStringContainsString( 'preload="none"', $html, 'no segments before playback' );
+			$this->assertStringContainsString( ' muted', $html );
+			$this->assertStringNotContainsString( ' autoplay', $html, 'the script starts it, honouring reduced motion' );
+			$this->assertStringNotContainsString( 'data-vo-native-autoload', $html );
+		}
+	}
+
+	public function test_scroll_play_hosted_has_urls_for_the_script_and_no_early_iframe(): void {
+		$html = $this->renderer->render(
+			'video',
+			array(
+				'uuid'         => self::UUID,
+				'player'       => 'hosted',
+				'presentation' => 'direct',
+				'scrollPlay'   => true,
+				'priority'     => true,
+			)
+		);
+
+		$this->assertStringContainsString( 'data-vo-scroll-url="https://player.videooptimizer.eu/embed/' . self::UUID . '?autoplay=1&#038;muted=1"', $html );
+		$this->assertStringContainsString( 'data-vo-scroll-fallback="https://player.videooptimizer.eu/embed/' . self::UUID . '"', $html );
+		$this->assertStringNotContainsString( 'data-vo-autoload', $html );
+		$this->assertSame( 1, substr_count( $html, '<iframe' ), 'only the noscript fallback' );
+		$this->assertStringContainsString( 'vo-poster__img', $html );
+	}
+
+	public function test_scroll_play_is_ignored_for_click_to_play_presentations(): void {
+		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'facade', 'scrollPlay' => true ) );
+
+		$this->assertStringNotContainsString( 'data-vo-scroll', $html );
+	}
+
+	public function test_mini_player_wraps_a_direct_player_with_a_close_button(): void {
+		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'direct', 'miniPlayer' => true, 'priority' => true ) );
+
+		$this->assertStringContainsString( '<div class="vo-mini vo-mini--narrow" data-vo-mini><div class="vo-mini__box"><div class="vo-frame', $html );
+		$this->assertStringContainsString( 'class="vo-mini__close" aria-label="Close mini player"', $html );
+
+		$wide = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'direct', 'miniPlayer' => true, 'format' => '16:9' ) );
+		$this->assertStringContainsString( 'class="vo-mini" data-vo-mini', $wide );
+	}
+
+	public function test_mini_player_needs_a_direct_presentation(): void {
+		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'lightbox', 'miniPlayer' => true ) );
+
+		$this->assertStringNotContainsString( 'vo-mini', $html );
+	}
+
 	public function test_json_ld_uses_the_embed_upload_date_when_present(): void {
 		Functions\when( 'get_post_time' )->justReturn( '2020-01-01T00:00:00+00:00' );
 		$this->embed['uploadDate'] = '2026-05-04T10:00:00Z';

@@ -11,6 +11,9 @@ import {
 	trackPlayIntent,
 	wantsPlayback,
 } from './playback-fallback';
+import { sendCommand } from './hosted';
+import { initScrollPlay } from './scroll-play';
+import { initMiniPlayers } from './mini-player';
 
 const config = window.videooptimizerFrontend || {};
 const i18n = config.i18n || {};
@@ -183,12 +186,7 @@ function embedIframe( url, title ) {
 }
 
 function pauseIframe( iframe ) {
-	try {
-		iframe.contentWindow.postMessage(
-			{ type: 'videooptimizer:command', command: 'pause' },
-			'*'
-		);
-	} catch ( e ) {}
+	sendCommand( iframe, 'pause' );
 }
 
 /**
@@ -915,6 +913,8 @@ export function init( root = document ) {
 	document.documentElement.classList.add( 'vo-js' );
 	initNativePlayers( root );
 	initAutoload( root );
+	initScrollPlay( root, { play, attachHls, embedIframe, reducedMotion } );
+	initMiniPlayers( root );
 	initFacades( root );
 	initLightbox( root );
 	initBackgrounds( root );
