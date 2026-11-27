@@ -4,7 +4,11 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Added
+- Running uploads can be canceled in the video browser, and failed processing shows the API's error ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).
+
 ### Changed
+- Codecs and resolutions the organization has not unlocked (paid add-ons) are shown as locked and cannot be enabled; the library's `available_codecs` / `available_resolutions` decide ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).
 - The video browser loads 60 videos per page with "Load more" instead of every page on each reload, and keeps the loaded pages after uploads and edits ([#12](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/12)).
 - After a transport error, rate limit or gateway error the plugin stops asking the API for uncached embeds for 60 seconds (cached videos are still served) ([#13](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/13)).
 

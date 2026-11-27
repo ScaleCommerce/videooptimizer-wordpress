@@ -20,7 +20,7 @@ import {
 	posterPreview,
 	videoTitle,
 } from '../../components/api';
-import { pollVideo, uploadPoster } from '../../components/uploader';
+import { pollVideo, uploadCustomPoster } from '../../components/uploader';
 import {
 	ConfirmModal,
 	StatusBadge,
@@ -104,27 +104,8 @@ function CustomPoster( { video, onChanged } ) {
 
 	const upload = ( file ) => {
 		setBusy( true );
-		uploadPoster( video.uuid, file )
-			.then( () =>
-				pollVideo( video.uuid, {
-					interval: 2000,
-					max: 40,
-					until: ( v ) =>
-						v.poster &&
-						[ 'ready', 'failed' ].includes(
-							v.poster.custom_status
-						),
-				} )
-			)
-			.then( ( v ) => {
-				if ( v.poster && v.poster.custom_status === 'failed' ) {
-					throw new Error(
-						__(
-							'The poster image could not be processed.',
-							'videooptimizer'
-						)
-					);
-				}
+		uploadCustomPoster( video.uuid, file )
+			.then( () => {
 				bumpPosterCache();
 				notify( __( 'Custom poster is active.', 'videooptimizer' ) );
 				onChanged();

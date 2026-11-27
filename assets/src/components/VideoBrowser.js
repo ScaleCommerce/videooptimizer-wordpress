@@ -83,6 +83,9 @@ function uploadLabel( upload ) {
 	if ( upload.status === 'ready' ) {
 		return __( 'Ready', 'videooptimizer' );
 	}
+	if ( upload.status === 'canceled' ) {
+		return __( 'Canceled', 'videooptimizer' );
+	}
 	return upload.error || __( 'Failed', 'videooptimizer' );
 }
 
@@ -237,7 +240,13 @@ export default function VideoBrowser( {
 			signals.current.push( signal );
 			setUploads( ( list ) => [
 				...list,
-				{ id, name: file.name, progress: 0, status: 'uploading' },
+				{
+					id,
+					name: file.name,
+					progress: 0,
+					status: 'uploading',
+					signal,
+				},
 			] );
 			uploadVideo( file, {
 				libraryId: uploadTarget,
@@ -257,11 +266,17 @@ export default function VideoBrowser( {
 				} )
 				.then( ( video ) => {
 					if ( video ) {
-						updateUpload( id, { status: video.status } );
+						updateUpload( id, {
+							status: video.status,
+							error: video.error,
+						} );
 					}
 				} )
 				.catch( ( e ) =>
-					updateUpload( id, { status: 'failed', error: e.message } )
+					updateUpload( id, {
+						status: signal.aborted ? 'canceled' : 'failed',
+						error: e.message,
+					} )
 				);
 		} );
 	};
@@ -395,7 +410,16 @@ export default function VideoBrowser( {
 						<li key={ u.id }>
 							<span className="vo-uploads__name">{ u.name }</span>
 							{ u.status === 'uploading' ? (
-								<ProgressBar value={ u.progress } />
+								<>
+									<ProgressBar value={ u.progress } />
+									<Button
+										variant="link"
+										isDestructive
+										onClick={ () => u.signal.abort() }
+									>
+										{ __( 'Cancel', 'videooptimizer' ) }
+									</Button>
+								</>
 							) : (
 								<span
 									className={ `vo-badge vo-badge--${ u.status }` }

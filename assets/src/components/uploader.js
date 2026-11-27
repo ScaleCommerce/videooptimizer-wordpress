@@ -180,6 +180,35 @@ export async function uploadPoster( uuid, file ) {
 	await api.completePoster( uuid, init.key );
 }
 
+/**
+ * Uploads a custom poster and waits until the API has processed it. The API activates a processed
+ * custom poster by itself, so no `poster/select` call follows.
+ *
+ * @param {string}    uuid             Video uuid.
+ * @param {File|Blob} file             JPEG, PNG or WebP.
+ * @param {Object}    options
+ * @param {number}    options.interval ms between polls.
+ * @param {number}    options.max      Max polls.
+ * @return {Promise<Object>} The video with its processed custom poster.
+ */
+export async function uploadCustomPoster( uuid, file, options = {} ) {
+	const { interval = 2000, max = 40 } = options;
+	await uploadPoster( uuid, file );
+	const video = await pollVideo( uuid, {
+		interval,
+		max,
+		until: ( v ) =>
+			v.poster &&
+			[ 'ready', 'failed' ].includes( v.poster.custom_status ),
+	} );
+	if ( video.poster && video.poster.custom_status === 'failed' ) {
+		throw new Error(
+			__( 'The poster image could not be processed.', 'videooptimizer' )
+		);
+	}
+	return video;
+}
+
 export function createSignal() {
 	const signal = {
 		aborted: false,
