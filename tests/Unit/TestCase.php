@@ -92,6 +92,8 @@ abstract class TestCase extends PolyfillTestCase {
 			)
 		);
 		Functions\when( 'apply_filters' )->returnArg( 2 );
+		Functions\when( 'is_admin' )->justReturn( false );
+		Functions\when( 'wp_doing_ajax' )->justReturn( false );
 		// Like core: esc_url() encodes ampersands.
 		Functions\when( 'esc_url' )->alias( static fn ( $url ) => str_replace( '&', '&#038;', (string) $url ) );
 	}

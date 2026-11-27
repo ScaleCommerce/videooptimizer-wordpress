@@ -329,10 +329,10 @@ function getLightbox() {
 	if ( lightbox ) {
 		return lightbox;
 	}
-	const box = document.createElement( 'div' );
+	// A native modal dialog: focus stays inside, Escape closes it and the browser makes the rest
+	// of the page inert. Browsers without showModal() get the same by hand.
+	const box = document.createElement( 'dialog' );
 	box.className = 'vo-lightbox vo-blocks';
-	box.setAttribute( 'role', 'dialog' );
-	box.setAttribute( 'aria-modal', 'true' );
 	box.setAttribute( 'aria-label', i18n.play || 'Video' );
 	box.innerHTML =
 		'<div class="vo-lightbox__inner"><div class="vo-lightbox__slot"></div></div>';
@@ -346,10 +346,21 @@ function getLightbox() {
 
 	const slot = box.querySelector( '.vo-lightbox__slot' );
 	const inner = box.querySelector( '.vo-lightbox__inner' );
-	const state = { lastFocus: null, holder: null };
+	const state = { lastFocus: null, holder: null, inerted: [] };
+	const modal = typeof box.showModal === 'function';
 
-	const doClose = () => {
-		box.removeAttribute( 'data-open' );
+	const restoreInert = () => {
+		state.inerted.forEach( ( el ) => el.removeAttribute( 'inert' ) );
+		state.inerted = [];
+	};
+
+	// Single clean-up path: runs for the close button, Escape, the backdrop and `close` events.
+	const cleanup = () => {
+		if ( ! box.hasAttribute( 'open' ) && ! state.lastFocus ) {
+			return;
+		}
+		box.removeAttribute( 'open' );
+		restoreInert();
 		document.documentElement.classList.remove( 'vo-lightbox-open' );
 		if ( state.holder ) {
 			const video = slot.querySelector( 'video' );
@@ -360,25 +371,39 @@ function getLightbox() {
 			state.holder = null;
 		}
 		slot.replaceChildren(); // Stops iframe playback.
-		if ( state.lastFocus ) {
-			state.lastFocus.focus();
+		const focus = state.lastFocus;
+		state.lastFocus = null;
+		if ( focus ) {
+			focus.focus();
+		}
+	};
+	const doClose = () => {
+		if ( modal && box.hasAttribute( 'open' ) ) {
+			box.close(); // Fires `close`, which cleans up.
+		} else {
+			cleanup();
 		}
 	};
 
+	box.addEventListener( 'close', cleanup );
+	box.addEventListener( 'cancel', ( event ) => {
+		event.preventDefault();
+		doClose();
+	} );
 	box.addEventListener( 'click', ( event ) => {
 		if ( event.target === box || event.target === close ) {
 			doClose();
 		}
 	} );
 	document.addEventListener( 'keydown', ( event ) => {
-		if ( box.getAttribute( 'data-open' ) !== 'true' ) {
+		if ( ! box.hasAttribute( 'open' ) ) {
 			return;
 		}
 		if ( event.key === 'Escape' ) {
 			doClose();
 			return;
 		}
-		if ( event.key === 'Tab' ) {
+		if ( event.key === 'Tab' && ! modal ) {
 			const focusable = box.querySelectorAll(
 				'button, iframe, video[controls], a[href], [tabindex]:not([tabindex="-1"])'
 			);
@@ -402,7 +427,7 @@ function getLightbox() {
 
 	lightbox = {
 		open( trigger ) {
-			state.lastFocus = box.ownerDocument.activeElement;
+			state.lastFocus = box.ownerDocument.activeElement || trigger;
 			state.holder = null;
 			const frame = trigger.closest( '.vo-frame' );
 			// Keep the real aspect ratio (portrait videos stay tall, not letterboxed).
@@ -440,7 +465,17 @@ function getLightbox() {
 					)
 				);
 			}
-			box.setAttribute( 'data-open', 'true' );
+			if ( modal ) {
+				box.showModal();
+			} else {
+				box.setAttribute( 'open', '' );
+				Array.from( document.body.children ).forEach( ( el ) => {
+					if ( el !== box && ! el.hasAttribute( 'inert' ) ) {
+						el.setAttribute( 'inert', '' );
+						state.inerted.push( el );
+					}
+				} );
+			}
 			document.documentElement.classList.add( 'vo-lightbox-open' );
 			close.focus();
 		},
@@ -463,17 +498,62 @@ function initLightbox( root ) {
 
 /* ------------------------------------------------------------------ Background hero */
 
+/**
+ * Pause/play button of a looping background video (WCAG 2.2.2). The button follows what the video
+ * really does (play/pause events, so blocked autoplay shows "Play"); a pause by the visitor
+ * sticks, scrolling the hero out of view and back does not undo it.
+ *
+ * @param {HTMLVideoElement} video
+ * @param {Function}         start Starts playback from scratch (first start, e.g. reduced motion).
+ */
+function wireHeroToggle( video, start ) {
+	const hero = video.closest( '.vo-bg-hero' );
+	const button = hero && hero.querySelector( '[data-vo-hero-toggle]' );
+	if ( ! button ) {
+		return;
+	}
+	const show = ( isPlaying ) => {
+		const label = button.getAttribute(
+			isPlaying ? 'data-label-pause' : 'data-label-play'
+		);
+		if ( label ) {
+			button.setAttribute( 'aria-label', label );
+		}
+		button.setAttribute( 'data-state', isPlaying ? 'playing' : 'paused' );
+	};
+	show( ! video.paused );
+	button.hidden = false;
+	video.voHeroShow = show; // start() shows "Pause" as soon as playback is requested.
+	video.addEventListener( 'play', () => show( true ) );
+	video.addEventListener( 'pause', () => show( false ) );
+	button.addEventListener( 'click', () => {
+		if ( button.getAttribute( 'data-state' ) === 'playing' ) {
+			video.voUserPaused = true;
+			video.pause();
+			show( false );
+			return;
+		}
+		video.voUserPaused = false;
+		if ( video.currentSrc || video.voHls ) {
+			video.play().catch( () => show( false ) );
+		} else {
+			start( video );
+		}
+		show( true );
+	} );
+}
+
 function initBackgrounds( root ) {
 	const videos = Array.from(
 		root.querySelectorAll( 'video.vo-bg-hero__video:not([data-vo-wired])' )
 	);
 	videos.forEach( ( video ) => video.setAttribute( 'data-vo-wired', '' ) );
-	if ( reducedMotion() ) {
-		return; // Poster only.
-	}
 
 	const start = ( video ) => {
 		markPlayIntent( video );
+		if ( video.voHeroShow && ! video.voUserPaused ) {
+			video.voHeroShow( true );
+		}
 		const mp4 = video.getAttribute( 'data-mp4' );
 		const src = video.getAttribute( 'data-hls' );
 		const canNative = src && preferNativeHls( video );
@@ -482,33 +562,56 @@ function initBackgrounds( root ) {
 				video.src = mp4;
 			}
 		};
+		// A pause by the visitor while this was loading must stick.
+		const resume = () => {
+			if ( ! video.voUserPaused ) {
+				video.play().catch( () => {
+					// Autoplay blocked: offer "Play" instead of a pause button for a still video.
+					if ( video.voHeroShow ) {
+						video.voHeroShow( false );
+					}
+				} );
+			}
+		};
 		if ( ! src || canNative ) {
 			if ( canNative ) {
 				playNativeHls( video, src );
 			} else {
 				fallback();
 			}
-			video.play().catch( () => {} );
+			resume();
 			return;
 		}
 		loadHls()
 			.then( ( Hls ) => {
 				if ( Hls && Hls.isSupported() ) {
-					attachHls( video ).then( () =>
-						video.play().catch( () => {} )
-					);
+					attachHls( video ).then( resume );
 				} else {
 					fallback();
-					video.play().catch( () => {} );
+					resume();
 				}
 			} )
 			.catch( () => {
 				fallback();
-				video.play().catch( () => {} );
+				resume();
 			} );
 	};
 
-	onVisible( videos, start, '100px 0px' );
+	const reduced = reducedMotion();
+	videos.forEach( ( video ) => wireHeroToggle( video, start ) );
+	if ( reduced ) {
+		return; // Poster only, until the visitor presses play.
+	}
+
+	onVisible(
+		videos,
+		( video ) => {
+			if ( ! video.voUserPaused ) {
+				start( video );
+			}
+		},
+		'100px 0px'
+	);
 
 	// Pause heroes that scroll out of view (saves CPU/battery), resume when back.
 	if ( 'IntersectionObserver' in window ) {
@@ -519,7 +622,9 @@ function initBackgrounds( root ) {
 					return;
 				}
 				if ( entry.isIntersecting ) {
-					video.play().catch( () => {} );
+					if ( ! video.voUserPaused ) {
+						video.play().catch( () => {} );
+					}
 				} else {
 					pauseBySystem( video );
 				}

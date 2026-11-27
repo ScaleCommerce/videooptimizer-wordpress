@@ -2,7 +2,29 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [2.1.0] - 2026-11-28
+
+### Upgrade
+- When videos change (admin edit or webhook) the pages that show them are purged from WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer and the Cloudflare plugin if active, once per request and in a single call; whole-site purges (shared content, linked media library videos, token change) run at once, at most one per minute ([#19](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/19)).
+- Pages with a processing video or any API failure except "not found" are flagged `DONOTCACHEPAGE` (cached for 60 s instead with LiteSpeed Cache); disable with the `videooptimizer_cache_degraded_pages` filter ([#19](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/19)).
+- The theme's `controls: false` hides the native controls only for videos that autoplay; static (`interactive: false`) videos have no controls unless the block sets `controls` explicitly ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+- The lightbox is a native `<dialog class="vo-lightbox">` (shown with `showModal()`, `[open]` instead of `[data-open]`); update custom CSS or scripts that targeted the old `div` ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
+- Background heroes contain a `button.vo-bg-hero__toggle`; hide it with CSS if a theme must not show it ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
+- Videos with "Above the fold" print a `<link rel="preload" as="image">` for their poster next to the player; disable it with the `videooptimizer_preload_poster` filter ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
+- Native players with subtitles get `crossorigin="anonymous"` and `<track>` children; cached embed data without tracks refreshes within an hour (or run `wp videooptimizer flush`) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
+- Native `<video>` elements may now carry `preload` from the player theme (above the fold), `controlslist`, `disablepictureinpicture` and the class `vo-native--static`; check custom CSS or markup filters ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+
+### Added
+- Page cache purge for changed videos (found by searching content for the uuid), a whole-site purge when the API token changes, plus the action `videooptimizer_purge_video( $uuid, $post_ids, $all )` for custom setups (`$uuid` is '' for site-wide purges that concern no single video) and the filter `videooptimizer_shared_post_types` ([#19](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/19)).
+- Background heroes have a pause/play button (WCAG 2.2.2); with `prefers-reduced-motion` they show the poster and start on request ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
+- Above-the-fold posters are preloaded with `fetchpriority="high"` (matching `srcset`/`sizes` for facades) ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
+- The native player renders the subtitle `tracks` of the embed as `<track>` elements (kind, srclang, label, default) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
+
+### Changed
+- The lightbox is a modal `<dialog>`: focus stays inside, Escape closes it, the page behind is inert (set by hand without `showModal()`) ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
+- JSON-LD `uploadDate` uses the embed's `uploadDate` when the API sends one ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+- Elementor video widgets opt out of Elementor's element cache ([#19](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/19)).
+- The native player applies the theme's `preload` (`auto` capped at `metadata`), `interactive`, `fullscreenButton`, `playbackSpeed` and `pictureInPicture` ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
 
 ## [2.0.0] - 2026-11-27
 

@@ -51,12 +51,38 @@ test( 'lightbox opens, traps focus and closes with Escape', async ( {
 	await page.goto( WP + '/' );
 	await page.locator( '.vo-spotlight [data-vo-lightbox]' ).click();
 	const box = page.locator( '.vo-lightbox' );
-	await expect( box ).toHaveAttribute( 'data-open', 'true' );
+	await expect( box ).toHaveAttribute( 'open', '' );
+	// A native modal dialog: the browser makes the rest of the page inert.
+	expect( await box.evaluate( ( el ) => el.matches( ':modal' ) ) ).toBe( true );
 	await expect( box.locator( 'iframe' ) ).toBeAttached();
 	await expect( box.locator( '.vo-lightbox__close' ) ).toBeFocused();
 	await page.keyboard.press( 'Escape' );
-	await expect( box ).not.toHaveAttribute( 'data-open', 'true' );
+	await expect( box ).not.toHaveAttribute( 'open', '' );
 	await expect( box.locator( 'iframe' ) ).toHaveCount( 0 );
+} );
+
+test( 'background hero has a pause button that pauses and resumes the video', async ( {
+	page,
+} ) => {
+	await page.goto( WP + '/' );
+	const hero = page.locator( '.vo-bg-hero' ).first();
+	const toggle = hero.locator( '[data-vo-hero-toggle]' );
+	const video = hero.locator( 'video' );
+	await expect( toggle ).toBeVisible();
+	await expect( toggle ).toHaveAttribute( 'data-state', 'playing' );
+	await expect
+		.poll( () => video.evaluate( ( v ) => v.paused ), { timeout: 20_000 } )
+		.toBe( false );
+
+	await toggle.click();
+	await expect( toggle ).toHaveAttribute( 'data-state', 'paused' );
+	expect( await video.evaluate( ( v ) => v.paused ) ).toBe( true );
+
+	await toggle.click();
+	await expect( toggle ).toHaveAttribute( 'data-state', 'playing' );
+	await expect
+		.poll( () => video.evaluate( ( v ) => v.paused ) )
+		.toBe( false );
 } );
 
 test( 'native player plays the adaptive stream', async ( { page } ) => {

@@ -84,8 +84,12 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 - `videooptimizer_schema`
 - `videooptimizer_core_video_options`
 - `videooptimizer_enqueue_early`
+- `videooptimizer_preload_poster`
+- `videooptimizer_cache_degraded_pages`, `videooptimizer_shared_post_types`
 
-**Action**: `videooptimizer_webhook`.
+**Actions**: `videooptimizer_webhook`, `videooptimizer_purge_video`.
+
+**Page caches**: when videos change, the published posts that contain their uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer (SiteGround) and the Cloudflare plugin, once at the end of the request and in a single call. The whole site is purged for videos in template parts, reusable blocks or widgets, videos linked to a media library item (core/video, `[video]`, galleries and media widgets reference the attachment, not the uuid), videos on more than 100 pages, more than 20 changed videos at once, and when the API token changes. A whole-site purge runs at once, at most one per minute; others within that minute share one follow-up (WP-Cron; with `DISABLE_WP_CRON` run it from a system cron). LiteSpeed Cache queues purges made during cron or after output and sends them with the next response. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN (`$uuid` is '' for a site-wide purge that concerns no single video, such as a token change; `$all` is true whenever the whole site is purged). Pages with a processing video or any API failure except "not found" (temporary errors, rate limit, token or permission problems) are sent to page caches as uncacheable (`DONOTCACHEPAGE`; LiteSpeed Cache gets a 60 s TTL instead); deleted videos stay cacheable.
 
 **WP-CLI**:
 - `wp videooptimizer status`
@@ -94,6 +98,25 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 - `wp videooptimizer send <attachment-id>…`
 - `wp videooptimizer sync`
 - `wp videooptimizer flush [<uuid>]`
+
+### Player theme in the native player
+
+The theme of the organization/library/video (VideoOptimizer app) is applied to the native player as far as the browser's own controls allow. Block attributes override it.
+
+| Theme key | Native player |
+|---|---|
+| `controls` | `controls` attribute; `false` only applies to videos that autoplay (muted), otherwise the visitor could not start them |
+| `autoplay`, `mutedStart` | autoplay (always muted) / muted start |
+| `loopButton` | `loop` |
+| `preload` | `none` stays `none`; `auto` and `metadata` become `metadata` for above-the-fold videos (native players never buffer segments before playback); deferred videos never preload. Only a prioritised background hero buffers eagerly |
+| `interactive: false` | `pointer-events: none`, no controls (unless the block sets `controls` explicitly), only for videos that autoplay directly |
+| `fullscreenButton`, `playbackSpeed` | `controlslist="nofullscreen noplaybackrate"` |
+| `pictureInPicture` | `disablepictureinpicture` |
+| `accentColor` | `--vo-player-accent` (controls, focus ring) |
+
+Subtitles uploaded in VideoOptimizer appear as `<track>` elements (the video gets `crossorigin="anonymous"`); the viewer picks them in the browser's subtitle menu, the default track starts shown.
+
+Other keys (`controlBarBg`, `playButton*`, `bigPlayButton`, `qualitySelector`, `volumeControl`, `timeDisplay`) have no native equivalent and are ignored; use the VideoOptimizer player for them.
 
 ## Troubleshooting
 

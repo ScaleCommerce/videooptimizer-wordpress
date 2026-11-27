@@ -8,6 +8,7 @@
 namespace ScaleCommerce\VideoOptimizer\Tests\Unit;
 
 use Brain\Monkey\Functions;
+use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Render\Assets;
 use ScaleCommerce\VideoOptimizer\Render\Embed;
 use ScaleCommerce\VideoOptimizer\Render\EmbedRepository;
@@ -58,6 +59,7 @@ final class RendererTest extends TestCase {
 
 		$embeds = $this->createMock( EmbedRepository::class );
 		$embeds->method( 'get' )->willReturnCallback( fn () => $this->embed );
+		$embeds->method( 'failure' )->willReturnCallback( fn () => $this->failure );
 		$assets = $this->createMock( Assets::class );
 		$assets->expects( $this->any() )->method( 'enqueue' );
 
@@ -75,6 +77,13 @@ final class RendererTest extends TestCase {
 		$this->assertStringContainsString( 'loading="lazy"', $html );
 		$this->assertStringNotContainsString( '<iframe', $html );
 		$this->assertStringNotContainsString( '<b>', $html, 'title must be escaped' );
+	}
+
+	public function test_json_ld_uses_the_embed_upload_date_when_present(): void {
+		Functions\when( 'get_post_time' )->justReturn( '2020-01-01T00:00:00+00:00' );
+		$this->embed['uploadDate'] = '2026-05-04T10:00:00Z';
+
+		$this->assertStringContainsString( '"uploadDate":"2026-05-04T10:00:00Z"', $this->renderer->render( 'video', array( 'uuid' => self::UUID ) ) );
 	}
 
 	public function test_json_ld_is_printed_once_and_escaped(): void {
@@ -137,8 +146,283 @@ final class RendererTest extends TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'preload="auto"', $html );
+		$this->assertStringContainsString( 'preload="metadata"', $html );
 		$this->assertStringContainsString( ' autoplay muted', $html );
+	}
+
+	/**
+	 * Renders a direct native video with the given theme keys merged into the embed theme.
+	 *
+	 * @param array<string, mixed> $theme Theme keys.
+	 * @param array<string, mixed> $extra Extra attributes.
+	 */
+	private function native_with_theme( array $theme, array $extra = array() ): string {
+		$this->embed['theme'] = array_merge( $this->embed['theme'], $theme );
+
+		return $this->renderer->render(
+			'video',
+			array_merge(
+				array(
+					'uuid'         => self::UUID,
+					'player'       => 'native',
+					'presentation' => 'direct',
+					'priority'     => true,
+				),
+				$extra
+			)
+		);
+	}
+
+	public function test_theme_preload_applies_to_above_the_fold_video(): void {
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'metadata' ) ) );
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'auto' ) ), 'auto is capped' );
+		$this->assertStringContainsString( 'preload="none"', $this->native_with_theme( array( 'preload' => 'none' ) ) );
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'bogus' ) ) );
+	}
+
+	public function test_theme_preload_never_wakes_a_deferred_video(): void {
+		$html = $this->native_with_theme( array( 'preload' => 'auto' ), array( 'priority' => false ) );
+
+		$this->assertStringContainsString( 'preload="none"', $html );
+	}
+
+	public function test_theme_interactive_false_makes_an_autoplaying_video_static(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+			)
+		);
+
+		$this->assertStringContainsString( 'class="vo-native vo-native--static"', $html );
+	}
+
+	public function test_theme_interactive_false_without_autoplay_stays_usable(): void {
+		$html = $this->native_with_theme( array( 'interactive' => false ) );
+
+		$this->assertStringNotContainsString( 'vo-native--static', $html );
+	}
+
+	public function test_explicit_controls_win_over_interactive_false(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+			),
+			array( 'controls' => '1' )
+		);
+
+		$this->assertStringContainsString( ' controls', $html );
+		$this->assertStringNotContainsString( 'vo-native--static', $html );
+	}
+
+	public function test_static_video_has_no_controls_even_when_the_theme_shows_them(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+				'controls'    => true,
+			)
+		);
+
+		$this->assertStringContainsString( 'vo-native--static', $html );
+		$this->assertStringNotContainsString( ' controls', $html );
+	}
+
+	public function test_theme_hides_controls_only_for_a_video_that_autoplays(): void {
+		$plain = $this->native_with_theme( array( 'controls' => false ) );
+		$this->assertStringContainsString( ' controls', $plain, 'no autoplay: the visitor needs the controls' );
+
+		$auto = $this->native_with_theme(
+			array(
+				'controls' => false,
+				'autoplay' => true,
+			)
+		);
+		$this->assertStringNotContainsString( ' controls', $auto );
+
+		$explicit = $this->native_with_theme( array( 'controls' => true ), array( 'controls' => '0' ) );
+		$this->assertStringNotContainsString( ' controls', $explicit, 'the block setting wins' );
+	}
+
+	public function test_theme_buttons_map_to_native_controls(): void {
+		$html = $this->native_with_theme(
+			array(
+				'fullscreenButton' => false,
+				'playbackSpeed'    => false,
+				'pictureInPicture' => false,
+			)
+		);
+
+		$this->assertStringContainsString( 'controlslist="nofullscreen noplaybackrate"', $html );
+		$this->assertStringContainsString( ' disablepictureinpicture', $html );
+	}
+
+	public function test_default_theme_adds_no_control_hints(): void {
+		$html = $this->native_with_theme( array() );
+
+		$this->assertStringNotContainsString( 'controlslist', $html );
+		$this->assertStringNotContainsString( 'disablepictureinpicture', $html );
+	}
+
+	public function test_native_player_renders_subtitle_tracks_with_cors(): void {
+		$this->embed['tracks'] = array(
+			array(
+				'src'     => 'https://cdn.example/subs/de.vtt?v=2',
+				'srclang' => 'de',
+				'label'   => 'Deutsch',
+				'kind'    => 'captions',
+				'default' => true,
+			),
+			array(
+				'src'     => 'https://cdn.example/subs/en.vtt',
+				'srclang' => 'en',
+				'label'   => 'English "EN"',
+				'kind'    => 'subtitles',
+				'default' => false,
+			),
+		);
+		$html                  = $this->native_with_theme( array() );
+
+		$this->assertStringContainsString( ' crossorigin="anonymous"', $html );
+		$this->assertStringContainsString( '<track kind="captions" srclang="de" label="Deutsch" src="https://cdn.example/subs/de.vtt?v=2" default>', $html );
+		$this->assertStringContainsString( '<track kind="subtitles" srclang="en" label="English &quot;EN&quot;" src="https://cdn.example/subs/en.vtt">', $html );
+	}
+
+	public function test_native_lightbox_video_carries_tracks_too(): void {
+		$this->embed['tracks'] = array(
+			array(
+				'src'     => 'https://cdn.example/subs/de.vtt',
+				'srclang' => 'de',
+				'label'   => 'Deutsch',
+				'kind'    => 'subtitles',
+				'default' => false,
+			),
+		);
+		$html                  = $this->renderer->render(
+			'video',
+			array(
+				'uuid'         => self::UUID,
+				'player'       => 'native',
+				'presentation' => 'lightbox',
+			)
+		);
+
+		$this->assertStringContainsString( '<track kind="subtitles" srclang="de"', $html );
+	}
+
+	public function test_native_player_without_tracks_has_no_crossorigin(): void {
+		$html = $this->native_with_theme( array() );
+
+		$this->assertStringNotContainsString( 'crossorigin', $html );
+		$this->assertStringNotContainsString( '<track', $html );
+	}
+
+	public function test_priority_facade_preloads_the_responsive_poster(): void {
+		$this->embed['srcset'] = 'https://cdn.example/p480.jpg 480w, https://cdn.example/p1280.jpg 1280w';
+		$html                  = $this->renderer->render(
+			'video',
+			array(
+				'uuid'     => self::UUID,
+				'priority' => true,
+			)
+		);
+
+		$this->assertStringContainsString(
+			'<link rel="preload" as="image" href="https://cdn.example/poster.jpg" imagesrcset="https://cdn.example/p480.jpg 480w, https://cdn.example/p1280.jpg 1280w" imagesizes="(min-width: 1200px) 1200px, 100vw" fetchpriority="high">',
+			$html
+		);
+	}
+
+	public function test_poster_is_preloaded_once_per_video(): void {
+		$once = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'priority' => true ) ) . $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'priority' => true ) );
+
+		$this->assertSame( 1, substr_count( $once, 'rel="preload"' ) );
+	}
+
+	public function test_lazy_surfaces_do_not_preload_the_poster(): void {
+		$this->assertStringNotContainsString( 'rel="preload"', $this->renderer->render( 'video', array( 'uuid' => self::UUID ) ) );
+	}
+
+	public function test_priority_native_video_preloads_the_plain_poster(): void {
+		$this->assertStringContainsString( '<link rel="preload" as="image" href="https://cdn.example/poster.jpg" fetchpriority="high">', $this->native_with_theme( array() ) );
+	}
+
+	public function test_priority_hero_preloads_the_plain_poster(): void {
+		$hero = $this->renderer->render(
+			'background-hero',
+			array(
+				'uuid'     => self::UUID,
+				'priority' => true,
+			)
+		);
+
+		$this->assertStringContainsString( '<link rel="preload" as="image" href="https://cdn.example/poster.jpg" fetchpriority="high">', $hero );
+	}
+
+	public function test_hero_renders_a_pause_button_hidden_until_scripts_run(): void {
+		$html = $this->renderer->render( 'background-hero', array( 'uuid' => self::UUID ) );
+
+		$this->assertStringContainsString( '<button type="button" class="vo-bg-hero__toggle" data-vo-hero-toggle data-label-pause="Pause background video" data-label-play="Play background video" aria-label="Pause background video" hidden>', $html );
+	}
+
+	public function test_hero_without_a_video_has_no_pause_button(): void {
+		$this->embed = null;
+
+		$this->assertStringNotContainsString( 'vo-bg-hero__toggle', $this->renderer->render( 'background-hero', array( 'headline' => 'Hi' ) ) );
+	}
+
+	/**
+	 * Failure the fake repository reports for a missing video.
+	 *
+	 * @var array{status: int, outage: bool}|null
+	 */
+	private ?array $failure = null;
+
+	public function test_processing_and_temporarily_failed_videos_flag_the_page(): void {
+		PageCache::reset_degraded();
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertFalse( PageCache::is_degraded(), 'a healthy video does not' );
+
+		$this->embed = Embed::normalize( self::UUID, array( 'title' => 'Processing' ) );
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertTrue( PageCache::is_degraded(), 'video without playable sources' );
+
+		PageCache::reset_degraded();
+		$this->embed   = null;
+		$this->failure = array(
+			'status' => 500,
+			'outage' => false,
+		);
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertTrue( PageCache::is_degraded(), 'temporary failure' );
+	}
+
+	public function test_token_and_rate_limit_failures_flag_the_page(): void {
+		foreach ( array( 401, 403, 429, 0 ) as $status ) {
+			PageCache::reset_degraded();
+			$this->embed   = null;
+			$this->failure = array(
+				'status' => $status,
+				'outage' => false,
+			);
+			$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+			$this->assertTrue( PageCache::is_degraded(), (string) $status );
+		}
+	}
+
+	public function test_deleted_videos_and_empty_blocks_stay_cacheable(): void {
+		PageCache::reset_degraded();
+		$this->embed   = null;
+		$this->failure = array(
+			'status' => 404,
+			'outage' => false,
+		);
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertFalse( PageCache::is_degraded(), 'a deleted video is stable' );
+
+		$this->renderer->render( 'video', array( 'uuid' => '' ) );
+		$this->assertFalse( PageCache::is_degraded(), 'an empty block is an editor problem' );
 	}
 
 	public function test_hero_validates_colors_and_cta(): void {

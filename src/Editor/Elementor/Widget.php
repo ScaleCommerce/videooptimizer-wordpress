@@ -318,6 +318,14 @@ class Widget extends \Elementor\Widget_Base {
 	}
 
 	/**
+	 * The player markup depends on the video (changes in VideoOptimizer, token state): Elementor's
+	 * element cache must not keep it.
+	 */
+	protected function is_dynamic_content(): bool {
+		return true;
+	}
+
+	/**
 	 * Frontend + preview output.
 	 */
 	protected function render() {

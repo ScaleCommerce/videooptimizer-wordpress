@@ -7,6 +7,7 @@
 
 namespace ScaleCommerce\VideoOptimizer\Render;
 
+use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -53,6 +54,13 @@ class Renderer {
 	 * @var array<string, true>
 	 */
 	private array $schema_printed = array();
+
+	/**
+	 * Posters already preloaded on this page.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $poster_preloaded = array();
 
 	/**
 	 * Constructor.
@@ -125,7 +133,7 @@ class Renderer {
 		}
 		$this->assets->enqueue();
 
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		if ( null === $embed ) {
 			return $this->missing_notice( $a['uuid'] );
 		}
@@ -136,6 +144,29 @@ class Renderer {
 		return $this->surface( $embed, $a, $label, $sizes, (bool) $a['priority'] );
 	}
 
+	/**
+	 * Embed lookup that keeps pages with a processing video or a temporary API failure out of page caches.
+	 *
+	 * @param string $uuid Video uuid ('' when none was chosen).
+	 * @return array<string, mixed>|null
+	 */
+	private function load_embed( string $uuid ): ?array {
+		$embed = $this->embeds->get( $uuid );
+		if ( '' === $uuid ) {
+			return $embed;
+		}
+		if ( null === $embed ) {
+			$failure = $this->embeds->failure( $uuid );
+			if ( null !== $failure ) {
+				PageCache::report_failure( $failure['status'] );
+			}
+		} elseif ( ! $embed['playable'] ) {
+			PageCache::mark_degraded();
+		}
+
+		return $embed;
+	}
+
 	/* ---------------------------------------------------------------- Layouts */
 
 	/**
@@ -144,7 +175,7 @@ class Renderer {
 	 * @param array<string, mixed> $a Attributes.
 	 */
 	private function layout_video( array $a ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		if ( null === $embed ) {
 			return $this->missing_notice( $a['uuid'] );
 		}
@@ -164,7 +195,7 @@ class Renderer {
 	 * @param string               $content Inner content.
 	 */
 	private function layout_media_split( array $a, string $content ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		$media = null === $embed ? $this->missing_notice( $a['uuid'] ) : $this->surface( $embed, $a, $a['headline'], '(min-width: 820px) 45vw, 100vw', $a['priority'] );
 
 		$body = '' !== trim( $content ) ? $content : $this->text_stack( $a, false );
@@ -185,7 +216,7 @@ class Renderer {
 	 * @param string               $content Inner content.
 	 */
 	private function layout_hero( array $a, string $content ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 
 		$styles = array();
 		if ( '' !== $a['headlineColor'] ) {
@@ -197,7 +228,7 @@ class Renderer {
 
 		$video = '';
 		if ( null !== $embed ) {
-			$video = $this->background_video( $embed, $a['priority'] ) . $this->schema( $embed, $a['headline'] );
+			$video = $this->poster_preload( $embed, null, $a['priority'] ) . $this->background_video( $embed, $a['priority'] ) . $this->hero_toggle() . $this->schema( $embed, $a['headline'] );
 		} elseif ( '' !== $a['uuid'] ) {
 			$video = $this->missing_notice( $a['uuid'] );
 		}
@@ -220,7 +251,7 @@ class Renderer {
 	 * @param array<string, mixed> $a Attributes.
 	 */
 	private function layout_spotlight( array $a ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		$media = null === $embed ? $this->missing_notice( $a['uuid'] ) : $this->surface( $embed, $a, $a['headline'], '(min-width: 1000px) 960px, 100vw', $a['priority'] );
 
 		$html  = '<section class="vo-block vo-spotlight' . ( $a['priority'] ? '' : ' vo-reveal' ) . '"><div class="vo-container vo-spotlight__inner">';
@@ -240,7 +271,7 @@ class Renderer {
 	private function layout_grid( array $a ): string {
 		$tiles = '';
 		foreach ( $a['items'] as $index => $item ) {
-			$embed = $this->embeds->get( $item['uuid'] );
+			$embed = $this->load_embed( $item['uuid'] );
 			if ( null === $embed ) {
 				$tiles .= $this->missing_notice( $item['uuid'] );
 				continue;
@@ -317,7 +348,8 @@ class Renderer {
 			$frame_attrs['style'] = implode( ';', $styles );
 		}
 
-		$poster = $this->poster_img( $embed, $sizes, $priority );
+		$poster  = $this->poster_img( $embed, $sizes, $priority );
+		$preload = $this->poster_preload( $embed, $click ? $sizes : null, $priority && ( $click || 'native' === $player ) );
 
 		if ( ! $click ) {
 			if ( 'native' === $player ) {
@@ -346,7 +378,7 @@ class Renderer {
 			}
 		}
 
-		return '<div' . self::attrs( $frame_attrs ) . '>' . $inner . '</div>' . $this->schema( $embed, $label );
+		return $preload . '<div' . self::attrs( $frame_attrs ) . '>' . $inner . '</div>' . $this->schema( $embed, $label );
 	}
 
 	/**
@@ -410,16 +442,40 @@ class Renderer {
 		$autoplay = self::resolve( $a['autoplay'], ! empty( $theme['autoplay'] ) );
 		$muted    = self::resolve( $a['muted'], ! empty( $theme['mutedStart'] ) );
 		$loop     = self::resolve( $a['loop'], ! empty( $theme['loopButton'] ) );
-		$controls = self::resolve( $a['controls'], ! isset( $theme['controls'] ) || (bool) $theme['controls'] );
+
+		$direct = $eager || $autoload;
+		// The theme hides the controls only for a video that really starts by itself (muted);
+		// otherwise it could not be played. An explicit block setting always wins.
+		$theme_controls = ! isset( $theme['controls'] ) || (bool) $theme['controls'] || ! ( $direct && $autoplay );
+		$controls       = self::resolve( $a['controls'], $theme_controls );
+		// interactive=false (pure design element) only applies to videos that start by themselves
+		// and drops the controls, which could not be used anyway.
+		// An explicit block `controls` setting wins: then the video stays usable.
+		$static   = $direct && $autoplay && '1' !== (string) $a['controls'] && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		$controls = $controls && ! $static;
+		// Native players never buffer segments before playback: the theme's `auto` is capped at `metadata`.
+		$preload = isset( $theme['preload'] ) && 'none' === $theme['preload'] ? 'none' : 'metadata';
+
+		// Native controls cannot hide single buttons; these hints cover what browsers support.
+		$controls_list = array();
+		if ( isset( $theme['fullscreenButton'] ) && false === $theme['fullscreenButton'] ) {
+			$controls_list[] = 'nofullscreen';
+		}
+		if ( isset( $theme['playbackSpeed'] ) && false === $theme['playbackSpeed'] ) {
+			$controls_list[] = 'noplaybackrate';
+		}
 
 		$attrs = array(
-			'class'       => 'vo-native',
-			'playsinline' => true,
-			'preload'     => $eager ? 'auto' : 'none',
-			'controls'    => $controls,
-			'loop'        => $loop,
-			'poster'      => $embed['poster'],
-			'data-hls'    => $embed['hls'],
+			'class'                   => 'vo-native' . ( $static ? ' vo-native--static' : '' ),
+			'playsinline'             => true,
+			// Deferred players never preload: they fetch nothing until played.
+			'preload'                 => $eager ? $preload : 'none',
+			'controls'                => $controls,
+			'controlslist'            => implode( ' ', $controls_list ),
+			'disablepictureinpicture' => isset( $theme['pictureInPicture'] ) && false === $theme['pictureInPicture'],
+			'loop'                    => $loop,
+			'poster'                  => $embed['poster'],
+			'data-hls'                => $embed['hls'],
 		);
 		if ( $eager && $autoplay ) {
 			// Browsers only allow autoplay when muted.
@@ -441,7 +497,24 @@ class Renderer {
 			$sources .= '<source src="' . esc_url( $file['src'] ) . '" type="' . esc_attr( $file['type'] ) . '">';
 		}
 
-		return '<video' . self::attrs( $attrs ) . '>' . $sources . '</video>';
+		$tracks = '';
+		foreach ( (array) ( $embed['tracks'] ?? array() ) as $track ) {
+			$tracks .= '<track' . self::attrs(
+				array(
+					'kind'    => $track['kind'],
+					'srclang' => $track['srclang'],
+					'label'   => $track['label'],
+					'src'     => $track['src'],
+					'default' => $track['default'],
+				)
+			) . '>';
+		}
+		if ( '' !== $tracks ) {
+			// The CDN sends Access-Control-Allow-Origin: *; text tracks need a CORS request.
+			$attrs['crossorigin'] = 'anonymous';
+		}
+
+		return '<video' . self::attrs( $attrs ) . '>' . $sources . $tracks . '</video>';
 	}
 
 	/**
@@ -475,6 +548,29 @@ class Renderer {
 	}
 
 	/**
+	 * Pause/play button for the looping background video (WCAG 2.2.2). Hidden until the frontend
+	 * script runs, because without it the video does not play at all.
+	 */
+	private function hero_toggle(): string {
+		$pause = __( 'Pause background video', 'videooptimizer' );
+
+		return '<button' . self::attrs(
+			array(
+				'type'                => 'button',
+				'class'               => 'vo-bg-hero__toggle',
+				'data-vo-hero-toggle' => true,
+				'data-label-pause'    => $pause,
+				'data-label-play'     => __( 'Play background video', 'videooptimizer' ),
+				'aria-label'          => $pause,
+				'hidden'              => true,
+			)
+		) . '>'
+			. '<svg class="vo-bg-hero__toggle-pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>'
+			. '<svg class="vo-bg-hero__toggle-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z" fill="currentColor"/></svg>'
+			. '</button>';
+	}
+
+	/**
 	 * Responsive poster <img>.
 	 *
 	 * @param array<string, mixed> $embed    Normalized embed.
@@ -503,6 +599,43 @@ class Renderer {
 	}
 
 	/**
+	 * Preload hint for the poster of an above-the-fold video, once per page and video. Matches the
+	 * poster <img> (srcset and sizes) when given $sizes, otherwise the plain `poster` attribute.
+	 *
+	 * @param array<string, mixed> $embed    Normalized embed.
+	 * @param string|null          $sizes    Sizes attribute of the poster <img>; null for a <video poster>.
+	 * @param bool                 $priority Above the fold.
+	 */
+	private function poster_preload( array $embed, ?string $sizes, bool $priority ): string {
+		if ( ! $priority || null === $embed['poster'] || isset( $this->poster_preloaded[ $embed['uuid'] ] ) ) {
+			return '';
+		}
+
+		/**
+		 * Filters whether the poster of an above-the-fold video is preloaded.
+		 *
+		 * @param bool                 $preload Whether to print the preload link.
+		 * @param array<string, mixed> $embed   Normalized embed payload.
+		 */
+		if ( ! apply_filters( 'videooptimizer_preload_poster', true, $embed ) ) {
+			return '';
+		}
+		$this->poster_preloaded[ $embed['uuid'] ] = true;
+		$with_set                                 = null !== $sizes && null !== $embed['srcset'];
+
+		return '<link' . self::attrs(
+			array(
+				'rel'           => 'preload',
+				'as'            => 'image',
+				'href'          => $embed['poster'],
+				'imagesrcset'   => $with_set ? $embed['srcset'] : null,
+				'imagesizes'    => $with_set ? $sizes : null,
+				'fetchpriority' => 'high',
+			)
+		) . '>';
+	}
+
+	/**
 	 * Schema.org VideoObject JSON-LD, once per video per page.
 	 *
 	 * @param array<string, mixed> $embed Normalized embed.
@@ -514,8 +647,8 @@ class Renderer {
 		}
 		$this->schema_printed[ $embed['uuid'] ] = true;
 
-		$name      = '' !== $name ? $name : $embed['title'];
-		$data      = array(
+		$name = '' !== $name ? $name : $embed['title'];
+		$data = array(
 			'@context'     => 'https://schema.org',
 			'@type'        => 'VideoObject',
 			'name'         => '' !== $name ? $name : __( 'Video', 'videooptimizer' ),
@@ -523,8 +656,9 @@ class Renderer {
 			'thumbnailUrl' => $embed['poster'],
 			'embedUrl'     => Settings::embed_base_url() . '/embed/' . rawurlencode( $embed['uuid'] ),
 		);
-		$post_date = get_post_time( 'c', true );
-		if ( is_string( $post_date ) ) {
+		// The embed's own upload date wins; the post date is the fallback.
+		$post_date = $embed['uploadDate'] ?? get_post_time( 'c', true );
+		if ( is_string( $post_date ) && '' !== $post_date ) {
 			$data['uploadDate'] = $post_date;
 		}
 		$duration = Embed::iso_duration( $embed['duration'] );
@@ -593,7 +727,7 @@ class Renderer {
 				continue;
 			}
 			$value = (string) $value;
-			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'data-hls', 'data-mp4', 'data-vo-autoload' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
+			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'href', 'data-hls', 'data-mp4', 'data-vo-autoload' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
 		}
 
 		return $out;
