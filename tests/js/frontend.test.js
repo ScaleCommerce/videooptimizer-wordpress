@@ -596,6 +596,9 @@ describe( 'background hero pause button', () => {
 		const video = document.querySelector( 'video' );
 
 		expect( toggle().hidden ).toBe( false );
+		// Not playing until the video says so (autoplay can be blocked).
+		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'paused' );
+		video.dispatchEvent( new Event( 'play' ) );
 		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
 			'Pause background video'
 		);
@@ -612,10 +615,35 @@ describe( 'background hero pause button', () => {
 		toggle().click();
 
 		expect( video.play ).toHaveBeenCalled();
-		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
-			'Pause background video'
-		);
 		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'playing' );
+	} );
+
+	it( 'follows the video: a pause event (e.g. blocked or system pause) shows "Play"', () => {
+		loadFrontend( hero() );
+		const video = document.querySelector( 'video' );
+		video.dispatchEvent( new Event( 'play' ) );
+
+		video.dispatchEvent( new Event( 'pause' ) );
+
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Play background video'
+		);
+	} );
+
+	it( 'keeps the video paused when the visitor pauses while hls.js still loads', async () => {
+		window.MediaSource = function MediaSource() {};
+		loadFrontend(
+			`<section class="vo-bg-hero"><video class="vo-bg-hero__video" muted data-hls="${ HLS_MASTER }" data-mp4="${ MP4 }"></video>
+			<button type="button" data-vo-hero-toggle data-label-pause="Pause" data-label-play="Play" hidden></button></section>`
+		);
+		const video = document.querySelector( 'video' );
+		video.dispatchEvent( new Event( 'play' ) );
+
+		toggle().click(); // Pause before the stream is attached.
+		video.play.mockClear();
+		await flush();
+
+		expect( video.play ).not.toHaveBeenCalled();
 	} );
 
 	it( 'does not resume a paused hero when it scrolls back into view', () => {

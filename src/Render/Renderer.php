@@ -145,14 +145,22 @@ class Renderer {
 	}
 
 	/**
-	 * Embed lookup that flags pages with an unavailable or not yet playable video as uncacheable.
+	 * Embed lookup that keeps pages with a processing video or a temporary API failure out of page caches.
 	 *
 	 * @param string $uuid Video uuid ('' when none was chosen).
 	 * @return array<string, mixed>|null
 	 */
 	private function load_embed( string $uuid ): ?array {
 		$embed = $this->embeds->get( $uuid );
-		if ( '' !== $uuid && ( null === $embed || ! $embed['playable'] ) ) {
+		if ( '' === $uuid ) {
+			return $embed;
+		}
+		if ( null === $embed ) {
+			$failure = $this->embeds->failure( $uuid );
+			if ( null !== $failure ) {
+				PageCache::report_failure( $failure['status'], $failure['outage'] );
+			}
+		} elseif ( ! $embed['playable'] ) {
 			PageCache::mark_degraded();
 		}
 
@@ -434,11 +442,16 @@ class Renderer {
 		$autoplay = self::resolve( $a['autoplay'], ! empty( $theme['autoplay'] ) );
 		$muted    = self::resolve( $a['muted'], ! empty( $theme['mutedStart'] ) );
 		$loop     = self::resolve( $a['loop'], ! empty( $theme['loopButton'] ) );
-		$controls = self::resolve( $a['controls'], ! isset( $theme['controls'] ) || (bool) $theme['controls'] );
 
 		$direct = $eager || $autoload;
-		// interactive=false (pure design element) only applies to videos that start by themselves.
-		$static = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		// The theme hides the controls only for a video that really starts by itself (muted);
+		// otherwise it could not be played. An explicit block setting always wins.
+		$theme_controls = ! isset( $theme['controls'] ) || (bool) $theme['controls'] || ! ( $direct && $autoplay );
+		$controls       = self::resolve( $a['controls'], $theme_controls );
+		// interactive=false (pure design element) only applies to videos that start by themselves
+		// and drops the controls, which could not be used anyway.
+		$static   = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		$controls = $controls && ! $static;
 		// Native players never buffer segments before playback: the theme's `auto` is capped at `metadata`.
 		$preload = isset( $theme['preload'] ) && 'none' === $theme['preload'] ? 'none' : 'metadata';
 

@@ -97,6 +97,58 @@ final class EmbedRepositoryTest extends TestCase {
 		$this->assertSame( array( self::A ), $this->lookups );
 	}
 
+	public function test_failure_reports_status_and_whether_it_is_an_outage(): void {
+		$this->outcomes = array(
+			self::A => new ApiException( 'not found', 404 ),
+			self::B => new ApiException( 'down', 503 ),
+		);
+		$repo = $this->repository();
+		$this->assertNull( $repo->failure( self::A ), 'nothing failed yet' );
+
+		$repo->get( self::A );
+		$this->assertSame(
+			array(
+				'status' => 404,
+				'outage' => false,
+			),
+			$repo->failure( self::A )
+		);
+
+		$repo->get( self::B );
+		$this->assertSame(
+			array(
+				'status' => 503,
+				'outage' => true,
+			),
+			$repo->failure( self::B )
+		);
+	}
+
+	public function test_failure_is_known_from_the_cached_marker_and_the_outage_flag(): void {
+		$this->outcomes = array( self::A => new ApiException( 'boom', 500 ) );
+		$this->repository()->get( self::A );
+
+		$next = $this->repository();
+		$next->get( self::A );
+		$this->assertSame(
+			array(
+				'status' => 500,
+				'outage' => false,
+			),
+			$next->failure( self::A )
+		);
+
+		$this->transients[ EmbedRepository::DOWN_KEY ] = 503;
+		$next->get( self::B );
+		$this->assertSame(
+			array(
+				'status' => ApiException::UNREACHABLE,
+				'outage' => true,
+			),
+			$next->failure( self::B )
+		);
+	}
+
 	public function test_a_single_missing_or_broken_video_does_not_flag_the_api(): void {
 		$this->outcomes = array(
 			self::A => new ApiException( 'not found', 404 ),

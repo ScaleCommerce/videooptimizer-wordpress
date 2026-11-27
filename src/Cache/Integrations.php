@@ -19,11 +19,10 @@ final class Integrations {
 	/**
 	 * Purge functions that signal an active page-cache plugin.
 	 */
-	private const FUNCTIONS = array( 'rocket_clean_post', 'w3tc_flush_post', 'wp_cache_post_change', 'sg_cachepress_purge_cache' );
+	private const FUNCTIONS = array( 'rocket_clean_post', 'w3tc_flush_post', 'wp_cache_post_change', 'wpsc_delete_post_cache', 'sg_cachepress_purge_cache' );
 
 	/**
-	 * Whether a supported page-cache plugin is active (LiteSpeed and Cloudflare are action-based
-	 * and cannot be detected here).
+	 * Whether a supported page-cache plugin is active.
 	 */
 	public static function detected(): bool {
 		foreach ( self::FUNCTIONS as $function ) {
@@ -32,11 +31,11 @@ final class Integrations {
 			}
 		}
 
-		return false;
+		return defined( 'LSCWP_V' ) || null !== self::cloudflare();
 	}
 
 	/**
-	 * Purges cached pages.
+	 * Purges cached pages (page-cache entries only, never other caches).
 	 *
 	 * @param array<int, int> $post_ids Posts to purge.
 	 * @param bool            $all      Purge the whole site instead.
@@ -47,6 +46,7 @@ final class Integrations {
 
 			return;
 		}
+		$cloudflare = self::cloudflare();
 		foreach ( $post_ids as $id ) {
 			$url = (string) get_permalink( $id );
 			if ( function_exists( 'rocket_clean_post' ) ) {
@@ -55,17 +55,26 @@ final class Integrations {
 			if ( function_exists( 'w3tc_flush_post' ) ) {
 				w3tc_flush_post( $id );
 			}
-			if ( function_exists( 'wp_cache_post_change' ) ) {
+			if ( function_exists( 'wpsc_delete_post_cache' ) ) {
+				wpsc_delete_post_cache( $id ); // The light variant: only this post's cache files.
+			} elseif ( function_exists( 'wp_cache_post_change' ) ) {
 				wp_cache_post_change( $id );
 			}
 			if ( function_exists( 'sg_cachepress_purge_cache' ) && '' !== $url ) {
 				sg_cachepress_purge_cache( $url );
 			}
 			do_action( 'litespeed_purge_post', $id ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
-			if ( '' !== $url ) {
-				do_action( 'cloudflare_purge_by_url', array( $url ), $id ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
+			if ( null !== $cloudflare && method_exists( $cloudflare, 'purgeCacheByRelevantURLs' ) ) {
+				$cloudflare->purgeCacheByRelevantURLs( $id );
 			}
 		}
+	}
+
+	/**
+	 * Scheduled whole-site purge (several changes within a minute share one).
+	 */
+	public static function purge_site(): void {
+		self::purge_all();
 	}
 
 	/**
@@ -75,16 +84,39 @@ final class Integrations {
 		if ( function_exists( 'rocket_clean_domain' ) ) {
 			rocket_clean_domain();
 		}
-		if ( function_exists( 'w3tc_flush_all' ) ) {
-			w3tc_flush_all();
+		if ( function_exists( 'w3tc_flush_posts' ) ) {
+			w3tc_flush_posts();
 		}
 		if ( function_exists( 'wp_cache_clear_cache' ) ) {
-			wp_cache_clear_cache();
+			wp_cache_clear_cache( get_current_blog_id() );
 		}
 		if ( function_exists( 'sg_cachepress_purge_cache' ) ) {
 			sg_cachepress_purge_cache();
 		}
-		do_action( 'litespeed_purge_all' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
-		do_action( 'cloudflare_purge_everything' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
+		do_action( 'litespeed_purge', '*' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
+		$cloudflare = self::cloudflare();
+		if ( null !== $cloudflare && method_exists( $cloudflare, 'purgeCacheEverything' ) ) {
+			$cloudflare->purgeCacheEverything();
+		}
+	}
+
+	/**
+	 * The Cloudflare plugin's hooks object (its global, or a fresh one when only the class exists).
+	 */
+	private static function cloudflare(): ?object {
+		$hooks = $GLOBALS['cloudflareHooks'] ?? null;
+		if ( is_object( $hooks ) ) {
+			return $hooks;
+		}
+		$class = '\\Cloudflare\\APO\\WordPress\\Hooks';
+		if ( class_exists( $class ) ) {
+			try {
+				return new $class();
+			} catch ( \Throwable $e ) {
+				unset( $e );
+			}
+		}
+
+		return null;
 	}
 }

@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T22:44:27+00:00\n"
+"POT-Creation-Date: 2026-11-27T23:02:24+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -188,8 +188,8 @@ msgstr ""
 #: src/Editor/Elementor/Widget.php:115
 #: src/Editor/Elementor/Widget.php:126
 #: src/Editor/Elementor/Widget.php:136
-#: src/Render/Renderer.php:308
-#: src/Render/Renderer.php:623
+#: src/Render/Renderer.php:332
+#: src/Render/Renderer.php:653
 #: src/Woo/WooCommerce.php:330
 #: assets/src/admin/pages/Settings.js:638
 #: assets/src/blocks/media-split/index.js:113
@@ -475,25 +475,25 @@ msgid "Play video"
 msgstr ""
 
 #. translators: %s: video title
-#: src/Render/Renderer.php:348
+#: src/Render/Renderer.php:372
 #, php-format
 msgid "Play video: %s"
 msgstr ""
 
-#: src/Render/Renderer.php:524
+#: src/Render/Renderer.php:554
 msgid "Pause background video"
 msgstr ""
 
-#: src/Render/Renderer.php:532
+#: src/Render/Renderer.php:562
 msgid "Play background video"
 msgstr ""
 
-#: src/Render/Renderer.php:665
+#: src/Render/Renderer.php:696
 msgid "No video selected yet."
 msgstr ""
 
 #. translators: %s: video uuid
-#: src/Render/Renderer.php:667
+#: src/Render/Renderer.php:698
 #, php-format
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr ""

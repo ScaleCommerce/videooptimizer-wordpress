@@ -144,8 +144,8 @@ msgstr "Aus"
 #: src/Editor/Elementor/Widget.php:115
 #: src/Editor/Elementor/Widget.php:126
 #: src/Editor/Elementor/Widget.php:136
-#: src/Render/Renderer.php:308
-#: src/Render/Renderer.php:623
+#: src/Render/Renderer.php:332
+#: src/Render/Renderer.php:653
 #: src/Woo/WooCommerce.php:330
 #: assets/src/admin/pages/Settings.js:638
 #: assets/src/blocks/media-split/index.js:113
@@ -431,17 +431,17 @@ msgid "Play video"
 msgstr "Video abspielen"
 
 #. translators: %s: video title
-#: src/Render/Renderer.php:348
+#: src/Render/Renderer.php:372
 #, php-format
 msgid "Play video: %s"
 msgstr "Video abspielen: %s"
 
-#: src/Render/Renderer.php:665
+#: src/Render/Renderer.php:696
 msgid "No video selected yet."
 msgstr "Noch kein Video ausgewählt."
 
 #. translators: %s: video uuid
-#: src/Render/Renderer.php:667
+#: src/Render/Renderer.php:698
 #, php-format
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr "Das Video %s konnte nicht geladen werden (gelöscht oder VideoOptimizer nicht erreichbar). Dieser Hinweis ist nur für Redakteure sichtbar."
@@ -2084,10 +2084,10 @@ msgstr "Upload wird abgeschlossen…"
 msgid "Creating…"
 msgstr "Wird angelegt…"
 
-#: src/Render/Renderer.php:524
+#: src/Render/Renderer.php:554
 msgid "Pause background video"
 msgstr "Hintergrundvideo pausieren"
 
-#: src/Render/Renderer.php:532
+#: src/Render/Renderer.php:562
 msgid "Play background video"
 msgstr "Hintergrundvideo abspielen"

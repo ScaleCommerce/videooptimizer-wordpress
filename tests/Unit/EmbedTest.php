@@ -197,4 +197,39 @@ final class EmbedTest extends TestCase {
 	public function test_missing_tracks_normalize_to_an_empty_list(): void {
 		$this->assertSame( array(), Embed::normalize( self::UUID, $this->payload() )['tracks'] );
 	}
+
+	/**
+	 * Language tags: accepted and rejected.
+	 *
+	 * @return array<string, array{0: string, 1: bool}>
+	 */
+	public static function languages(): array {
+		return array(
+			'de'          => array( 'de', true ),
+			'de-DE'       => array( 'de-DE', true ),
+			'de-x-simple' => array( 'de-x-simple', true ),
+			'zh-Hant-TW'  => array( 'zh-Hant-TW', true ),
+			'one letter'  => array( 'd', false ),
+			'underscore'  => array( 'de_DE', false ),
+			'trailing -'  => array( 'de-', false ),
+			'double -'    => array( 'de--x', false ),
+			'newline'     => array( "de\n", false ),
+		);
+	}
+
+	/**
+	 * @dataProvider languages
+	 */
+	public function test_track_language_tags( string $lang, bool $accepted ): void {
+		$tracks = Embed::parse_tracks(
+			array(
+				array(
+					'src'     => 'https://cdn.example/s.vtt',
+					'srclang' => $lang,
+				),
+			)
+		);
+
+		$this->assertCount( $accepted ? 1 : 0, $tracks );
+	}
 }

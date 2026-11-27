@@ -499,14 +499,14 @@ function initLightbox( root ) {
 /* ------------------------------------------------------------------ Background hero */
 
 /**
- * Pause/play button of a looping background video (WCAG 2.2.2). The label follows the state;
- * a pause by the visitor sticks, scrolling the hero out of view and back does not undo it.
+ * Pause/play button of a looping background video (WCAG 2.2.2). The button follows what the video
+ * really does (play/pause events, so blocked autoplay shows "Play"); a pause by the visitor
+ * sticks, scrolling the hero out of view and back does not undo it.
  *
  * @param {HTMLVideoElement} video
- * @param {Function}         start   Starts playback from scratch (first start, e.g. reduced motion).
- * @param {boolean}          playing Initial state.
+ * @param {Function}         start Starts playback from scratch (first start, e.g. reduced motion).
  */
-function wireHeroToggle( video, start, playing ) {
+function wireHeroToggle( video, start ) {
 	const hero = video.closest( '.vo-bg-hero' );
 	const button = hero && hero.querySelector( '[data-vo-hero-toggle]' );
 	if ( ! button ) {
@@ -521,8 +521,10 @@ function wireHeroToggle( video, start, playing ) {
 		}
 		button.setAttribute( 'data-state', isPlaying ? 'playing' : 'paused' );
 	};
-	show( playing );
+	show( ! video.paused );
 	button.hidden = false;
+	video.addEventListener( 'play', () => show( true ) );
+	video.addEventListener( 'pause', () => show( false ) );
 	button.addEventListener( 'click', () => {
 		if ( button.getAttribute( 'data-state' ) === 'playing' ) {
 			video.voUserPaused = true;
@@ -556,39 +558,51 @@ function initBackgrounds( root ) {
 				video.src = mp4;
 			}
 		};
+		// A pause by the visitor while this was loading must stick.
+		const resume = () => {
+			if ( ! video.voUserPaused ) {
+				video.play().catch( () => {} );
+			}
+		};
 		if ( ! src || canNative ) {
 			if ( canNative ) {
 				playNativeHls( video, src );
 			} else {
 				fallback();
 			}
-			video.play().catch( () => {} );
+			resume();
 			return;
 		}
 		loadHls()
 			.then( ( Hls ) => {
 				if ( Hls && Hls.isSupported() ) {
-					attachHls( video ).then( () =>
-						video.play().catch( () => {} )
-					);
+					attachHls( video ).then( resume );
 				} else {
 					fallback();
-					video.play().catch( () => {} );
+					resume();
 				}
 			} )
 			.catch( () => {
 				fallback();
-				video.play().catch( () => {} );
+				resume();
 			} );
 	};
 
 	const reduced = reducedMotion();
-	videos.forEach( ( video ) => wireHeroToggle( video, start, ! reduced ) );
+	videos.forEach( ( video ) => wireHeroToggle( video, start ) );
 	if ( reduced ) {
 		return; // Poster only, until the visitor presses play.
 	}
 
-	onVisible( videos, start, '100px 0px' );
+	onVisible(
+		videos,
+		( video ) => {
+			if ( ! video.voUserPaused ) {
+				start( video );
+			}
+		},
+		'100px 0px'
+	);
 
 	// Pause heroes that scroll out of view (saves CPU/battery), resume when back.
 	if ( 'IntersectionObserver' in window ) {

@@ -89,7 +89,7 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 
 **Actions**: `videooptimizer_webhook`, `videooptimizer_purge_video`.
 
-**Page caches**: when a video changes, the published posts that contain its uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, SG Optimizer and the Cloudflare plugin, once at the end of the request. Videos in template parts, reusable blocks, widgets or linked media library items, and videos on more than 100 pages, purge the whole site. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN. Pages with an unavailable or still processing video are sent to page caches as uncacheable (`DONOTCACHEPAGE`).
+**Page caches**: when videos change, the published posts that contain their uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos, or the id of a linked media library item in a core/video block, Elementor media control or product gallery) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer (SiteGround) and the Cloudflare plugin, once at the end of the request and in a single call. Videos in template parts, reusable blocks or widgets, on more than 100 pages, or more than 20 changed videos at once purge the whole site, scheduled once a minute at most. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN. Pages with a processing video or a temporary API failure are sent to page caches as uncacheable (`DONOTCACHEPAGE`); during an API outage LiteSpeed gets a 60 s TTL instead. Missing or deleted videos stay cacheable.
 
 **WP-CLI**:
 - `wp videooptimizer status`
@@ -105,11 +105,11 @@ The theme of the organization/library/video (VideoOptimizer app) is applied to t
 
 | Theme key | Native player |
 |---|---|
-| `controls` | `controls` attribute |
+| `controls` | `controls` attribute; `false` only applies to videos that autoplay (muted), otherwise the visitor could not start them |
 | `autoplay`, `mutedStart` | autoplay (always muted) / muted start |
 | `loopButton` | `loop` |
 | `preload` | `none` stays `none`; `auto` and `metadata` become `metadata` for above-the-fold videos (native players never buffer segments before playback); deferred videos never preload. Only a prioritised background hero buffers eagerly |
-| `interactive: false` | `pointer-events: none` on videos that autoplay |
+| `interactive: false` | `pointer-events: none`, no controls, only for videos that autoplay directly |
 | `fullscreenButton`, `playbackSpeed` | `controlslist="nofullscreen noplaybackrate"` |
 | `pictureInPicture` | `disablepictureinpicture` |
 | `accentColor` | `--vo-player-accent` (controls, focus ring) |

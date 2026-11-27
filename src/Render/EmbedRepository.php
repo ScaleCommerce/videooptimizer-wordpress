@@ -47,6 +47,13 @@ class EmbedRepository {
 	private array $memo = array();
 
 	/**
+	 * Why a lookup returned null, per uuid (this request only).
+	 *
+	 * @var array<string, array{status: int, outage: bool}>
+	 */
+	private array $failures = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Client $client API client.
@@ -73,13 +80,23 @@ class EmbedRepository {
 		$cached = get_transient( self::key( $uuid ) );
 		if ( is_array( $cached ) ) {
 			$this->memo[ $uuid ] = isset( $cached['__failed'] ) ? null : $cached;
+			if ( isset( $cached['__failed'] ) ) {
+				$this->failures[ $uuid ] = array(
+					'status' => (int) $cached['__failed'],
+					'outage' => self::is_outage_status( (int) $cached['__failed'] ),
+				);
+			}
 
 			return $this->memo[ $uuid ];
 		}
 
 		// Fail fast: no API call (and no per-video failure marker) while the API is flagged down.
 		if ( false !== get_transient( self::DOWN_KEY ) ) {
-			$this->memo[ $uuid ] = null;
+			$this->memo[ $uuid ]     = null;
+			$this->failures[ $uuid ] = array(
+				'status' => ApiException::UNREACHABLE,
+				'outage' => true,
+			);
 
 			return null;
 		}
@@ -88,7 +105,11 @@ class EmbedRepository {
 			$embed = Embed::normalize( $uuid, $this->client->get_embed( $uuid ) );
 			set_transient( self::key( $uuid ), $embed, $embed['playable'] ? self::TTL_READY : self::TTL_PROCESSING );
 		} catch ( ApiException $e ) {
-			$embed = null;
+			$embed                   = null;
+			$this->failures[ $uuid ] = array(
+				'status' => $e->status(),
+				'outage' => self::indicates_outage( $e ),
+			);
 			set_transient( self::key( $uuid ), array( '__failed' => $e->status() ), self::TTL_FAILURE );
 			if ( self::indicates_outage( $e ) ) {
 				set_transient( self::DOWN_KEY, $e->status(), self::TTL_DOWN );
@@ -98,6 +119,17 @@ class EmbedRepository {
 		$this->memo[ $uuid ] = $embed;
 
 		return $embed;
+	}
+
+	/**
+	 * Why the last lookup of a video returned null in this request: the API status and whether
+	 * the API as a whole is unavailable. Null when the video loaded or was not looked up.
+	 *
+	 * @param string $uuid Video uuid.
+	 * @return array{status: int, outage: bool}|null
+	 */
+	public function failure( string $uuid ): ?array {
+		return $this->failures[ strtolower( $uuid ) ] ?? null;
 	}
 
 	/**
@@ -128,7 +160,16 @@ class EmbedRepository {
 	 * @param ApiException $e Exception.
 	 */
 	private static function indicates_outage( ApiException $e ): bool {
-		return in_array( $e->status(), array( ApiException::UNREACHABLE, 429, 502, 503, 504 ), true );
+		return self::is_outage_status( $e->status() );
+	}
+
+	/**
+	 * Whether a status means the API as a whole is unavailable.
+	 *
+	 * @param int $status Status.
+	 */
+	private static function is_outage_status( int $status ): bool {
+		return in_array( $status, array( ApiException::UNREACHABLE, 429, 502, 503, 504 ), true );
 	}
 
 	/**

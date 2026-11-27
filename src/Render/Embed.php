@@ -103,7 +103,7 @@ final class Embed {
 				continue;
 			}
 			$lang = $track['srclang'] ?? null;
-			if ( ! is_string( $lang ) || ! preg_match( '/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/', $lang ) ) {
+			if ( ! is_string( $lang ) || ! preg_match( '/^[A-Za-z]{2,3}(-[A-Za-z0-9]{1,8})*$/D', $lang ) ) {
 				continue;
 			}
 			$default     = ! $has_default && ! empty( $track['default'] );

@@ -59,6 +59,7 @@ final class RendererTest extends TestCase {
 
 		$embeds = $this->createMock( EmbedRepository::class );
 		$embeds->method( 'get' )->willReturnCallback( fn () => $this->embed );
+		$embeds->method( 'failure' )->willReturnCallback( fn () => $this->failure );
 		$assets = $this->createMock( Assets::class );
 		$assets->expects( $this->any() )->method( 'enqueue' );
 
@@ -202,6 +203,35 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( 'vo-native--static', $html );
 	}
 
+	public function test_static_video_has_no_controls_even_when_the_theme_shows_them(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+				'controls'    => true,
+			)
+		);
+
+		$this->assertStringContainsString( 'vo-native--static', $html );
+		$this->assertStringNotContainsString( ' controls', $html );
+	}
+
+	public function test_theme_hides_controls_only_for_a_video_that_autoplays(): void {
+		$plain = $this->native_with_theme( array( 'controls' => false ) );
+		$this->assertStringContainsString( ' controls', $plain, 'no autoplay: the visitor needs the controls' );
+
+		$auto = $this->native_with_theme(
+			array(
+				'controls' => false,
+				'autoplay' => true,
+			)
+		);
+		$this->assertStringNotContainsString( ' controls', $auto );
+
+		$explicit = $this->native_with_theme( array( 'controls' => true ), array( 'controls' => '0' ) );
+		$this->assertStringNotContainsString( ' controls', $explicit, 'the block setting wins' );
+	}
+
 	public function test_theme_buttons_map_to_native_controls(): void {
 		$html = $this->native_with_theme(
 			array(
@@ -329,23 +359,44 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( 'vo-bg-hero__toggle', $this->renderer->render( 'background-hero', array( 'headline' => 'Hi' ) ) );
 	}
 
-	public function test_degraded_embeds_flag_the_page_uncacheable(): void {
+	/**
+	 * Failure the fake repository reports for a missing video.
+	 *
+	 * @var array{status: int, outage: bool}|null
+	 */
+	private ?array $failure = null;
+
+	public function test_processing_and_temporarily_failed_videos_flag_the_page(): void {
 		PageCache::reset_degraded();
 		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
 		$this->assertFalse( PageCache::is_degraded(), 'a healthy video does not' );
 
-		$this->embed = null;
-		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
-		$this->assertTrue( PageCache::is_degraded(), 'unavailable video' );
-
-		PageCache::reset_degraded();
-		$this->embed             = Embed::normalize( self::UUID, array( 'title' => 'Processing' ) );
+		$this->embed = Embed::normalize( self::UUID, array( 'title' => 'Processing' ) );
 		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
 		$this->assertTrue( PageCache::is_degraded(), 'video without playable sources' );
 
 		PageCache::reset_degraded();
+		$this->embed   = null;
+		$this->failure = array(
+			'status' => 500,
+			'outage' => false,
+		);
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertTrue( PageCache::is_degraded(), 'temporary failure' );
+	}
+
+	public function test_deleted_videos_and_empty_blocks_stay_cacheable(): void {
+		PageCache::reset_degraded();
+		$this->embed   = null;
+		$this->failure = array(
+			'status' => 404,
+			'outage' => false,
+		);
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertFalse( PageCache::is_degraded(), 'a deleted video is stable' );
+
 		$this->renderer->render( 'video', array( 'uuid' => '' ) );
-		$this->assertFalse( PageCache::is_degraded(), 'an empty block is an editor problem, not an outage' );
+		$this->assertFalse( PageCache::is_degraded(), 'an empty block is an editor problem' );
 	}
 
 	public function test_hero_validates_colors_and_cta(): void {

@@ -134,7 +134,7 @@ class WebhookController {
 		if ( in_array( $event, array( 'video.ready', 'video.failed' ), true ) ) {
 			$updated = $this->attachments->apply_video( $data );
 			if ( is_string( $data['uuid'] ?? null ) ) {
-				$this->embeds->forget( $data['uuid'] );
+				$this->embeds->forget( $data['uuid'], false ); // apply_video() already reported the change.
 			}
 
 			/**
