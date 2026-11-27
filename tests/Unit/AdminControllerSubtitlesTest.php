@@ -91,7 +91,7 @@ final class AdminControllerSubtitlesTest extends TestCase {
 			public function __construct( Client $c, private $test ) {
 				parent::__construct( $c );
 			}
-			public function forget( string $uuid ): void {
+			public function forget( string $uuid, bool $changed = true ): void {
 				$this->test->forgotten[] = $uuid;
 			}
 		};

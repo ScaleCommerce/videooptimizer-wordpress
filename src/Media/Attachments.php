@@ -160,11 +160,12 @@ class Attachments {
 		if ( ! Embed::is_uuid( $uuid ) ) {
 			return 0;
 		}
-		$this->embeds->forget( (string) $uuid );
 
-		$status = is_string( $video['status'] ?? null ) && in_array( $video['status'], self::STATUSES, true ) ? $video['status'] : 'processing';
-		$ids    = $this->find_by_uuid( (string) $uuid );
+		$status  = is_string( $video['status'] ?? null ) && in_array( $video['status'], self::STATUSES, true ) ? $video['status'] : 'processing';
+		$ids     = $this->find_by_uuid( (string) $uuid );
+		$changed = array() === $ids; // Unlinked videos cannot be compared: assume a change.
 		foreach ( $ids as $id ) {
+			$changed = $changed || get_post_meta( $id, self::META_STATUS, true ) !== $status;
 			update_post_meta( $id, self::META_STATUS, $status );
 			if ( 'failed' === $status ) {
 				update_post_meta( $id, self::META_ERROR, is_string( $video['error'] ?? null ) ? sanitize_text_field( $video['error'] ) : '' );
@@ -172,6 +173,7 @@ class Attachments {
 				delete_post_meta( $id, self::META_ERROR );
 			}
 		}
+		$this->embeds->forget( (string) $uuid, $changed );
 
 		return count( $ids );
 	}

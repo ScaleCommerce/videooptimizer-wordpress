@@ -85,8 +85,11 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 - `videooptimizer_core_video_options`
 - `videooptimizer_enqueue_early`
 - `videooptimizer_preload_poster`
+- `videooptimizer_cache_degraded_pages`, `videooptimizer_shared_post_types`
 
-**Action**: `videooptimizer_webhook`.
+**Actions**: `videooptimizer_webhook`, `videooptimizer_purge_video`.
+
+**Page caches**: when a video changes, the published posts that contain its uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, SG Optimizer and the Cloudflare plugin, once at the end of the request. Videos in template parts, reusable blocks, widgets or linked media library items, and videos on more than 100 pages, purge the whole site. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN. Pages with an unavailable or still processing video are sent to page caches as uncacheable (`DONOTCACHEPAGE`).
 
 **WP-CLI**:
 - `wp videooptimizer status`

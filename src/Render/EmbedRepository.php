@@ -103,12 +103,22 @@ class EmbedRepository {
 	/**
 	 * Drops the cached payload (after admin edits and webhook events).
 	 *
-	 * @param string $uuid Video uuid.
+	 * @param string $uuid    Video uuid.
+	 * @param bool   $changed Whether the video really changed (cached pages showing it are purged);
+	 *                        false for status polls that found nothing new.
 	 */
-	public function forget( string $uuid ): void {
+	public function forget( string $uuid, bool $changed = true ): void {
 		$uuid = strtolower( $uuid );
 		unset( $this->memo[ $uuid ] );
 		delete_transient( self::key( $uuid ) );
+		if ( $changed ) {
+			/**
+			 * Fires when a video changed (admin edit, webhook, status change).
+			 *
+			 * @param string $uuid Video uuid.
+			 */
+			do_action( 'videooptimizer_video_changed', $uuid );
+		}
 	}
 
 	/**

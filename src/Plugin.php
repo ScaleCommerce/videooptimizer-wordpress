@@ -8,6 +8,7 @@
 namespace ScaleCommerce\VideoOptimizer;
 
 use ScaleCommerce\VideoOptimizer\Admin\AdminPage;
+use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Api\Client;
 use ScaleCommerce\VideoOptimizer\Editor\Blocks;
 use ScaleCommerce\VideoOptimizer\Editor\CoreVideo;
@@ -90,6 +91,13 @@ final class Plugin {
 	public readonly DeleteOffers $delete_offers;
 
 	/**
+	 * Page-cache invalidation.
+	 *
+	 * @var PageCache
+	 */
+	public readonly PageCache $page_cache;
+
+	/**
 	 * Constructor.
 	 */
 	private function __construct() {
@@ -100,6 +108,7 @@ final class Plugin {
 		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets );
 		$this->attachments   = new Attachments( $this->client, $this->embeds );
 		$this->delete_offers = new DeleteOffers( $this->settings, $this->client, $this->embeds, $this->attachments );
+		$this->page_cache    = new PageCache( $this->attachments );
 	}
 
 	/**
@@ -120,6 +129,7 @@ final class Plugin {
 		add_action( 'init', array( $plugin, 'load_textdomain' ), 0 );
 
 		$plugin->assets->register_hooks();
+		$plugin->page_cache->register_hooks();
 		( new Blocks( $plugin->renderer ) )->register_hooks();
 		( new Shortcode( $plugin->renderer ) )->register_hooks();
 		( new AdminController( $plugin->settings, $plugin->client, $plugin->embeds, $plugin->attachments, $plugin->delete_offers ) )->register_hooks();

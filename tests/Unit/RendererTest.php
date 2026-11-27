@@ -8,6 +8,7 @@
 namespace ScaleCommerce\VideoOptimizer\Tests\Unit;
 
 use Brain\Monkey\Functions;
+use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Render\Assets;
 use ScaleCommerce\VideoOptimizer\Render\Embed;
 use ScaleCommerce\VideoOptimizer\Render\EmbedRepository;
@@ -326,6 +327,25 @@ final class RendererTest extends TestCase {
 		$this->embed = null;
 
 		$this->assertStringNotContainsString( 'vo-bg-hero__toggle', $this->renderer->render( 'background-hero', array( 'headline' => 'Hi' ) ) );
+	}
+
+	public function test_degraded_embeds_flag_the_page_uncacheable(): void {
+		PageCache::reset_degraded();
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertFalse( PageCache::is_degraded(), 'a healthy video does not' );
+
+		$this->embed = null;
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertTrue( PageCache::is_degraded(), 'unavailable video' );
+
+		PageCache::reset_degraded();
+		$this->embed             = Embed::normalize( self::UUID, array( 'title' => 'Processing' ) );
+		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$this->assertTrue( PageCache::is_degraded(), 'video without playable sources' );
+
+		PageCache::reset_degraded();
+		$this->renderer->render( 'video', array( 'uuid' => '' ) );
+		$this->assertFalse( PageCache::is_degraded(), 'an empty block is an editor problem, not an outage' );
 	}
 
 	public function test_hero_validates_colors_and_cta(): void {

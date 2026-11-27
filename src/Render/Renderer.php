@@ -7,6 +7,7 @@
 
 namespace ScaleCommerce\VideoOptimizer\Render;
 
+use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
@@ -132,7 +133,7 @@ class Renderer {
 		}
 		$this->assets->enqueue();
 
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		if ( null === $embed ) {
 			return $this->missing_notice( $a['uuid'] );
 		}
@@ -143,6 +144,21 @@ class Renderer {
 		return $this->surface( $embed, $a, $label, $sizes, (bool) $a['priority'] );
 	}
 
+	/**
+	 * Embed lookup that flags pages with an unavailable or not yet playable video as uncacheable.
+	 *
+	 * @param string $uuid Video uuid ('' when none was chosen).
+	 * @return array<string, mixed>|null
+	 */
+	private function load_embed( string $uuid ): ?array {
+		$embed = $this->embeds->get( $uuid );
+		if ( '' !== $uuid && ( null === $embed || ! $embed['playable'] ) ) {
+			PageCache::mark_degraded();
+		}
+
+		return $embed;
+	}
+
 	/* ---------------------------------------------------------------- Layouts */
 
 	/**
@@ -151,7 +167,7 @@ class Renderer {
 	 * @param array<string, mixed> $a Attributes.
 	 */
 	private function layout_video( array $a ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		if ( null === $embed ) {
 			return $this->missing_notice( $a['uuid'] );
 		}
@@ -171,7 +187,7 @@ class Renderer {
 	 * @param string               $content Inner content.
 	 */
 	private function layout_media_split( array $a, string $content ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		$media = null === $embed ? $this->missing_notice( $a['uuid'] ) : $this->surface( $embed, $a, $a['headline'], '(min-width: 820px) 45vw, 100vw', $a['priority'] );
 
 		$body = '' !== trim( $content ) ? $content : $this->text_stack( $a, false );
@@ -192,7 +208,7 @@ class Renderer {
 	 * @param string               $content Inner content.
 	 */
 	private function layout_hero( array $a, string $content ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 
 		$styles = array();
 		if ( '' !== $a['headlineColor'] ) {
@@ -227,7 +243,7 @@ class Renderer {
 	 * @param array<string, mixed> $a Attributes.
 	 */
 	private function layout_spotlight( array $a ): string {
-		$embed = $this->embeds->get( $a['uuid'] );
+		$embed = $this->load_embed( $a['uuid'] );
 		$media = null === $embed ? $this->missing_notice( $a['uuid'] ) : $this->surface( $embed, $a, $a['headline'], '(min-width: 1000px) 960px, 100vw', $a['priority'] );
 
 		$html  = '<section class="vo-block vo-spotlight' . ( $a['priority'] ? '' : ' vo-reveal' ) . '"><div class="vo-container vo-spotlight__inner">';
@@ -247,7 +263,7 @@ class Renderer {
 	private function layout_grid( array $a ): string {
 		$tiles = '';
 		foreach ( $a['items'] as $index => $item ) {
-			$embed = $this->embeds->get( $item['uuid'] );
+			$embed = $this->load_embed( $item['uuid'] );
 			if ( null === $embed ) {
 				$tiles .= $this->missing_notice( $item['uuid'] );
 				continue;
