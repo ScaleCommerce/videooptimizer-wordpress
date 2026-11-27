@@ -139,6 +139,10 @@ final class PageCache {
 			return;
 		}
 
+		if ( $site ) {
+			// Not about one video (e.g. the API token changed): listeners get an empty uuid.
+			do_action( 'videooptimizer_purge_video', '', array(), true );
+		}
 		$ids = array();
 		$all = $site || count( $uuids ) > self::MAX_UUIDS;
 		foreach ( $uuids as $uuid ) {
@@ -153,7 +157,7 @@ final class PageCache {
 			/**
 			 * Fires when the cached pages of a changed video should be purged.
 			 *
-			 * @param string          $uuid     Video uuid.
+			 * @param string          $uuid     Video uuid; '' for a site-wide purge that concerns no single video (API token changed).
 			 * @param array<int, int> $post_ids Published posts that use the video (empty when $all).
 			 * @param bool            $all      The whole site is purged: shared content, many pages or a large batch.
 			 */
@@ -271,8 +275,8 @@ final class PageCache {
 	}
 
 	/**
-	 * Flags the current page as not cacheable (DONOTCACHEPAGE). With LiteSpeed Cache a 60 s TTL is
-	 * sent as well, so it may cache the page briefly instead. Front end only.
+	 * Flags the current page as not cacheable (DONOTCACHEPAGE); with LiteSpeed Cache active it is
+	 * cached for 60 s instead. Front end only.
 	 */
 	public static function mark_degraded(): void {
 		if ( self::$degraded || is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || wp_doing_ajax() ) {
@@ -288,11 +292,14 @@ final class PageCache {
 			return;
 		}
 		self::$degraded = true;
+		if ( defined( 'LSCWP_V' ) ) {
+			// LiteSpeed Cache honors DONOTCACHEPAGE too, which would make a TTL pointless: it gets the TTL only.
+			do_action( 'litespeed_control_set_ttl', MINUTE_IN_SECONDS ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
+
+			return;
+		}
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- convention honored by page-cache plugins.
-		}
-		if ( defined( 'LSCWP_V' ) ) {
-			do_action( 'litespeed_control_set_ttl', MINUTE_IN_SECONDS ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
 		}
 	}
 

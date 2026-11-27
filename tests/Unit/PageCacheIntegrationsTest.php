@@ -145,7 +145,7 @@ final class PageCacheIntegrationsTest extends TestCase {
 	}
 
 	// Last on purpose: defines the LiteSpeed constant for the rest of the process.
-	public function test_litespeed_also_gets_a_short_ttl(): void {
+	public function test_litespeed_gets_a_short_ttl_instead_of_no_cache(): void {
 		PageCache::reset_degraded();
 		if ( ! defined( 'LSCWP_V' ) ) {
 			define( 'LSCWP_V', '7' );

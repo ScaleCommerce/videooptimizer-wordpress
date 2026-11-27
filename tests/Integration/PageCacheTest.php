@@ -212,12 +212,14 @@ final class PageCacheTest extends IntegrationTestCase {
 
 	public function test_a_changed_api_token_purges_the_whole_site(): void {
 		$this->cache()->flush();
-		$calls = $this->site_purges();
+		$this->purges = array();
+		$calls        = $this->site_purges();
 
 		Plugin::instance()->settings->set_token( 'vp_new_token_value' );
 		$this->cache()->flush();
 
 		$this->assertSame( array( '*' ), $calls->getArrayCopy() );
+		$this->assertSame( array( array( '', array(), true ) ), $this->purges, 'custom listeners are told too' );
 	}
 
 	public function test_saving_other_settings_does_not_purge(): void {
