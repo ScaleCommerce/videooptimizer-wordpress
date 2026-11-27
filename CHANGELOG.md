@@ -2,7 +2,7 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [2.1.0] - 2026-11-28
 
 ### Upgrade
 - When videos change (admin edit or webhook) the pages that show them are purged from WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer and the Cloudflare plugin if active, once per request and in a single call; whole-site purges (shared content, linked media library videos, token change) run at once, at most one per minute ([#19](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/19)).

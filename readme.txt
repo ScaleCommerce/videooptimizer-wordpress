@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 2.0.0
+Stable tag: 2.1.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -83,6 +83,13 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 2.1.0 =
+* Native player follows the player theme (preload capped at metadata, interactive, fullscreen, playback speed, Picture-in-Picture).
+* Subtitle tracks of the video in the native player.
+* Poster preload for above-the-fold videos.
+* Pause/play button for background heroes, modal dialog lightbox.
+* Cached pages are purged when a video changes (WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer, Cloudflare).
 
 = 2.0.0 =
 * Subtitles per video (upload, download, delete) and organization subtitle languages.
