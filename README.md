@@ -95,6 +95,23 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 - `wp videooptimizer sync`
 - `wp videooptimizer flush [<uuid>]`
 
+### Player theme in the native player
+
+The theme of the organization/library/video (VideoOptimizer app) is applied to the native player as far as the browser's own controls allow. Block attributes override it.
+
+| Theme key | Native player |
+|---|---|
+| `controls` | `controls` attribute |
+| `autoplay`, `mutedStart` | autoplay (always muted) / muted start |
+| `loopButton` | `loop` |
+| `preload` | `preload` for above-the-fold videos; deferred videos never preload |
+| `interactive: false` | `pointer-events: none` on videos that autoplay |
+| `fullscreenButton`, `playbackSpeed` | `controlslist="nofullscreen noplaybackrate"` |
+| `pictureInPicture` | `disablepictureinpicture` |
+| `accentColor` | `--vo-player-accent` (controls, focus ring) |
+
+Other keys (`controlBarBg`, `playButton*`, `bigPlayButton`, `qualitySelector`, `volumeControl`, `timeDisplay`) have no native equivalent and are ignored; use the VideoOptimizer player for them.
+
 ## Troubleshooting
 
 | Symptom | Cause / fix |

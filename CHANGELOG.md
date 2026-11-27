@@ -4,6 +4,12 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Upgrade
+- Native `<video>` elements may now carry `preload` from the player theme (above the fold), `controlslist`, `disablepictureinpicture` and the class `vo-native--static`; check custom CSS or markup filters ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+
+### Changed
+- The native player applies the theme's `preload`, `interactive`, `fullscreenButton`, `playbackSpeed` and `pictureInPicture` ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+
 ## [2.0.0] - 2026-11-27
 
 ### Upgrade

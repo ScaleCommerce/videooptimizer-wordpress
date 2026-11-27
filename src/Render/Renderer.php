@@ -412,14 +412,31 @@ class Renderer {
 		$loop     = self::resolve( $a['loop'], ! empty( $theme['loopButton'] ) );
 		$controls = self::resolve( $a['controls'], ! isset( $theme['controls'] ) || (bool) $theme['controls'] );
 
+		$direct = $eager || $autoload;
+		// interactive=false (pure design element) only applies to videos that start by themselves.
+		$static  = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		$preload = isset( $theme['preload'] ) && in_array( $theme['preload'], array( 'auto', 'metadata', 'none' ), true ) ? $theme['preload'] : 'auto';
+
+		// Native controls cannot hide single buttons; these hints cover what browsers support.
+		$controls_list = array();
+		if ( isset( $theme['fullscreenButton'] ) && false === $theme['fullscreenButton'] ) {
+			$controls_list[] = 'nofullscreen';
+		}
+		if ( isset( $theme['playbackSpeed'] ) && false === $theme['playbackSpeed'] ) {
+			$controls_list[] = 'noplaybackrate';
+		}
+
 		$attrs = array(
-			'class'       => 'vo-native',
-			'playsinline' => true,
-			'preload'     => $eager ? 'auto' : 'none',
-			'controls'    => $controls,
-			'loop'        => $loop,
-			'poster'      => $embed['poster'],
-			'data-hls'    => $embed['hls'],
+			'class'                   => 'vo-native' . ( $static ? ' vo-native--static' : '' ),
+			'playsinline'             => true,
+			// Deferred players never preload: they fetch nothing until played.
+			'preload'                 => $eager ? $preload : 'none',
+			'controls'                => $controls,
+			'controlslist'            => implode( ' ', $controls_list ),
+			'disablepictureinpicture' => isset( $theme['pictureInPicture'] ) && false === $theme['pictureInPicture'],
+			'loop'                    => $loop,
+			'poster'                  => $embed['poster'],
+			'data-hls'                => $embed['hls'],
 		);
 		if ( $eager && $autoplay ) {
 			// Browsers only allow autoplay when muted.

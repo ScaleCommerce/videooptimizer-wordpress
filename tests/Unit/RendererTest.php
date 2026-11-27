@@ -141,6 +141,78 @@ final class RendererTest extends TestCase {
 		$this->assertStringContainsString( ' autoplay muted', $html );
 	}
 
+	/**
+	 * Renders a direct native video with the given theme keys merged into the embed theme.
+	 *
+	 * @param array<string, mixed> $theme Theme keys.
+	 * @param array<string, mixed> $extra Extra attributes.
+	 */
+	private function native_with_theme( array $theme, array $extra = array() ): string {
+		$this->embed['theme'] = array_merge( $this->embed['theme'], $theme );
+
+		return $this->renderer->render(
+			'video',
+			array_merge(
+				array(
+					'uuid'         => self::UUID,
+					'player'       => 'native',
+					'presentation' => 'direct',
+					'priority'     => true,
+				),
+				$extra
+			)
+		);
+	}
+
+	public function test_theme_preload_applies_to_above_the_fold_video(): void {
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'metadata' ) ) );
+		$this->assertStringContainsString( 'preload="none"', $this->native_with_theme( array( 'preload' => 'none' ) ) );
+		$this->assertStringContainsString( 'preload="auto"', $this->native_with_theme( array( 'preload' => 'bogus' ) ) );
+	}
+
+	public function test_theme_preload_never_wakes_a_deferred_video(): void {
+		$html = $this->native_with_theme( array( 'preload' => 'auto' ), array( 'priority' => false ) );
+
+		$this->assertStringContainsString( 'preload="none"', $html );
+	}
+
+	public function test_theme_interactive_false_makes_an_autoplaying_video_static(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+			)
+		);
+
+		$this->assertStringContainsString( 'class="vo-native vo-native--static"', $html );
+	}
+
+	public function test_theme_interactive_false_without_autoplay_stays_usable(): void {
+		$html = $this->native_with_theme( array( 'interactive' => false ) );
+
+		$this->assertStringNotContainsString( 'vo-native--static', $html );
+	}
+
+	public function test_theme_buttons_map_to_native_controls(): void {
+		$html = $this->native_with_theme(
+			array(
+				'fullscreenButton' => false,
+				'playbackSpeed'    => false,
+				'pictureInPicture' => false,
+			)
+		);
+
+		$this->assertStringContainsString( 'controlslist="nofullscreen noplaybackrate"', $html );
+		$this->assertStringContainsString( ' disablepictureinpicture', $html );
+	}
+
+	public function test_default_theme_adds_no_control_hints(): void {
+		$html = $this->native_with_theme( array() );
+
+		$this->assertStringNotContainsString( 'controlslist', $html );
+		$this->assertStringNotContainsString( 'disablepictureinpicture', $html );
+	}
+
 	public function test_hero_validates_colors_and_cta(): void {
 		$html = $this->renderer->render(
 			'background-hero',

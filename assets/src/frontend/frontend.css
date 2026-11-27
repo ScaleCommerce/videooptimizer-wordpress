@@ -115,6 +115,11 @@
 	cursor: pointer;
 }
 
+/* Player theme "interactive: false": a pure design element that ignores clicks. */
+.vo-native--static {
+	pointer-events: none;
+}
+
 .vo-native-holder[hidden] {
 	display: none;
 }
