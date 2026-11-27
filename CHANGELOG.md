@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-27
+
 ### Changed
 - Requests to the VideoOptimizer API now identify the plugin with the User-Agent
   `VideoOptimizer-WordPress/<version> (WordPress <version>; PHP <version>; +<site URL>)`, so VideoOptimizer can show
@@ -48,5 +50,6 @@ First release. Licensed under MIT.
 - **German (formal) translation** for PHP and JS.
 - **Quality tooling**: PHPUnit unit and integration tests, Jest, Playwright E2E, PHPCS (WPCS), PHPStan level 8, ESLint/Stylelint, Plugin Check, GitHub Actions CI.
 
-[Unreleased]: https://github.com/ScaleCommerce/videooptimizer-wordpress/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/ScaleCommerce/videooptimizer-wordpress/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/ScaleCommerce/videooptimizer-wordpress/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/ScaleCommerce/videooptimizer-wordpress/releases/tag/v0.1.0

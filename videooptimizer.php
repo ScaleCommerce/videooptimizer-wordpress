@@ -3,7 +3,7 @@
  * Plugin Name:       VideoOptimizer
  * Plugin URI:        https://videooptimizer.eu
  * Description:       Fast, adaptive video from the VideoOptimizer CDN for WordPress and WooCommerce — Gutenberg blocks, shortcode, Elementor widget, media library integration and product videos.
- * Version:           0.1.0
+ * Version:           0.1.1
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            ScaleCommerce GmbH
@@ -20,7 +20,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'VIDEOOPTIMIZER_VERSION', '0.1.0' );
+define( 'VIDEOOPTIMIZER_VERSION', '0.1.1' );
 define( 'VIDEOOPTIMIZER_FILE', __FILE__ );
 define( 'VIDEOOPTIMIZER_DIR', plugin_dir_path( __FILE__ ) );
 define( 'VIDEOOPTIMIZER_URL', plugin_dir_url( __FILE__ ) );
