@@ -16,6 +16,7 @@ import { useEffect, useState } from '@wordpress/element';
 import { api, formatBytes } from '../../components/api';
 import { optionState } from '../../components/ladder';
 import { resetLibraries } from '../../components/VideoBrowser';
+import { useGuardedAction } from '../../components/busy';
 import { ConfirmModal } from '../../components/ui';
 import { useNotify } from '../notices';
 
@@ -82,6 +83,7 @@ function Ladder( { library, encodings, onSaved } ) {
 	const encodingsLoaded =
 		encodings.codecs.length > 0 && encodings.resolutions.length > 0;
 
+	const [ reprocessing, runReprocess ] = useGuardedAction();
 	const reprocess = ( force ) =>
 		api.reprocessLibrary( library.id, force ).then( ( r ) => {
 			notify(
@@ -247,9 +249,13 @@ function Ladder( { library, encodings, onSaved } ) {
 					/>
 					<Button
 						variant="link"
+						isBusy={ reprocessing }
+						disabled={ reprocessing }
 						onClick={ () =>
-							reprocess( offerForce ).catch( ( e ) =>
-								notify( e.message, 'error' )
+							runReprocess( () =>
+								reprocess( offerForce ).catch( ( e ) =>
+									notify( e.message, 'error' )
+								)
 							)
 						}
 					>
@@ -331,24 +337,23 @@ function LibraryModal( { library, onClose, onSaved } ) {
 		( library && library.description ) || ''
 	);
 	const [ quality, setQuality ] = useState( 'performance' );
-	const [ busy, setBusy ] = useState( false );
+	const [ busy, run ] = useGuardedAction();
 	const [ error, setError ] = useState( '' );
 
-	const save = () => {
-		setBusy( true );
-		setError( '' );
-		const request = library
-			? api.updateLibrary( library.id, { name, description } )
-			: api.createLibrary( {
-					name,
-					description,
-					encoding_quality: quality,
-			  } );
-		request
-			.then( onSaved )
-			.catch( ( e ) => setError( e.message ) )
-			.finally( () => setBusy( false ) );
-	};
+	const save = () =>
+		run( () => {
+			setError( '' );
+			const request = library
+				? api.updateLibrary( library.id, { name, description } )
+				: api.createLibrary( {
+						name,
+						description,
+						encoding_quality: quality,
+				  } );
+			return request
+				.then( onSaved )
+				.catch( ( e ) => setError( e.message ) );
+		} );
 
 	return (
 		<Modal
@@ -397,9 +402,16 @@ function LibraryModal( { library, onClose, onSaved } ) {
 					isBusy={ busy }
 					disabled={ busy || ! name.trim() }
 				>
-					{ library
-						? __( 'Save', 'videooptimizer' )
-						: __( 'Create library', 'videooptimizer' ) }
+					{ busy && ! library
+						? __( 'Creating…', 'videooptimizer' )
+						: null }
+					{ ! busy || library
+						? [
+								library
+									? __( 'Save', 'videooptimizer' )
+									: __( 'Create library', 'videooptimizer' ),
+						  ]
+						: null }
 				</Button>
 			</div>
 		</Modal>

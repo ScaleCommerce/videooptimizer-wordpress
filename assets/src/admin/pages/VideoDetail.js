@@ -26,6 +26,7 @@ import {
 	StatusBadge,
 	copyToClipboard,
 } from '../../components/ui';
+import { useGuardedAction } from '../../components/busy';
 import { useNotify } from '../notices';
 import { MetadataCard, TagsCard } from './VideoTagsMetadata';
 import VideoSubtitles from './VideoSubtitles';
@@ -292,6 +293,7 @@ export default function VideoDetail( { uuid } ) {
 	const [ confirmDelete, setConfirmDelete ] = useState( false );
 	const [ deleting, setDeleting ] = useState( false );
 	const notify = useNotify();
+	const [ savingOption, runOption ] = useGuardedAction();
 
 	const load = () =>
 		api.video( uuid ).then( ( v ) => {
@@ -333,14 +335,16 @@ export default function VideoDetail( { uuid } ) {
 	}
 
 	const options = video.options || {};
-	const setOption = ( key, value ) => {
-		api.updateVideo( uuid, { option: { [ key ]: value } } )
-			.then( ( v ) => {
-				setVideo( v );
-				notify( __( 'Saved.', 'videooptimizer' ) );
-			} )
-			.catch( ( e ) => notify( e.message, 'error' ) );
-	};
+	const setOption = ( key, value ) =>
+		runOption( () =>
+			api
+				.updateVideo( uuid, { option: { [ key ]: value } } )
+				.then( ( v ) => {
+					setVideo( v );
+					notify( __( 'Saved.', 'videooptimizer' ) );
+				} )
+				.catch( ( e ) => notify( e.message, 'error' ) )
+		);
 
 	const saveTitle = () => {
 		setSaving( true );
@@ -564,24 +568,28 @@ export default function VideoDetail( { uuid } ) {
 									'videooptimizer'
 								) }
 								checked={ !! options.autoplay }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'autoplay', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Loop', 'videooptimizer' ) }
 								checked={ !! options.loop }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'loop', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Start muted', 'videooptimizer' ) }
 								checked={ !! options.muted }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'muted', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Preload', 'videooptimizer' ) }
 								checked={ !! options.preload }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'preload', v ) }
 							/>
 						</CardBody>

@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from '@wordpress/element';
 import { api } from '../../components/api';
 import { validLanguageCode } from '../../components/subtitles';
+import { useGuardedAction } from '../../components/busy';
 import { ConfirmModal } from '../../components/ui';
 import { useNotify } from '../notices';
 
@@ -21,7 +22,7 @@ export default function SubtitleLanguages() {
 	const [ languages, setLanguages ] = useState( null );
 	const [ code, setCode ] = useState( '' );
 	const [ label, setLabel ] = useState( '' );
-	const [ busy, setBusy ] = useState( false );
+	const [ busy, run ] = useGuardedAction();
 	const [ removing, setRemoving ] = useState( null );
 	const notify = useNotify();
 
@@ -36,33 +37,36 @@ export default function SubtitleLanguages() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [] );
 
-	const add = () => {
-		setBusy( true );
-		api.createSubtitleLanguage( { code: code.trim(), label: label.trim() } )
-			.then( () => {
-				setCode( '' );
-				setLabel( '' );
-				notify( __( 'Language added.', 'videooptimizer' ) );
-				return load();
-			} )
-			.catch( ( e ) => notify( e.message, 'error' ) )
-			.finally( () => setBusy( false ) );
-	};
+	const add = () =>
+		run( () =>
+			api
+				.createSubtitleLanguage( {
+					code: code.trim(),
+					label: label.trim(),
+				} )
+				.then( () => {
+					setCode( '' );
+					setLabel( '' );
+					notify( __( 'Language added.', 'videooptimizer' ) );
+					return load();
+				} )
+				.catch( ( e ) => notify( e.message, 'error' ) )
+		);
 
-	const remove = () => {
-		setBusy( true );
-		api.deleteSubtitleLanguage( removing.code )
-			.then( () => {
-				notify( __( 'Language removed.', 'videooptimizer' ) );
-				setRemoving( null );
-				return load();
-			} )
-			.catch( ( e ) => {
-				setRemoving( null );
-				notify( e.message, 'error' );
-			} )
-			.finally( () => setBusy( false ) );
-	};
+	const remove = () =>
+		run( () =>
+			api
+				.deleteSubtitleLanguage( removing.code )
+				.then( () => {
+					notify( __( 'Language removed.', 'videooptimizer' ) );
+					setRemoving( null );
+					return load();
+				} )
+				.catch( ( e ) => {
+					setRemoving( null );
+					notify( e.message, 'error' );
+				} )
+		);
 
 	return (
 		<Card>

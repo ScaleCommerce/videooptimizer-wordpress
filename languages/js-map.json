@@ -83,6 +83,7 @@
 		"build/blocks/spotlight/index.js",
 		"build/blocks/video-grid/index.js"
 	],
+	"assets/src/components/busy.js": "build/admin/index.js",
 	"assets/src/components/savings.js": "build/admin/index.js",
 	"assets/src/components/subtitles.js": "build/admin/index.js",
 	"assets/src/components/transfer.js": [
