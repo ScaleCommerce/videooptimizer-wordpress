@@ -117,18 +117,37 @@ class Client {
 		return $this->request( 'GET', '/encodings' )['body'];
 	}
 
+	/**
+	 * The organization's tags with the number of videos carrying each, alphabetically.
+	 *
+	 * @return array<int, array<string, mixed>> Each {name, video_count}.
+	 */
+	public function list_tags(): array {
+		return self::list_of_arrays( $this->request( 'GET', '/tags' )['body']['data'] ?? null );
+	}
+
 	/* ---------------------------------------------------------------- Videos */
 
 	/**
 	 * One page of videos, newest first.
 	 *
-	 * @param string|null $library_id Optional library filter.
-	 * @param string|null $cursor     Pagination cursor.
-	 * @param int         $limit      Page size (max 100).
+	 * @param string|null          $library_id Optional library filter.
+	 * @param string|null          $cursor     Pagination cursor.
+	 * @param int                  $limit      Page size (max 100).
+	 * @param array<string, mixed> $filters    Optional `tags` (names, all required) and `metadata`
+	 *                                         (key => exact value, at most 5).
 	 * @return array{items: array<int, array<string, mixed>>, next_cursor: ?string}
 	 */
-	public function list_videos_page( ?string $library_id = null, ?string $cursor = null, int $limit = self::PAGE_LIMIT ): array {
+	public function list_videos_page( ?string $library_id = null, ?string $cursor = null, int $limit = self::PAGE_LIMIT, array $filters = array() ): array {
 		$query = array( 'limit' => max( 1, min( self::PAGE_LIMIT, $limit ) ) );
+		if ( is_array( $filters['tags'] ?? null ) && array() !== $filters['tags'] ) {
+			$query['tags'] = implode( ',', array_map( 'strval', $filters['tags'] ) );
+		}
+		if ( is_array( $filters['metadata'] ?? null ) ) {
+			foreach ( $filters['metadata'] as $key => $value ) {
+				$query[ 'metadata[' . $key . ']' ] = (string) $value;
+			}
+		}
 		if ( null !== $cursor && '' !== $cursor ) {
 			$query['cursor'] = $cursor;
 		}
@@ -167,10 +186,12 @@ class Client {
 	}
 
 	/**
-	 * Updates title and/or player options. Note: the write field is `option` (singular).
+	 * Updates title, player options, tags and/or metadata. Note: the write field is `option`
+	 * (singular). `tags` replaces the whole set; `metadata` is merged (a null value removes a key,
+	 * a null `metadata` removes all of them).
 	 *
 	 * @param string               $uuid    Video uuid.
-	 * @param array<string, mixed> $payload {title?, option?}.
+	 * @param array<string, mixed> $payload {title?, option?, tags?, metadata?}.
 	 * @return array<string, mixed>
 	 */
 	public function update_video( string $uuid, array $payload ): array {

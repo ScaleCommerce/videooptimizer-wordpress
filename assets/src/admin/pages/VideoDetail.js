@@ -27,6 +27,7 @@ import {
 	copyToClipboard,
 } from '../../components/ui';
 import { useNotify } from '../notices';
+import { MetadataCard, TagsCard } from './VideoTagsMetadata';
 
 const config = window.videooptimizerAdmin || {};
 
@@ -536,6 +537,9 @@ export default function VideoDetail( { uuid } ) {
 							</dl>
 						</CardBody>
 					</Card>
+
+					<TagsCard video={ video } onSaved={ setVideo } />
+					<MetadataCard video={ video } onSaved={ setVideo } />
 
 					<Card>
 						<CardHeader>

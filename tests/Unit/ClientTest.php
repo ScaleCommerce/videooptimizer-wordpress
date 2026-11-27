@@ -341,4 +341,56 @@ final class ClientTest extends TestCase {
 			$this->assertStringContainsString( 'base URL', $e->getMessage() );
 		}
 	}
+
+	public function test_lists_tags(): void {
+		$this->responses[] = $this->response(
+			200,
+			array(
+				'data' => array(
+					array(
+						'name'        => 'promo',
+						'video_count' => 3,
+					),
+				),
+			)
+		);
+
+		$tags = $this->client()->list_tags();
+
+		$this->assertSame( 'promo', $tags[0]['name'] );
+		$this->assertSame( 'https://api.videooptimizer.eu/api/v1/tags', $this->requests[0][0] );
+	}
+
+	public function test_videos_page_filters_by_tags_and_metadata(): void {
+		$this->client()->list_videos_page(
+			'lib-1',
+			null,
+			60,
+			array(
+				'tags'     => array( 'promo', 'summer 26' ),
+				'metadata' => array( 'cms_id' => 'a b&c' ),
+			)
+		);
+
+		$url = $this->requests[0][0];
+		$this->assertStringContainsString( '/libraries/lib-1/videos?', $url );
+		$this->assertStringContainsString( 'tags=promo%2Csummer%2026', $url );
+		$this->assertStringContainsString( 'metadata[cms_id]=a%20b%26c', $url );
+		$this->assertStringContainsString( 'limit=60', $url );
+	}
+
+	public function test_updates_tags_and_metadata_in_one_patch(): void {
+		$this->client()->update_video(
+			'abc',
+			array(
+				'tags'     => array( 'a' ),
+				'metadata' => array(
+					'k' => 'v',
+					'x' => null,
+				),
+			)
+		);
+
+		$this->assertSame( '{"tags":["a"],"metadata":{"k":"v","x":null}}', $this->requests[0][1]['body'] );
+	}
 }

@@ -279,7 +279,7 @@ msgid "Player directly"
 msgstr "Player direkt"
 
 #: src/Editor/Elementor/Widget.php:235
-#: assets/src/admin/pages/VideoDetail.js:555
+#: assets/src/admin/pages/VideoDetail.js:559
 #: assets/src/blocks/shared/editor.js:136
 msgid "Autoplay (muted)"
 msgstr "Autoplay (stumm)"
@@ -290,7 +290,7 @@ msgid "Muted"
 msgstr "Stumm"
 
 #: src/Editor/Elementor/Widget.php:237
-#: assets/src/admin/pages/VideoDetail.js:564
+#: assets/src/admin/pages/VideoDetail.js:568
 #: assets/src/blocks/shared/editor.js:156
 msgid "Loop"
 msgstr "Endlosschleife"
@@ -404,7 +404,7 @@ msgstr "Optimiert"
 
 #: src/Media/MediaLibrary.php:285
 #: assets/src/components/ui.js:12
-#: assets/src/components/VideoBrowser.js:89
+#: assets/src/components/VideoBrowser.js:105
 #: assets/src/media/index.js:217
 msgid "Failed"
 msgstr "Fehlgeschlagen"
@@ -445,53 +445,53 @@ msgstr "Noch kein Video ausgewählt."
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr "Das Video %s konnte nicht geladen werden (gelöscht oder VideoOptimizer nicht erreichbar). Dieser Hinweis ist nur für Redakteure sichtbar."
 
-#: src/Rest/AdminController.php:268
+#: src/Rest/AdminController.php:270
 msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN) and cannot be changed here."
 msgstr "Das Token ist in der wp-config.php definiert (VIDEOOPTIMIZER_API_TOKEN) und kann hier nicht geändert werden."
 
-#: src/Rest/AdminController.php:272
+#: src/Rest/AdminController.php:274
 msgid "This does not look like a VideoOptimizer API token (vp_…)."
 msgstr "Das sieht nicht nach einem VideoOptimizer-API-Token (vp_…) aus."
 
-#: src/Rest/AdminController.php:339
+#: src/Rest/AdminController.php:341
 msgid "Please enter a name."
 msgstr "Bitte geben Sie einen Namen ein."
 
-#: src/Rest/AdminController.php:507
+#: src/Rest/AdminController.php:580
 msgid "Please enter a public https:// URL."
 msgstr "Bitte geben Sie eine öffentliche https://-URL ein."
 
-#: src/Rest/AdminController.php:526
-#: src/Rest/AdminController.php:552
+#: src/Rest/AdminController.php:599
+#: src/Rest/AdminController.php:625
 msgid "Invalid upload request."
 msgstr "Ungültige Upload-Anfrage."
 
-#: src/Rest/AdminController.php:635
+#: src/Rest/AdminController.php:718
 msgid "Invalid frame."
 msgstr "Ungültiges Standbild."
 
-#: src/Rest/AdminController.php:653
+#: src/Rest/AdminController.php:736
 #: assets/src/components/uploader.js:172
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr "Bitte wählen Sie ein JPEG-, PNG- oder WebP-Bild."
 
-#: src/Rest/AdminController.php:683
+#: src/Rest/AdminController.php:766
 msgid "Invalid poster source."
 msgstr "Ungültige Poster-Quelle."
 
-#: src/Rest/AdminController.php:742
+#: src/Rest/AdminController.php:825
 msgid "This video is no longer waiting for a decision."
 msgstr "Für dieses Video steht keine Entscheidung mehr aus."
 
-#: src/Rest/AdminController.php:745
+#: src/Rest/AdminController.php:828
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr "Sie dürfen keine Videos in VideoOptimizer löschen."
 
-#: src/Rest/AdminController.php:777
+#: src/Rest/AdminController.php:860
 msgid "Invalid video id."
 msgstr "Ungültige Video-ID."
 
-#: src/Rest/AdminController.php:808
+#: src/Rest/AdminController.php:891
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr "Diese Website ist nicht öffentlich erreichbar, daher wird die Datei stattdessen aus Ihrem Browser hochgeladen."
 
@@ -570,7 +570,7 @@ msgstr "Vorhandene Videos neu encodieren?"
 #: assets/src/admin/pages/Libraries.js:298
 #: assets/src/admin/pages/Libraries.js:392
 #: assets/src/components/ui.js:120
-#: assets/src/components/VideoBrowser.js:420
+#: assets/src/components/VideoBrowser.js:467
 msgid "Cancel"
 msgstr "Abbrechen"
 
@@ -605,7 +605,7 @@ msgstr "Beschreibung"
 
 #: assets/src/admin/pages/Libraries.js:401
 #: assets/src/admin/pages/Settings.js:307
-#: assets/src/admin/pages/VideoDetail.js:466
+#: assets/src/admin/pages/VideoDetail.js:467
 msgid "Save"
 msgstr "Speichern"
 
@@ -680,7 +680,7 @@ msgid "No videos selected."
 msgstr "Keine Videos ausgewählt."
 
 #: assets/src/admin/pages/Send.js:176
-#: assets/src/admin/pages/VideoDetail.js:447
+#: assets/src/admin/pages/VideoDetail.js:448
 msgid "Details"
 msgstr "Details"
 
@@ -792,12 +792,12 @@ msgid "Webhook URL"
 msgstr "Webhook-URL"
 
 #: assets/src/admin/pages/Settings.js:277
-#: assets/src/admin/pages/VideoDetail.js:273
+#: assets/src/admin/pages/VideoDetail.js:274
 msgid "Copied."
 msgstr "Kopiert."
 
 #: assets/src/admin/pages/Settings.js:281
-#: assets/src/admin/pages/VideoDetail.js:277
+#: assets/src/admin/pages/VideoDetail.js:278
 msgid "Copy"
 msgstr "Kopieren"
 
@@ -957,16 +957,16 @@ msgstr "Nur auf Geräten mit Maus; berücksichtigt „Bewegung reduzieren“."
 msgid "Save settings"
 msgstr "Einstellungen speichern"
 
-#: assets/src/admin/pages/VideoDetail.js:47
+#: assets/src/admin/pages/VideoDetail.js:48
 msgid "Poster updated."
 msgstr "Poster aktualisiert."
 
-#: assets/src/admin/pages/VideoDetail.js:60
+#: assets/src/admin/pages/VideoDetail.js:61
 msgid "Frames are available once the video has been processed."
 msgstr "Standbilder stehen zur Verfügung, sobald das Video verarbeitet wurde."
 
 #. translators: %d: frame number
-#: assets/src/admin/pages/VideoDetail.js:85
+#: assets/src/admin/pages/VideoDetail.js:86
 #, js-format
 msgid "Use frame %d as poster"
 msgstr "Standbild %d als Poster verwenden"
@@ -975,145 +975,145 @@ msgstr "Standbild %d als Poster verwenden"
 msgid "The poster image could not be processed."
 msgstr "Das Posterbild konnte nicht verarbeitet werden."
 
-#: assets/src/admin/pages/VideoDetail.js:110
-#: assets/src/admin/pages/VideoDetail.js:197
+#: assets/src/admin/pages/VideoDetail.js:111
+#: assets/src/admin/pages/VideoDetail.js:198
 msgid "Custom poster is active."
 msgstr "Eigenes Poster ist aktiv."
 
-#: assets/src/admin/pages/VideoDetail.js:119
+#: assets/src/admin/pages/VideoDetail.js:120
 msgid "Choose a poster image"
 msgstr "Posterbild wählen"
 
-#: assets/src/admin/pages/VideoDetail.js:174
+#: assets/src/admin/pages/VideoDetail.js:175
 msgid "Upload image"
 msgstr "Bild hochladen"
 
-#: assets/src/admin/pages/VideoDetail.js:184
+#: assets/src/admin/pages/VideoDetail.js:185
 msgid "From media library"
 msgstr "Aus der Mediathek"
 
-#: assets/src/admin/pages/VideoDetail.js:204
+#: assets/src/admin/pages/VideoDetail.js:205
 msgid "Use uploaded poster"
 msgstr "Hochgeladenes Poster verwenden"
 
-#: assets/src/admin/pages/VideoDetail.js:215
+#: assets/src/admin/pages/VideoDetail.js:216
 msgid "Custom poster removed."
 msgstr "Eigenes Poster entfernt."
 
-#: assets/src/admin/pages/VideoDetail.js:219
+#: assets/src/admin/pages/VideoDetail.js:220
 msgid "Remove uploaded poster"
 msgstr "Hochgeladenes Poster entfernen"
 
-#: assets/src/admin/pages/VideoDetail.js:225
+#: assets/src/admin/pages/VideoDetail.js:226
 msgid "JPEG, PNG or WebP. Use the same aspect ratio as the video for best results."
 msgstr "JPEG, PNG oder WebP. Das beste Ergebnis erzielen Sie mit demselben Seitenverhältnis wie das Video."
 
-#: assets/src/admin/pages/VideoDetail.js:238
+#: assets/src/admin/pages/VideoDetail.js:239
 msgid "Shortcode"
 msgstr "Shortcode"
 
-#: assets/src/admin/pages/VideoDetail.js:242
+#: assets/src/admin/pages/VideoDetail.js:243
 msgid "Shortcode (lightbox, native player)"
 msgstr "Shortcode (Lightbox, nativer Player)"
 
-#: assets/src/admin/pages/VideoDetail.js:249
+#: assets/src/admin/pages/VideoDetail.js:250
 msgid "Video ID (blocks, Elementor, WooCommerce)"
 msgstr "Video-ID (Blöcke, Elementor, WooCommerce)"
 
-#: assets/src/admin/pages/VideoDetail.js:321
-#: assets/src/admin/pages/VideoDetail.js:373
+#: assets/src/admin/pages/VideoDetail.js:322
+#: assets/src/admin/pages/VideoDetail.js:374
 msgid "All videos"
 msgstr "Alle Videos"
 
-#: assets/src/admin/pages/VideoDetail.js:338
+#: assets/src/admin/pages/VideoDetail.js:339
 msgid "Saved."
 msgstr "Gespeichert."
 
-#: assets/src/admin/pages/VideoDetail.js:348
+#: assets/src/admin/pages/VideoDetail.js:349
 msgid "Title saved."
 msgstr "Titel gespeichert."
 
-#: assets/src/admin/pages/VideoDetail.js:358
+#: assets/src/admin/pages/VideoDetail.js:359
 msgid "Video deleted."
 msgstr "Video gelöscht."
 
-#: assets/src/admin/pages/VideoDetail.js:403
+#: assets/src/admin/pages/VideoDetail.js:404
 msgid "VideoOptimizer is encoding this video. This page updates automatically."
 msgstr "VideoOptimizer encodiert dieses Video. Diese Seite aktualisiert sich automatisch."
 
-#: assets/src/admin/pages/VideoDetail.js:419
+#: assets/src/admin/pages/VideoDetail.js:420
 msgid "Poster"
 msgstr "Poster"
 
-#: assets/src/admin/pages/VideoDetail.js:423
+#: assets/src/admin/pages/VideoDetail.js:424
 msgid "Pick one of the frames or upload your own image. The change is live everywhere within seconds."
 msgstr "Wählen Sie eines der Standbilder oder laden Sie ein eigenes Bild hoch. Die Änderung ist innerhalb von Sekunden überall live."
 
-#: assets/src/admin/pages/VideoDetail.js:429
+#: assets/src/admin/pages/VideoDetail.js:430
 msgid "Custom poster"
 msgstr "Eigenes Poster"
 
-#: assets/src/admin/pages/VideoDetail.js:436
+#: assets/src/admin/pages/VideoDetail.js:437
 msgid "Embed"
 msgstr "Einbinden"
 
-#: assets/src/admin/pages/VideoDetail.js:454
+#: assets/src/admin/pages/VideoDetail.js:455
 msgid "Title"
 msgstr "Titel"
 
-#: assets/src/admin/pages/VideoDetail.js:470
+#: assets/src/admin/pages/VideoDetail.js:471
 msgid "Status"
 msgstr "Status"
 
-#: assets/src/admin/pages/VideoDetail.js:477
+#: assets/src/admin/pages/VideoDetail.js:478
 msgid "Duration"
 msgstr "Dauer"
 
-#: assets/src/admin/pages/VideoDetail.js:490
+#: assets/src/admin/pages/VideoDetail.js:491
 msgid "Resolution"
 msgstr "Auflösung"
 
-#: assets/src/admin/pages/VideoDetail.js:501
+#: assets/src/admin/pages/VideoDetail.js:502
 msgid "Renditions"
 msgstr "Varianten"
 
-#: assets/src/admin/pages/VideoDetail.js:519
+#: assets/src/admin/pages/VideoDetail.js:520
 msgid "Views"
 msgstr "Aufrufe"
 
-#: assets/src/admin/pages/VideoDetail.js:527
+#: assets/src/admin/pages/VideoDetail.js:528
 msgid "Size"
 msgstr "Größe"
 
-#: assets/src/admin/pages/VideoDetail.js:543
+#: assets/src/admin/pages/VideoDetail.js:547
 msgid "Player defaults"
 msgstr "Player-Standardwerte"
 
-#: assets/src/admin/pages/VideoDetail.js:548
+#: assets/src/admin/pages/VideoDetail.js:552
 msgid "Used by the VideoOptimizer player unless a block overrides them."
 msgstr "Werden vom VideoOptimizer-Player verwendet, sofern ein Block sie nicht überschreibt."
 
-#: assets/src/admin/pages/VideoDetail.js:570
+#: assets/src/admin/pages/VideoDetail.js:574
 msgid "Start muted"
 msgstr "Stumm starten"
 
-#: assets/src/admin/pages/VideoDetail.js:576
+#: assets/src/admin/pages/VideoDetail.js:580
 msgid "Preload"
 msgstr "Vorladen"
 
-#: assets/src/admin/pages/VideoDetail.js:591
+#: assets/src/admin/pages/VideoDetail.js:595
 msgid "Delete video"
 msgstr "Video löschen"
 
-#: assets/src/admin/pages/VideoDetail.js:601
+#: assets/src/admin/pages/VideoDetail.js:605
 msgid "Delete this video?"
 msgstr "Dieses Video löschen?"
 
-#: assets/src/admin/pages/VideoDetail.js:602
+#: assets/src/admin/pages/VideoDetail.js:606
 msgid "Delete permanently"
 msgstr "Endgültig löschen"
 
-#: assets/src/admin/pages/VideoDetail.js:611
+#: assets/src/admin/pages/VideoDetail.js:615
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr "Das Video wird aus VideoOptimizer und dem CDN entfernt. Seiten, die es einbinden, zeigen es nicht mehr an. Dateien in der Mediathek bleiben unberührt."
 
@@ -1220,12 +1220,12 @@ msgid "Loads the poster with high priority and the player immediately. Use only 
 msgstr "Lädt das Poster mit hoher Priorität und den Player sofort. Nur für das erste sichtbare Video einer Seite verwenden."
 
 #: assets/src/blocks/shared/editor.js:206
-#: assets/src/components/VideoBrowser.js:62
+#: assets/src/components/VideoBrowser.js:78
 msgid "VideoOptimizer is not connected yet."
 msgstr "VideoOptimizer ist noch nicht verbunden."
 
 #: assets/src/blocks/shared/editor.js:212
-#: assets/src/components/VideoBrowser.js:67
+#: assets/src/components/VideoBrowser.js:83
 msgid "Enter your API token"
 msgstr "API-Token eingeben"
 
@@ -1251,6 +1251,7 @@ msgstr "Nach oben"
 msgid "Move down"
 msgstr "Nach unten"
 
+#: assets/src/admin/pages/VideoTagsMetadata.js:191
 #: assets/src/blocks/video-grid/index.js:104
 #: assets/src/components/VideoSelectControl.js:96
 msgid "Remove"
@@ -1302,7 +1303,7 @@ msgstr "Für Screenreader und Suchmaschinen. Standardmäßig der Videotitel."
 msgid "The request failed."
 msgstr "Die Anfrage ist fehlgeschlagen."
 
-#: assets/src/components/api.js:153
+#: assets/src/components/api.js:167
 msgid "Untitled video"
 msgstr "Unbenanntes Video"
 
@@ -1311,7 +1312,7 @@ msgid "The video file could not be read from the media library."
 msgstr "Die Videodatei konnte nicht aus der Mediathek gelesen werden."
 
 #: assets/src/components/ui.js:11
-#: assets/src/components/VideoBrowser.js:84
+#: assets/src/components/VideoBrowser.js:100
 msgid "Ready"
 msgstr "Bereit"
 
@@ -1342,52 +1343,52 @@ msgstr "Bitte wählen Sie eine Videodatei."
 msgid "The storage did not return an ETag (CORS must expose the ETag header). Please contact VideoOptimizer support."
 msgstr "Der Speicher hat kein ETag zurückgegeben (CORS muss den ETag-Header freigeben). Bitte wenden Sie sich an den VideoOptimizer-Support."
 
-#: assets/src/components/VideoBrowser.js:81
+#: assets/src/components/VideoBrowser.js:97
 msgid "Uploaded – processing…"
 msgstr "Hochgeladen – wird verarbeitet …"
 
-#: assets/src/components/VideoBrowser.js:311
+#: assets/src/components/VideoBrowser.js:338
 msgid "Library"
 msgstr "Bibliothek"
 
-#: assets/src/components/VideoBrowser.js:317
+#: assets/src/components/VideoBrowser.js:344
 msgid "All libraries"
 msgstr "Alle Bibliotheken"
 
-#: assets/src/components/VideoBrowser.js:330
+#: assets/src/components/VideoBrowser.js:377
 msgid "Search videos"
 msgstr "Videos durchsuchen"
 
-#: assets/src/components/VideoBrowser.js:334
+#: assets/src/components/VideoBrowser.js:381
 msgid "Ready only"
 msgstr "Nur fertige"
 
-#: assets/src/components/VideoBrowser.js:351
+#: assets/src/components/VideoBrowser.js:398
 msgid "Upload"
 msgstr "Hochladen"
 
-#: assets/src/components/VideoBrowser.js:360
+#: assets/src/components/VideoBrowser.js:407
 msgid "Import URL"
 msgstr "URL importieren"
 
-#: assets/src/components/VideoBrowser.js:372
+#: assets/src/components/VideoBrowser.js:419
 msgid "Public https:// URL of a video file"
 msgstr "Öffentliche https://-URL einer Videodatei"
 
-#: assets/src/components/VideoBrowser.js:402
+#: assets/src/components/VideoBrowser.js:449
 msgid "Import"
 msgstr "Importieren"
 
-#: assets/src/components/VideoBrowser.js:447
+#: assets/src/components/VideoBrowser.js:494
 msgid "No videos match your filter."
 msgstr "Keine Videos entsprechen Ihrem Filter."
 
-#: assets/src/components/VideoBrowser.js:451
+#: assets/src/components/VideoBrowser.js:498
 msgid "No videos yet. Upload your first video or drop a file here."
 msgstr "Noch keine Videos. Laden Sie Ihr erstes Video hoch oder ziehen Sie eine Datei hierher."
 
 #. translators: 1: shown videos, 2: total videos
-#: assets/src/components/VideoBrowser.js:482
+#: assets/src/components/VideoBrowser.js:529
 #, js-format
 msgid "%1$d of %2$d videos"
 msgstr "%1$d von %2$d Videos"
@@ -1674,11 +1675,11 @@ msgid "embed"
 msgstr "einbetten"
 
 #: src/Api/ApiException.php:109
-#: assets/src/components/VideoBrowser.js:386
+#: assets/src/components/VideoBrowser.js:433
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr "Verlinken Sie eine Videodatei (z. B. https://…/video.mp4), keine Videoseite wie YouTube."
 
-#: src/Rest/AdminController.php:413
+#: src/Rest/AdminController.php:415
 msgid "The encoding quality must be \"performance\" or \"quality\"."
 msgstr "Die Encoding-Qualität muss „performance“ oder „quality“ sein."
 
@@ -1695,7 +1696,7 @@ msgstr "Qualität (höhere Bitrate)"
 msgid "Encoding quality"
 msgstr "Encoding-Qualität"
 
-#: assets/src/components/VideoBrowser.js:376
+#: assets/src/components/VideoBrowser.js:423
 msgid "Link to the video file itself, not to a video page such as YouTube."
 msgstr "Link zur Videodatei selbst, nicht zu einer Videoseite wie YouTube."
 
@@ -1703,7 +1704,7 @@ msgstr "Link zur Videodatei selbst, nicht zu einer Videoseite wie YouTube."
 msgid "The re-encode limit has been reached (5 per hour). Please try again later."
 msgstr "Das Limit für erneutes Encodieren ist erreicht (5 pro Stunde). Bitte versuchen Sie es später erneut."
 
-#: src/Rest/AdminController.php:418
+#: src/Rest/AdminController.php:420
 msgid "Please keep at least one codec and one resolution."
 msgstr "Bitte behalten Sie mindestens einen Codec und eine Auflösung bei."
 
@@ -1736,16 +1737,111 @@ msgstr "Ein kostenpflichtiges Add-on, das Ihre Organisation noch nicht freigesch
 msgid "Add-on not unlocked"
 msgstr "Add-on nicht freigeschaltet"
 
-#: assets/src/components/VideoBrowser.js:87
+#: assets/src/components/VideoBrowser.js:103
 msgid "Canceled"
 msgstr "Abgebrochen"
 
 #. translators: 1: shown videos, 2: loaded videos
-#: assets/src/components/VideoBrowser.js:473
+#: assets/src/components/VideoBrowser.js:520
 #, js-format
 msgid "%1$d of %2$d loaded videos"
 msgstr "%1$d von %2$d geladenen Videos"
 
-#: assets/src/components/VideoBrowser.js:497
+#: assets/src/components/VideoBrowser.js:544
 msgid "Load more"
 msgstr "Mehr laden"
+
+#: src/Api/VideoFields.php:39
+msgid "A tag has 1 to 50 characters and must not contain a comma."
+msgstr "Ein Tag hat 1 bis 50 Zeichen und darf kein Komma enthalten."
+
+#: src/Api/VideoFields.php:49
+msgid "A video can have at most 20 tags."
+msgstr "Ein Video kann höchstens 20 Tags haben."
+
+#: src/Api/VideoFields.php:68
+msgid "A metadata key has 1 to 40 characters of a-z, 0-9, _, . or - and starts with a letter or digit."
+msgstr "Ein Metadaten-Schlüssel hat 1 bis 40 Zeichen aus a–z, 0–9, _, . oder - und beginnt mit einem Buchstaben oder einer Ziffer."
+
+#: src/Api/VideoFields.php:76
+msgid "A metadata value has at most 64 characters."
+msgstr "Ein Metadaten-Wert hat höchstens 64 Zeichen."
+
+#: src/Api/VideoFields.php:81
+msgid "A video can have at most 10 metadata keys."
+msgstr "Ein Video kann höchstens 10 Metadaten-Schlüssel haben."
+
+#: src/Rest/AdminController.php:510
+msgid "Filter by at most 5 metadata keys."
+msgstr "Filtern Sie nach höchstens 5 Metadaten-Schlüsseln."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:51
+msgid "Tags saved."
+msgstr "Tags gespeichert."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:60
+#: assets/src/admin/pages/VideoTagsMetadata.js:66
+msgid "Tags"
+msgstr "Tags"
+
+#. translators: 1: max tags, 2: max characters
+#: assets/src/admin/pages/VideoTagsMetadata.js:77
+#, js-format
+msgid "Up to %1$d tags of %2$d characters, shared by all libraries. Use them to find videos in the list."
+msgstr "Bis zu %1$d Tags mit je %2$d Zeichen, gemeinsam für alle Bibliotheken. Damit finden Sie Videos in der Liste."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:91
+msgid "Save tags"
+msgstr "Tags speichern"
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:120
+msgid "Enter a key."
+msgstr "Geben Sie einen Schlüssel ein."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:124
+msgid "1–40 characters: a–z, 0–9, _ . - (lower case)."
+msgstr "1–40 Zeichen: a–z, 0–9, _ . - (Kleinbuchstaben)."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:130
+msgid "Duplicate key."
+msgstr "Schlüssel doppelt vergeben."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:135
+msgid "At most 64 characters."
+msgstr "Höchstens 64 Zeichen."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:146
+msgid "Metadata saved."
+msgstr "Metadaten gespeichert."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:155
+msgid "Metadata"
+msgstr "Metadaten"
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:159
+msgid "Your own key/value data on the video, for example the ID of a CMS entry. Plugins and integrations can find videos by it."
+msgstr "Eigene Schlüssel-Wert-Daten am Video, zum Beispiel die ID eines CMS-Eintrags. Plugins und Integrationen können Videos darüber finden."
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:169
+msgid "Key"
+msgstr "Schlüssel"
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:177
+msgid "Value"
+msgstr "Wert"
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:206
+msgid "Add field"
+msgstr "Feld hinzufügen"
+
+#: assets/src/admin/pages/VideoTagsMetadata.js:214
+msgid "Save metadata"
+msgstr "Metadaten speichern"
+
+#: assets/src/components/VideoBrowser.js:357
+msgid "Tag"
+msgstr "Tag"
+
+#: assets/src/components/VideoBrowser.js:363
+msgid "All tags"
+msgstr "Alle Tags"

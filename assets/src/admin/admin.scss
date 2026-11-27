@@ -378,3 +378,20 @@
 		font-size: 12px;
 	}
 }
+
+.vo-meta {
+
+	&__row {
+		display: grid;
+		grid-template-columns: 1fr 1fr auto;
+		gap: 8px;
+		align-items: start;
+		margin-bottom: 12px;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 8px;
+		justify-content: space-between;
+	}
+}

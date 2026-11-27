@@ -9,6 +9,7 @@ namespace ScaleCommerce\VideoOptimizer\Rest;
 
 use ScaleCommerce\VideoOptimizer\Api\ApiException;
 use ScaleCommerce\VideoOptimizer\Api\Client;
+use ScaleCommerce\VideoOptimizer\Api\VideoFields;
 use ScaleCommerce\VideoOptimizer\Media\Attachments;
 use ScaleCommerce\VideoOptimizer\Media\DeleteOffers;
 use ScaleCommerce\VideoOptimizer\Media\Usage;
@@ -112,6 +113,7 @@ class AdminController {
 			array( 'GET', '/encodings', 'list_encodings', 'upload_files' ),
 			array( 'GET', '/upload-library', 'upload_library', 'upload_files' ),
 
+			array( 'GET', '/tags', 'list_tags', 'upload_files' ),
 			array( 'GET', '/videos', 'list_videos', 'upload_files' ),
 			array( 'POST', '/videos/ingest', 'ingest', 'upload_files' ),
 			array( 'POST', '/videos/upload/initiate', 'initiate_upload', 'upload_files' ),
@@ -477,20 +479,86 @@ class AdminController {
 	/* ---------------------------------------------------------------- Videos */
 
 	/**
-	 * One page of videos.
+	 * The organization's tags.
+	 *
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function list_tags(): array {
+		return $this->client->list_tags();
+	}
+
+	/**
+	 * One page of videos, optionally filtered by library, tags (all required) and metadata.
 	 *
 	 * @param \WP_REST_Request $request Request.
-	 * @return array<string, mixed>
+	 * @return array<string, mixed>|\WP_Error
 	 */
-	private function list_videos( \WP_REST_Request $request ): array {
+	private function list_videos( \WP_REST_Request $request ) {
 		$library = (string) $request->get_param( 'library_id' );
 		$cursor  = (string) $request->get_param( 'cursor' );
+
+		$filters = array();
+		try {
+			$tags = (string) $request->get_param( 'tags' );
+			if ( '' !== $tags ) {
+				$filters['tags'] = VideoFields::tags( explode( ',', $tags ) );
+			}
+			$metadata = $request->get_param( 'metadata' );
+			if ( is_array( $metadata ) ) {
+				$metadata = array_filter( VideoFields::metadata( $metadata ), static fn ( $value ): bool => null !== $value );
+				if ( count( $metadata ) > 5 ) {
+					return new \WP_Error( 'videooptimizer_invalid', __( 'Filter by at most 5 metadata keys.', 'videooptimizer' ), array( 'status' => 400 ) );
+				}
+				if ( array() !== $metadata ) {
+					$filters['metadata'] = $metadata;
+				}
+			}
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
 
 		return $this->client->list_videos_page(
 			preg_match( '/^[A-Za-z0-9-]{1,64}$/', $library ) ? $library : null,
 			'' !== $cursor ? substr( $cursor, 0, 512 ) : null,
-			(int) ( $request->get_param( 'limit' ) ?? Client::PAGE_LIMIT )
+			(int) ( $request->get_param( 'limit' ) ?? Client::PAGE_LIMIT ),
+			$filters
 		);
+	}
+
+	/**
+	 * Validated `tags` / `metadata` of a request body. On create, empty values are left out; on
+	 * update, `tags: []` clears the tags, `metadata: null` clears all metadata and a null or empty
+	 * value removes one key.
+	 *
+	 * @param array<string, mixed> $body   Decoded JSON body.
+	 * @param bool                 $update Whether this is an update (PATCH).
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private static function video_fields( array $body, bool $update ) {
+		$fields = array();
+		try {
+			if ( is_array( $body['tags'] ?? null ) ) {
+				$tags = VideoFields::tags( $body['tags'] );
+				if ( $update || array() !== $tags ) {
+					$fields['tags'] = $tags;
+				}
+			}
+			if ( $update && array_key_exists( 'metadata', $body ) && null === $body['metadata'] ) {
+				$fields['metadata'] = null;
+			} elseif ( is_array( $body['metadata'] ?? null ) ) {
+				$metadata = VideoFields::metadata( $body['metadata'] );
+				if ( ! $update ) {
+					$metadata = array_filter( $metadata, static fn ( $value ): bool => null !== $value );
+				}
+				if ( array() !== $metadata ) {
+					$fields['metadata'] = $metadata;
+				}
+			}
+		} catch ( \InvalidArgumentException $e ) {
+			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -501,8 +569,13 @@ class AdminController {
 	 */
 	private function ingest( \WP_REST_Request $request ) {
 		$payload = self::only( $request, array( 'library_id', 'source_url', 'title' ) );
-		$url     = is_string( $payload['source_url'] ?? null ) ? trim( $payload['source_url'] ) : '';
-		$parts   = wp_parse_url( $url );
+		$fields  = self::video_fields( (array) $request->get_json_params(), false );
+		if ( $fields instanceof \WP_Error ) {
+			return $fields;
+		}
+		$payload += $fields;
+		$url      = is_string( $payload['source_url'] ?? null ) ? trim( $payload['source_url'] ) : '';
+		$parts    = wp_parse_url( $url );
 		if ( ! is_array( $parts ) || 'https' !== strtolower( (string) ( $parts['scheme'] ?? '' ) ) || empty( $parts['host'] ) ) {
 			return new \WP_Error( 'videooptimizer_invalid', __( 'Please enter a public https:// URL.', 'videooptimizer' ), array( 'status' => 400 ) );
 		}
@@ -555,6 +628,11 @@ class AdminController {
 		if ( empty( $payload['title'] ) ) {
 			unset( $payload['title'] );
 		}
+		$fields = self::video_fields( (array) $request->get_json_params(), false );
+		if ( $fields instanceof \WP_Error ) {
+			return $fields;
+		}
+		$payload += $fields;
 
 		return $this->client->complete_upload( $payload );
 	}
@@ -570,12 +648,12 @@ class AdminController {
 	}
 
 	/**
-	 * Updates title / options.
+	 * Updates title, options, tags and metadata.
 	 *
 	 * @param \WP_REST_Request $request Request.
-	 * @return array<string, mixed>
+	 * @return array<string, mixed>|\WP_Error
 	 */
-	private function update_video( \WP_REST_Request $request ): array {
+	private function update_video( \WP_REST_Request $request ) {
 		$body    = (array) $request->get_json_params();
 		$payload = array();
 		if ( isset( $body['title'] ) && is_string( $body['title'] ) ) {
@@ -589,8 +667,13 @@ class AdminController {
 				}
 			}
 		}
-		$uuid   = (string) $request['uuid'];
-		$result = $this->client->update_video( $uuid, $payload );
+		$fields = self::video_fields( $body, true );
+		if ( $fields instanceof \WP_Error ) {
+			return $fields;
+		}
+		$payload += $fields;
+		$uuid     = (string) $request['uuid'];
+		$result   = $this->client->update_video( $uuid, $payload );
 		$this->embeds->forget( $uuid );
 
 		return $result;

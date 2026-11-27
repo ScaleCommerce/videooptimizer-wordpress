@@ -31,6 +31,22 @@ const loadLibraries = () => {
 	return libraryPromise;
 };
 
+let tagPromise = null;
+const loadTags = () => {
+	if ( ! tagPromise ) {
+		tagPromise = api.tags().catch( () => {
+			tagPromise = null;
+			return [];
+		} );
+	}
+	return tagPromise;
+};
+
+/** Drops the cached tag list (after editing tags). */
+export function resetTags() {
+	tagPromise = null;
+}
+
 /** Drops the cached library list (after creating/editing libraries). */
 export function resetLibraries() {
 	libraryPromise = null;
@@ -104,6 +120,8 @@ export default function VideoBrowser( {
 	const [ showUrl, setShowUrl ] = useState( false );
 	const [ url, setUrl ] = useState( '' );
 	const [ urlBusy, setUrlBusy ] = useState( false );
+	const [ tag, setTag ] = useState( '' );
+	const [ tags, setTags ] = useState( [] );
 	const [ hasMore, setHasMore ] = useState( false );
 	const [ loadingMore, setLoadingMore ] = useState( false );
 	const signals = useRef( [] );
@@ -137,6 +155,7 @@ export default function VideoBrowser( {
 		return api
 			.videosPage( {
 				libraryId,
+				tags: tag ? [ tag ] : [],
 				cursor: more ? cursorRef.current : '',
 			} )
 			.then( ( res ) => {
@@ -168,7 +187,7 @@ export default function VideoBrowser( {
 	const refresh = () => {
 		const id = requestId.current;
 		return api
-			.videosPage( { libraryId } )
+			.videosPage( { libraryId, tags: tag ? [ tag ] : [] } )
 			.then( ( res ) => {
 				if ( id !== requestId.current ) {
 					return;
@@ -189,7 +208,15 @@ export default function VideoBrowser( {
 		cursorRef.current = null;
 		loadPage();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ libraryId ] );
+	}, [ libraryId, tag ] );
+
+	useEffect( () => {
+		let live = true;
+		loadTags().then( ( list ) => live && setTags( list ) );
+		return () => {
+			live = false;
+		};
+	}, [] );
 
 	useEffect( () => () => signals.current.forEach( ( s ) => s.abort() ), [] );
 
@@ -323,6 +350,26 @@ export default function VideoBrowser( {
 						} ) ),
 					] }
 				/>
+				{ tags.length ? (
+					<SelectControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __( 'Tag', 'videooptimizer' ) }
+						hideLabelFromVision
+						value={ tag }
+						onChange={ setTag }
+						options={ [
+							{
+								label: __( 'All tags', 'videooptimizer' ),
+								value: '',
+							},
+							...tags.map( ( t ) => ( {
+								label: t.name,
+								value: t.name,
+							} ) ),
+						] }
+					/>
+				) : null }
 				<SearchControl
 					__nextHasNoMarginBottom
 					value={ search }

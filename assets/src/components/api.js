@@ -49,8 +49,22 @@ export const api = {
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 
-	videosPage: ( { libraryId = '', cursor = '', limit = PAGE_SIZE } = {} ) => {
+	tags: () => get( '/tags' ),
+
+	videosPage: ( {
+		libraryId = '',
+		cursor = '',
+		limit = PAGE_SIZE,
+		tags = [],
+		metadata = {},
+	} = {} ) => {
 		const q = new URLSearchParams( { limit: String( limit ) } );
+		if ( tags.length ) {
+			q.set( 'tags', tags.join( ',' ) );
+		}
+		Object.entries( metadata ).forEach( ( [ key, value ] ) =>
+			q.set( 'metadata[' + key + ']', value )
+		);
 		if ( libraryId ) {
 			q.set( 'library_id', libraryId );
 		}

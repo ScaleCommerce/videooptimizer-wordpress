@@ -5,6 +5,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Added
+- Video detail shows and edits tags (with suggestions) and metadata key/values; URL import and upload accept them on the plugin REST routes ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
+- The video browser filters by tag on the server; `GET /videooptimizer/v1/videos` accepts `tags` and `metadata[key]`, new route `GET /videooptimizer/v1/tags` ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
 - Running uploads can be canceled in the video browser, and failed processing shows the API's error ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).
 
 ### Changed

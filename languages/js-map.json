@@ -5,6 +5,7 @@
 	"assets/src/admin/pages/Send.js": "build/admin/index.js",
 	"assets/src/admin/pages/Settings.js": "build/admin/index.js",
 	"assets/src/admin/pages/VideoDetail.js": "build/admin/index.js",
+	"assets/src/admin/pages/VideoTagsMetadata.js": "build/admin/index.js",
 	"assets/src/admin/pages/Videos.js": "build/admin/index.js",
 	"assets/src/blocks/background-hero/index.js": [
 		"build/blocks/background-hero/index.js"
