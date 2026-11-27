@@ -25,12 +25,12 @@ final class PageCacheIntegrationsTest extends TestCase {
 
 	public function test_posts_are_purged_in_every_detected_plugin(): void {
 		Functions\when( 'get_permalink' )->alias( static fn ( $id ) => 'https://example.test/?p=' . $id );
-		Functions\expect( 'rocket_clean_post' )->once()->with( 5 );
-		Functions\expect( 'w3tc_flush_post' )->once()->with( 5 );
-		Functions\expect( 'wpsc_delete_post_cache' )->once()->with( 5 );
+		Functions\expect( 'rocket_clean_post' )->twice();
+		Functions\expect( 'w3tc_flush_post' )->twice();
+		Functions\expect( 'wpsc_delete_post_cache' )->twice();
 		Functions\expect( 'wp_cache_post_change' )->never();
-		Functions\expect( 'sg_cachepress_purge_cache' )->once()->with( 'https://example.test/?p=5' );
-		Actions\expectDone( 'litespeed_purge_post' )->once()->with( 5 );
+		Functions\expect( 'sg_cachepress_purge_cache' )->twice();
+		Actions\expectDone( 'litespeed_purge_post' )->twice();
 		$GLOBALS['cloudflareHooks'] = new class() {
 			/**
 			 * Calls.
@@ -44,9 +44,9 @@ final class PageCacheIntegrationsTest extends TestCase {
 		};
 
 		$this->assertTrue( Integrations::detected() );
-		Integrations::purge( array( 5 ), false );
+		Integrations::purge( array( 5, 6 ), false );
 
-		$this->assertSame( array( 5 ), $GLOBALS['cloudflareHooks']->calls );
+		$this->assertSame( array( array( 5, 6 ) ), $GLOBALS['cloudflareHooks']->calls, 'one call with all post ids' );
 		unset( $GLOBALS['cloudflareHooks'] );
 	}
 

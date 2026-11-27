@@ -64,9 +64,10 @@ final class Integrations {
 				sg_cachepress_purge_cache( $url );
 			}
 			do_action( 'litespeed_purge_post', $id ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
-			if ( null !== $cloudflare && method_exists( $cloudflare, 'purgeCacheByRelevantURLs' ) ) {
-				$cloudflare->purgeCacheByRelevantURLs( $id );
-			}
+		}
+		// One call for all posts: it looks up the zone and page rules once per call.
+		if ( null !== $cloudflare && array() !== $post_ids && method_exists( $cloudflare, 'purgeCacheByRelevantURLs' ) ) {
+			$cloudflare->purgeCacheByRelevantURLs( array_values( $post_ids ) );
 		}
 	}
 
