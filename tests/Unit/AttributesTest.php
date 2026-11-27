@@ -121,4 +121,26 @@ final class AttributesTest extends TestCase {
 
 		$this->assertStringNotContainsString( '<script>', $a['text'] );
 	}
+
+	public function test_format_and_focal_point_are_validated(): void {
+		$a = Attributes::normalize( array() );
+		$this->assertSame( '', $a['format'] );
+		$this->assertSame( 50, $a['focalX'] );
+		$this->assertSame( 50, $a['focalY'] );
+
+		foreach ( array( '16:9', '9:16', '1:1', '4:5', '21:9' ) as $format ) {
+			$this->assertSame( $format, Attributes::normalize( array( 'format' => $format ) )['format'] );
+		}
+		$a = Attributes::normalize(
+			array(
+				'format'  => '3:2',
+				'focal_x' => '120',
+				'focalY'  => -5,
+			)
+		);
+		$this->assertSame( '', $a['format'] );
+		$this->assertSame( 100, $a['focalX'] );
+		$this->assertSame( 0, $a['focalY'] );
+		$this->assertSame( 50, Attributes::normalize( array( 'focalX' => 'left' ) )['focalX'] );
+	}
 }

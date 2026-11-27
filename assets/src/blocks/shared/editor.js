@@ -5,6 +5,7 @@ import { __ } from '@wordpress/i18n';
 import {
 	PanelBody,
 	Placeholder,
+	RangeControl,
 	SelectControl,
 	ToggleControl,
 	Disabled,
@@ -176,6 +177,76 @@ export function PlayerPanel( {
 				checked={ !! priority }
 				onChange={ ( value ) => setAttributes( { priority: value } ) }
 			/>
+		</PanelBody>
+	);
+}
+
+/**
+ * "Every format from one video": display ratio plus focal point.
+ *
+ * @param {Object} props
+ * @param {Object} props.attributes
+ * @param {Object} props.setAttributes
+ */
+export function FormatPanel( { attributes, setAttributes } ) {
+	const { format, focalX, focalY } = attributes;
+	return (
+		<PanelBody
+			title={ __( 'Format', 'videooptimizer' ) }
+			initialOpen={ !! format }
+		>
+			<SelectControl
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
+				label={ __( 'Format', 'videooptimizer' ) }
+				value={ format }
+				onChange={ ( value ) => setAttributes( { format: value } ) }
+				options={ [
+					{
+						label: __( 'Original (video ratio)', 'videooptimizer' ),
+						value: '',
+					},
+					{ label: '16:9', value: '16:9' },
+					{ label: '9:16', value: '9:16' },
+					{ label: '1:1', value: '1:1' },
+					{ label: '4:5', value: '4:5' },
+					{ label: '21:9', value: '21:9' },
+				] }
+				help={ __(
+					'Shows the same video in another ratio; the video fills the area and is cropped.',
+					'videooptimizer'
+				) }
+			/>
+			{ format ? (
+				<>
+					<RangeControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __( 'Focal point, horizontal (%)', 'videooptimizer' ) }
+						min={ 0 }
+						max={ 100 }
+						value={ focalX }
+						onChange={ ( value ) =>
+							setAttributes( { focalX: value ?? 50 } )
+						}
+					/>
+					<RangeControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __( 'Focal point, vertical (%)', 'videooptimizer' ) }
+						min={ 0 }
+						max={ 100 }
+						value={ focalY }
+						onChange={ ( value ) =>
+							setAttributes( { focalY: value ?? 50 } )
+						}
+						help={ __(
+							'Which part stays visible when the video is cropped. Not supported by the VideoOptimizer player (iframe): it always crops from the centre.',
+							'videooptimizer'
+						) }
+					/>
+				</>
+			) : null }
 		</PanelBody>
 	);
 }

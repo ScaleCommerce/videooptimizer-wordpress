@@ -89,9 +89,17 @@
 	box-shadow: var(--vo-shadow);
 }
 
-.vo-frame--portrait {
+.vo-frame--portrait,
+.vo-frame--narrow {
 	max-width: min(100%, 420px);
 	margin-inline: auto;
+}
+
+/* Format option: the video fills the chosen ratio (cropped around the focal point). */
+.vo-frame--fit .vo-native,
+.vo-frame--fit .vo-poster__img {
+	object-fit: cover;
+	object-position: var(--vo-focus, 50% 50%);
 }
 
 .vo-frame iframe,
@@ -228,6 +236,15 @@ html.vo-lightbox-open {
 	inset: 0;
 	overflow: hidden;
 	border-radius: inherit;
+}
+
+.vo-lightbox__inner--cover {
+	width: min(100%, 1200px, calc((100vh - 8rem) * var(--vo-ratio, 1.7778)));
+}
+
+.vo-lightbox__inner--cover .vo-lightbox__slot video {
+	object-fit: cover;
+	object-position: var(--vo-focus, 50% 50%);
 }
 
 .vo-lightbox__slot iframe,

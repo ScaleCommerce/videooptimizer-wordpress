@@ -201,6 +201,51 @@ class Widget extends \Elementor\Widget_Base {
 		);
 		$this->end_controls_section();
 
+		$this->start_controls_section(
+			'section_format',
+			array(
+				'label'     => __( 'Format', 'videooptimizer' ),
+				'condition' => array( 'layout' => array( 'video', 'media-split' ) ),
+			)
+		);
+		$this->add_control(
+			'format',
+			array(
+				'label'       => __( 'Format', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '',
+				'options'     => array(
+					''     => __( 'Original (video ratio)', 'videooptimizer' ),
+					'16:9' => '16:9',
+					'9:16' => '9:16',
+					'1:1'  => '1:1',
+					'4:5'  => '4:5',
+					'21:9' => '21:9',
+				),
+				'description' => __( 'Shows the same video in another ratio; the video fills the area and is cropped.', 'videooptimizer' ),
+			)
+		);
+		foreach (
+			array(
+				'focalX' => __( 'Focal point, horizontal (%)', 'videooptimizer' ),
+				'focalY' => __( 'Focal point, vertical (%)', 'videooptimizer' ),
+			) as $name => $label
+		) {
+			$this->add_control(
+				$name,
+				array(
+					'label'       => $label,
+					'type'        => Controls_Manager::NUMBER,
+					'min'         => 0,
+					'max'         => 100,
+					'default'     => 50,
+					'condition'   => array( 'format!' => '' ),
+					'description' => 'focalY' === $name ? __( 'Which part stays visible when the video is cropped. Not supported by the VideoOptimizer player (iframe): it always crops from the centre.', 'videooptimizer' ) : '',
+				)
+			);
+		}
+		$this->end_controls_section();
+
 		$this->start_controls_section( 'section_player', array( 'label' => __( 'Player', 'videooptimizer' ) ) );
 		$this->add_control(
 			'player',

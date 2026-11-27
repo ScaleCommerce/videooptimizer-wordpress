@@ -7,6 +7,9 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ### Upgrade
 - `POST /libraries/{id}/reprocess` answers 400 when `force` is present but not a boolean (it used to be treated as `false`) ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).
 
+### Added
+- Format option for the video and video + text elements (block, shortcode `format`, Elementor): original, 16:9, 9:16, 1:1, 4:5, 21:9 with a focal point (`focalX`/`focalY`); native video and poster use `object-fit: cover`, the hosted player gets `fit=cover` ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
+
 ### Fixed
 - The reprocess route rejects a non-boolean `force` with 400 ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).
 - The encoding quality field permanently says that existing videos need a reprocess with "Re-encode all qualities" ([#26](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/26)).

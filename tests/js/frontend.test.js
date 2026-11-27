@@ -428,6 +428,21 @@ describe( 'lightbox', () => {
 		expect( document.activeElement ).toBe( trigger );
 	} );
 
+	it( 'sizes the box by the chosen format and crops the video around the focal point', () => {
+		loadFrontend(
+			`<div class="vo-frame vo-frame--fit vo-frame--narrow" data-vo-ratio="0.5625" style="aspect-ratio: 9 / 16; --vo-focus: 30% 70%">
+				<button id="open" data-vo-lightbox="https://player.example/embed/u?fit=cover" aria-label="Play">x</button>
+			</div>`
+		);
+		document.getElementById( 'open' ).click();
+
+		const inner = document.querySelector( '.vo-lightbox__inner' );
+		expect( inner.style.getPropertyValue( '--vo-ratio' ) ).toBe( '0.5625' );
+		expect( inner.classList ).toContain( 'vo-lightbox__inner--cover' );
+		expect( inner.classList ).not.toContain( 'vo-lightbox__inner--portrait' );
+		expect( inner.style.getPropertyValue( '--vo-focus' ) ).toBe( '30% 70%' );
+	} );
+
 	it( 'also closes on an Escape key press that reaches the page', () => {
 		loadFrontend( markup );
 		document.getElementById( 'open' ).click();

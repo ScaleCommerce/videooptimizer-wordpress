@@ -79,6 +79,44 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( '<b>', $html, 'title must be escaped' );
 	}
 
+	public function test_format_sets_the_ratio_and_fills_the_frame(): void {
+		$html = $this->renderer->render(
+			'video',
+			array(
+				'uuid'    => self::UUID,
+				'format'  => '9:16',
+				'focalX'  => 30,
+				'focalY'  => 70,
+				'player'  => 'native',
+			)
+		);
+
+		$this->assertStringContainsString( 'aspect-ratio:9 / 16', $html );
+		$this->assertStringNotContainsString( 'aspect-ratio:1080 / 1920', $html );
+		$this->assertStringContainsString( '--vo-focus:30% 70%', $html );
+		$this->assertStringContainsString( 'vo-frame--fit', $html );
+		$this->assertStringContainsString( 'vo-frame--narrow', $html );
+		$this->assertStringContainsString( 'data-vo-ratio="0.5625"', $html );
+		$this->assertStringContainsString( 'fit=cover', $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'format' => '1:1' ) ) );
+	}
+
+	public function test_original_format_changes_nothing(): void {
+		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+
+		$this->assertStringNotContainsString( 'vo-frame--fit', $html );
+		$this->assertStringNotContainsString( 'fit=cover', $html );
+		$this->assertStringNotContainsString( '--vo-focus', $html );
+		$this->assertStringContainsString( 'vo-frame--portrait', $html );
+	}
+
+	public function test_wide_and_square_formats_are_not_narrowed(): void {
+		foreach ( array( '16:9', '1:1', '21:9' ) as $format ) {
+			$html = $this->renderer->render( 'media-split', array( 'uuid' => self::UUID, 'format' => $format ) );
+			$this->assertStringContainsString( 'vo-frame--fit', $html );
+			$this->assertStringNotContainsString( 'vo-frame--narrow', $html );
+		}
+	}
+
 	public function test_json_ld_uses_the_embed_upload_date_when_present(): void {
 		Functions\when( 'get_post_time' )->justReturn( '2020-01-01T00:00:00+00:00' );
 		$this->embed['uploadDate'] = '2026-05-04T10:00:00Z';

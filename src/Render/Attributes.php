@@ -19,6 +19,11 @@ final class Attributes {
 	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid' );
 
 	/**
+	 * Display formats of the "every format from one video" option ('' = original ratio).
+	 */
+	public const FORMATS = array( '', '16:9', '9:16', '1:1', '4:5', '21:9' );
+
+	/**
 	 * Layout-specific default presentation ('' = use the global default setting).
 	 */
 	public const DEFAULT_PRESENTATION = array(
@@ -48,6 +53,10 @@ final class Attributes {
 			'controls'      => array( 'enum', '', $tri ),
 			'priority'      => array( 'bool', false ),
 			'caption'       => array( 'text', '' ),
+			// Format: '' = the video's own ratio; focal point in percent (object-position).
+			'format'        => array( 'enum', '', self::FORMATS ),
+			'focalX'        => array( 'num', 50, array( 0, 100 ) ),
+			'focalY'        => array( 'num', 50, array( 0, 100 ) ),
 			// media-split / hero / spotlight / grid.
 			'side'          => array( 'enum', 'left', array( 'left', 'right' ) ),
 			'eyebrow'       => array( 'text', '' ),
@@ -86,6 +95,7 @@ final class Attributes {
 				'color' => self::safe_color( $value ),
 				'bool'  => self::to_bool( $value ),
 				'int'   => max( 1, min( 4, is_numeric( $value ) ? (int) $value : (int) $def[1] ) ),
+				'num'   => max( (int) $def[2][0], min( (int) $def[2][1], is_numeric( $value ) ? (int) round( (float) $value ) : (int) $def[1] ) ),
 				'items' => self::items( $value ),
 				default => self::enum( $value, $def[2] ?? array(), $def[1] ),
 			};

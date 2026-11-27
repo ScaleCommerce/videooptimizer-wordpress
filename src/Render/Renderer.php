@@ -337,7 +337,15 @@ class Renderer {
 			'data-vo-player' => $player,
 		);
 		$styles      = array();
-		if ( null !== $embed['width'] && null !== $embed['height'] ) {
+		$format      = (string) ( $a['format'] ?? '' );
+		if ( '' !== $format && in_array( $format, Attributes::FORMATS, true ) ) {
+			// "Every format from one video": the chosen ratio wins, the video fills it (cover).
+			[ $fw, $fh ]                  = array_map( 'intval', explode( ':', $format ) );
+			$frame_attrs['class']         = 'vo-frame vo-frame--fit' . ( $fw < $fh ? ' vo-frame--narrow' : '' );
+			$frame_attrs['data-vo-ratio'] = (string) round( $fw / $fh, 4 );
+			$styles[]                     = 'aspect-ratio:' . $fw . ' / ' . $fh;
+			$styles[]                     = '--vo-focus:' . (int) ( $a['focalX'] ?? 50 ) . '% ' . (int) ( $a['focalY'] ?? 50 ) . '%';
+		} elseif ( null !== $embed['width'] && null !== $embed['height'] ) {
 			$styles[] = 'aspect-ratio:' . $embed['width'] . ' / ' . $embed['height'];
 		}
 		$accent = Attributes::safe_color( $embed['theme']['accentColor'] ?? null );
@@ -396,6 +404,9 @@ class Renderer {
 			if ( '0' === $value || '1' === $value ) {
 				$query[ $param ] = $value;
 			}
+		}
+		if ( '' !== (string) ( $a['format'] ?? '' ) ) {
+			$query['fit'] = 'cover';
 		}
 		if ( $click ) {
 			// The visitor clicked play: start immediately, with sound unless explicitly muted.

@@ -431,12 +431,27 @@ function getLightbox() {
 			state.holder = null;
 			const frame = trigger.closest( '.vo-frame' );
 			// Keep the real aspect ratio (portrait videos stay tall, not letterboxed).
-			const ratio = frame && frame.style.aspectRatio;
-			inner.style.aspectRatio = ratio || '';
+			const aspect = frame && frame.style.aspectRatio;
+			inner.style.aspectRatio = aspect || '';
 			inner.classList.toggle(
 				'vo-lightbox__inner--portrait',
-				!! frame && frame.classList.contains( 'vo-frame--portrait' )
+				!! frame &&
+					! frame.hasAttribute( 'data-vo-ratio' ) &&
+					frame.classList.contains( 'vo-frame--portrait' )
 			);
+			// Format option: size the box by the chosen ratio and crop the video like the page does.
+			const ratio = frame && Number( frame.getAttribute( 'data-vo-ratio' ) );
+			inner.classList.toggle( 'vo-lightbox__inner--cover', !! ratio );
+			if ( ratio ) {
+				inner.style.setProperty( '--vo-ratio', String( ratio ) );
+				inner.style.setProperty(
+					'--vo-focus',
+					frame.style.getPropertyValue( '--vo-focus' )
+				);
+			} else {
+				inner.style.removeProperty( '--vo-ratio' );
+				inner.style.removeProperty( '--vo-focus' );
+			}
 			if (
 				frame &&
 				frame.style.getPropertyValue( '--vo-player-accent' )
