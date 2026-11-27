@@ -70,23 +70,23 @@ final class PluginTest extends IntegrationTestCase {
 
 		$update = $this->rest( 'PATCH', '/libraries/lib-1', array( 'name' => 'Main', 'encoding_quality' => 'quality', 'encoding_tier' => 'legacy' ) );
 		$this->assertSame( 200, $update->get_status() );
-		$sent = json_decode( $this->api_bodies[0], true );
+		$sent = json_decode( $this->write_bodies()[0], true );
 		$this->assertSame( 'quality', $sent['encoding_quality'] );
 		$this->assertArrayNotHasKey( 'encoding_tier', $sent );
 
 		$create = $this->rest( 'POST', '/libraries', array( 'name' => 'New', 'encoding_quality' => 'performance' ) );
-		$this->assertSame( 'performance', json_decode( end( $this->api_bodies ), true )['encoding_quality'] );
+		$this->assertSame( 'performance', json_decode( array_slice( $this->write_bodies(), -1 )[0], true )['encoding_quality'] );
 		$this->assertSame( 200, $create->get_status() );
 
-		$calls = count( $this->api_calls );
+		$calls = count( $this->write_bodies() );
 		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'codec' => '' ) )->get_status() );
 		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'resolutions' => '  ' ) )->get_status() );
 		$this->assertSame( 200, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'quality' ) )->get_status(), 'quality alone needs no ladder' );
-		$this->assertCount( $calls + 1, $this->api_calls );
-		$calls = count( $this->api_calls );
+		$this->assertCount( $calls + 1, $this->write_bodies() );
+		$calls = count( $this->write_bodies() );
 		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'ultra' ) )->get_status() );
 		$this->assertSame( 400, $this->rest( 'POST', '/libraries', array( 'name' => 'X', 'encoding_quality' => 'ultra' ) )->get_status() );
-		$this->assertCount( $calls, $this->api_calls, 'invalid quality never reaches the API' );
+		$this->assertCount( $calls, $this->write_bodies(), 'invalid quality never reaches the API' );
 	}
 
 	public function test_reprocess_sends_force_only_when_requested(): void {
@@ -94,14 +94,14 @@ final class PluginTest extends IntegrationTestCase {
 		$this->configure_token();
 
 		$this->assertSame( 200, $this->rest( 'POST', '/libraries/lib-1/reprocess' )->get_status() );
-		$this->assertSame( '', $this->api_bodies[0] );
+		$this->assertSame( '', $this->write_bodies()[0] );
 
 		$forced = $this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => true ) );
 		$this->assertSame( 2, $forced->get_data()['queued'] );
-		$this->assertSame( array( 'force' => true ), json_decode( $this->api_bodies[1], true ) );
+		$this->assertSame( array( 'force' => true ), json_decode( $this->write_bodies()[1], true ) );
 
 		$this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => 'yes' ) );
-		$this->assertSame( '', $this->api_bodies[2], 'only a real boolean true forces' );
+		$this->assertSame( '', $this->write_bodies()[2], 'only a real boolean true forces' );
 	}
 
 	public function test_ingest_of_a_video_platform_link_returns_the_hint(): void {

@@ -18,3 +18,30 @@ if ( ! class_exists( 'WP_Error' ) ) {
 		}
 	}
 }
+
+if ( ! class_exists( 'WP_REST_Request' ) ) {
+	class WP_REST_Request implements ArrayAccess {
+		private array $json;
+		public function __construct( array $json = array(), private array $params = array() ) {
+			$this->json = $json;
+		}
+		public function get_json_params(): array {
+			return $this->json;
+		}
+		public function get_param( string $key ) {
+			return $this->params[ $key ] ?? null;
+		}
+		public function offsetExists( mixed $offset ): bool {
+			return isset( $this->params[ $offset ] );
+		}
+		public function offsetGet( mixed $offset ): mixed {
+			return $this->params[ $offset ] ?? null;
+		}
+		public function offsetSet( mixed $offset, mixed $value ): void {
+			$this->params[ $offset ] = $value;
+		}
+		public function offsetUnset( mixed $offset ): void {
+			unset( $this->params[ $offset ] );
+		}
+	}
+}

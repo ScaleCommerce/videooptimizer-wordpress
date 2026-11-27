@@ -29,6 +29,22 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 	 */
 	protected array $api_bodies = array();
 
+	/**
+	 * Bodies of the non-GET requests seen by the fake API (library actions also read the video list).
+	 *
+	 * @return array<int, string>
+	 */
+	protected function write_bodies(): array {
+		$bodies = array();
+		foreach ( $this->api_calls as $i => $call ) {
+			if ( 'GET' !== $call[0] ) {
+				$bodies[] = $this->api_bodies[ $i ];
+			}
+		}
+
+		return $bodies;
+	}
+
 	public function set_up(): void {
 		parent::set_up();
 		$this->api_calls  = array();

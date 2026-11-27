@@ -4,6 +4,16 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+### Upgrade
+- Custom API base URLs (constant or filter) must be public hosts on port 80, 443 or 8080; allow others via the `http_request_host_is_external` and `http_allowed_safe_ports` filters ([#7](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/7)).
+
+### Fixed
+- MP4 fallback after an HLS error resumes playback for background heroes and scroll-autoload players ([#5](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/5)).
+- Deleting, reprocessing or changing the ladder or quality of a library drops the cached embed data of its videos ([#6](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/6)).
+
+### Security
+- API calls no longer follow redirects (3xx is an error), reject unsafe URLs and refuse internal base URL hosts ([#7](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/7)).
+
 ## [0.1.2] - 2026-11-27
 
 ### Upgrade
