@@ -8,6 +8,7 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 - Subtitles, tags, metadata and subtitle languages are written with the API token you already use: it needs `video:edit` (subtitles, tags, metadata) and `library:edit` (subtitle languages); without them the editor sees the API's message ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8), [#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
 
 ### Added
+- JavaScript tests for the frontend player: facade, lightbox, HLS wiring and fallbacks, deferred loading, reduced motion, heroes ([#14](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/14)).
 - The Videos page shows the savings (storage reduction and estimated bandwidth saved, all-time and last 30 days; per library when one is selected) ([#10](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/10)).
 - Plugin REST route `GET /videooptimizer/v1/savings` (cached for 5 minutes) ([#10](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/10)).
 - Subtitles per video: list, upload (.vtt / .srt, replaces per language), download and delete, with kind (subtitles / captions) and default track ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
