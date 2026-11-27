@@ -49,6 +49,20 @@ class Renderer {
 	private Assets $assets;
 
 	/**
+	 * Video list pages (null: lists are not available, e.g. in tests that do not need them).
+	 *
+	 * @var VideoLists|null
+	 */
+	private ?VideoLists $lists;
+
+	/**
+	 * Lists rendered on this page (their cursor argument is numbered).
+	 *
+	 * @var int
+	 */
+	private int $list_count = 0;
+
+	/**
 	 * UUIDs whose JSON-LD was already printed on this page.
 	 *
 	 * @var array<string, true>
@@ -68,11 +82,13 @@ class Renderer {
 	 * @param EmbedRepository $embeds   Embed lookups.
 	 * @param Settings        $settings Settings.
 	 * @param Assets          $assets   Asset loader.
+	 * @param VideoLists|null $lists    Video list pages.
 	 */
-	public function __construct( EmbedRepository $embeds, Settings $settings, Assets $assets ) {
+	public function __construct( EmbedRepository $embeds, Settings $settings, Assets $assets, ?VideoLists $lists = null ) {
 		$this->embeds   = $embeds;
 		$this->settings = $settings;
 		$this->assets   = $assets;
+		$this->lists    = $lists;
 	}
 
 	/**
@@ -101,6 +117,8 @@ class Renderer {
 			'spotlight'       => $this->layout_spotlight( $a ),
 			'video-grid'      => $this->layout_grid( $a ),
 			'video-chapters'  => $this->layout_chapters( $a ),
+			'video-list'      => $this->layout_list( $a ),
+			'video-detail'    => $this->layout_detail( $a ),
 		};
 		if ( '' === $html ) {
 			return '';
@@ -351,6 +369,184 @@ class Renderer {
 			$html,
 			$list
 		);
+	}
+
+	/**
+	 * Cards of the videos of a library, paged with the API cursor (links with a query argument).
+	 * A card opens the detail page (video uuid in the URL) or, without one, the lightbox.
+	 *
+	 * @param array<string, mixed> $a Attributes.
+	 */
+	private function layout_list( array $a ): string {
+		$param = 0 === $this->list_count ? 'vo_cursor' : 'vo_cursor' . $this->list_count;
+		++$this->list_count;
+
+		$cursor = self::request_arg( $param );
+		$cursor = VideoLists::is_cursor( $cursor ) ? $cursor : null;
+		$page   = null === $this->lists ? null : $this->lists->page( $a['libraryId'], $a['tag'], $cursor, (int) $a['perPage'] );
+		if ( null === $page ) {
+			$failure = null === $this->lists ? null : $this->lists->failure();
+			if ( null !== $failure ) {
+				PageCache::report_failure( $failure );
+			}
+
+			return $this->list_notice( null !== $failure ? __( 'The videos are temporarily unavailable.', 'videooptimizer' ) : '' );
+		}
+
+		$detail = (int) $a['detailPage'] > 0 && 'publish' === get_post_status( (int) $a['detailPage'] ) ? (string) get_permalink( (int) $a['detailPage'] ) : '';
+		$cards  = '';
+		foreach ( $page['items'] as $index => $video ) {
+			$cards .= $this->card( $video, $detail, 0 === $index && $a['priority'] );
+			$cached = $this->embeds->cached( $video['uuid'] );
+			if ( null !== $cached && ! $cached['playable'] ) {
+				PageCache::mark_degraded();
+			}
+		}
+		if ( '' === $cards && '' === $a['headline'] ) {
+			return $this->list_notice( __( 'There are no videos yet.', 'videooptimizer' ) );
+		}
+
+		$html  = '<section class="vo-block vo-list' . ( $a['priority'] ? '' : ' vo-reveal' ) . '"><div class="vo-container">';
+		$html .= '' !== $a['headline'] ? '<h2 class="vo-heading">' . esc_html( $a['headline'] ) . '</h2>' : '';
+		$html .= '' !== $a['intro'] ? '<p class="vo-grid__intro">' . esc_html( $a['intro'] ) . '</p>' : '';
+		$html .= '' !== $cards ? '<ul class="vo-list__items" role="list" style="--vo-grid-columns:' . (int) $a['columns'] . '">' . $cards . '</ul>' : '';
+		$html .= $this->pagination( $param, $cursor, $page['next'] );
+
+		return $html . '</div></section>';
+	}
+
+	/**
+	 * One card of the list.
+	 *
+	 * @param array<string, mixed> $video    Card data (see VideoLists::cards()).
+	 * @param string               $detail   Permalink of the detail page ('' = lightbox).
+	 * @param bool                 $priority First card above the fold.
+	 */
+	private function card( array $video, string $detail, bool $priority ): string {
+		$title  = '' !== $video['title'] ? $video['title'] : __( 'Video', 'videooptimizer' );
+		$embed  = $this->embeds->cached( $video['uuid'] );
+		$poster = $embed['poster'] ?? $video['poster'];
+		$thumb  = '';
+		if ( null !== $poster ) {
+			$thumb = '<img' . self::attrs(
+				array(
+					'class'         => 'vo-poster__img',
+					'src'           => $poster,
+					'srcset'        => $embed['srcset'] ?? null,
+					'sizes'         => null !== ( $embed['srcset'] ?? null ) ? '(min-width: 900px) 33vw, (min-width: 560px) 50vw, 100vw' : null,
+					'width'         => 640,
+					'height'        => 360,
+					'loading'       => $priority ? 'eager' : 'lazy',
+					'decoding'      => 'async',
+					'fetchpriority' => $priority ? 'high' : null,
+				)
+			) . ' alt="">';
+		}
+		$body = '<span class="vo-card__thumb">' . $thumb . self::play_icon()
+			. ( null !== $video['duration'] && $video['duration'] > 0 ? '<span class="vo-card__duration">' . esc_html( Scenes::clock( $video['duration'] ) ) . '</span>' : '' )
+			. '</span><span class="vo-card__title">' . esc_html( $title ) . '</span>';
+
+		if ( '' !== $detail ) {
+			return '<li class="vo-card"><a class="vo-card__link" href="' . esc_url( add_query_arg( array( 'vo_video' => $video['uuid'] ), $detail ) ) . '">' . $body . '</a></li>';
+		}
+
+		return '<li class="vo-card"><button type="button" class="vo-card__link" data-vo-player="hosted" data-vo-lightbox="' . esc_url( $this->embed_url( $video['uuid'], array(), true ) ) . '" aria-label="'
+			/* translators: %s: video title */
+			. esc_attr( sprintf( __( 'Play video: %s', 'videooptimizer' ), $title ) ) . '">' . $body . '</button></li>';
+	}
+
+	/**
+	 * "First page / Next page" links.
+	 *
+	 * @param string      $param  Query argument of this list.
+	 * @param string|null $cursor Current cursor.
+	 * @param string|null $next   Cursor of the next page.
+	 */
+	private function pagination( string $param, ?string $cursor, ?string $next ): string {
+		if ( null === $cursor && null === $next ) {
+			return '';
+		}
+		$base = self::current_url();
+		$html = '<nav class="vo-pagination" aria-label="' . esc_attr__( 'Video pages', 'videooptimizer' ) . '">';
+		if ( null !== $cursor ) {
+			$html .= '<a class="vo-pagination__link" rel="first" href="' . esc_url( remove_query_arg( $param, $base ) ) . '">' . esc_html__( 'First page', 'videooptimizer' ) . '</a>';
+		}
+		if ( null !== $next ) {
+			$html .= '<a class="vo-pagination__link" rel="next" href="' . esc_url( add_query_arg( array( $param => $next ), $base ) ) . '">' . esc_html__( 'Next page', 'videooptimizer' ) . '</a>';
+		}
+
+		return $html . '</nav>';
+	}
+
+	/**
+	 * Editors see why a list is empty; visitors only get a neutral message for failures.
+	 *
+	 * @param string $message Message for visitors ('' = editors only).
+	 */
+	private function list_notice( string $message ): string {
+		if ( '' !== $message && ! current_user_can( 'edit_posts' ) ) {
+			return '<div class="vo-notice vo-notice--public" role="note">' . esc_html( $message ) . '</div>';
+		}
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			return '';
+		}
+
+		return '<div class="vo-notice" role="note"><strong>VideoOptimizer:</strong> ' . esc_html( '' !== $message ? $message : __( 'The video list could not be loaded. Check the API token and the library. Only editors see this notice.', 'videooptimizer' ) ) . '</div>';
+	}
+
+	/**
+	 * The video whose uuid is in the URL (`vo_video`), with title and player; without one the
+	 * element's default video.
+	 *
+	 * @param array<string, mixed> $a Attributes.
+	 */
+	private function layout_detail( array $a ): string {
+		$requested = self::request_arg( DetailPage::PARAM );
+		if ( null !== $requested ) {
+			$uuid = Embed::is_uuid( $requested ) ? strtolower( $requested ) : '';
+			$page = true;
+		} else {
+			$uuid = (string) $a['uuid'];
+			$page = false;
+		}
+
+		$embed = $this->load_embed( $uuid );
+		if ( null === $embed ) {
+			if ( ! $page ) {
+				return $this->missing_notice( $uuid );
+			}
+
+			return '<div class="vo-notice vo-notice--public" role="note">' . esc_html__( 'This video could not be found.', 'videooptimizer' ) . '</div>';
+		}
+
+		$title = '' !== $embed['title'] ? $embed['title'] : __( 'Video', 'videooptimizer' );
+		$html  = '<article class="vo-block vo-detail"><div class="vo-container"><h2 class="vo-heading vo-detail__title">' . esc_html( $title ) . '</h2>';
+		$html .= $this->surface( $embed, $a, $title, '(min-width: 1200px) 1200px, 100vw', $a['priority'] );
+		$html .= '' !== $a['caption'] ? '<p class="vo-detail__caption">' . esc_html( $a['caption'] ) . '</p>' : '';
+
+		return $html . '</div></article>';
+	}
+
+	/**
+	 * A query argument of the current request (unslashed string), null when absent.
+	 *
+	 * @param string $name Argument name.
+	 */
+	public static function request_arg( string $name ): ?string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, validated by every caller.
+		$value = isset( $_GET[ $name ] ) && is_string( $_GET[ $name ] ) ? sanitize_text_field( wp_unslash( $_GET[ $name ] ) ) : null;
+
+		return $value;
+	}
+
+	/**
+	 * URL of the current page without the video query argument (base for pagination links).
+	 */
+	private static function current_url(): string {
+		$id  = get_queried_object_id();
+		$url = $id > 0 && is_singular() ? (string) get_permalink( $id ) : home_url( add_query_arg( null, null ) );
+
+		return remove_query_arg( DetailPage::PARAM, $url );
 	}
 
 	/**

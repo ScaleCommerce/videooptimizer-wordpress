@@ -60,7 +60,7 @@ export function initChapters( root, { attachHls, embedIframe } ) {
 					mark( -1 );
 				} else if (
 					event === 'play' &&
-					Number.isFinite( Number( data.currentTime ) )
+					Number( data.currentTime ) >= 1 // A just reloaded player reports 0 before it seeks.
 				) {
 					mark( sceneAt( Number( data.currentTime ) ) );
 				}

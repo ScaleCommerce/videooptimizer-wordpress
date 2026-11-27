@@ -118,6 +118,8 @@ class Widget extends \Elementor\Widget_Base {
 					'spotlight'       => __( 'Spotlight', 'videooptimizer' ),
 					'video-grid'      => __( 'Video grid', 'videooptimizer' ),
 					'video-chapters'  => __( 'Video with chapters', 'videooptimizer' ),
+					'video-list'      => __( 'Video list', 'videooptimizer' ),
+					'video-detail'    => __( 'Video detail', 'videooptimizer' ),
 				),
 			)
 		);
@@ -126,7 +128,7 @@ class Widget extends \Elementor\Widget_Base {
 			array(
 				'label'     => __( 'Video', 'videooptimizer' ),
 				'type'      => VideoControl::TYPE,
-				'condition' => array( 'layout!' => 'video-grid' ),
+				'condition' => array( 'layout!' => array( 'video-grid', 'video-list' ) ),
 			)
 		);
 
@@ -166,7 +168,54 @@ class Widget extends \Elementor\Widget_Base {
 					'3' => '3',
 					'4' => '4',
 				),
-				'condition' => array( 'layout' => 'video-grid' ),
+				'condition' => array( 'layout' => array( 'video-grid', 'video-list' ) ),
+			)
+		);
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_list',
+			array(
+				'label'     => __( 'Video list', 'videooptimizer' ),
+				'condition' => array( 'layout' => 'video-list' ),
+			)
+		);
+		$this->add_control(
+			'libraryId',
+			array(
+				'label'       => __( 'Library', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '',
+				'options'     => array( '' => __( 'All libraries', 'videooptimizer' ) ) + $this->library_options(),
+				'description' => __( 'Lists the videos of this library that are ready to play.', 'videooptimizer' ),
+			)
+		);
+		$this->add_control(
+			'tag',
+			array(
+				'label'       => __( 'Tags', 'videooptimizer' ),
+				'type'        => Controls_Manager::TEXT,
+				'description' => __( 'Optional: only videos with all of these tags, separated by commas.', 'videooptimizer' ),
+			)
+		);
+		$this->add_control(
+			'perPage',
+			array(
+				'label'   => __( 'Videos per page', 'videooptimizer' ),
+				'type'    => Controls_Manager::NUMBER,
+				'min'     => 1,
+				'max'     => 48,
+				'default' => 12,
+			)
+		);
+		$this->add_control(
+			'detailPage',
+			array(
+				'label'       => __( 'Detail page', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '0',
+				'options'     => array( '0' => __( 'None (open in a lightbox)', 'videooptimizer' ) ) + $this->page_options(),
+				'description' => __( 'The page with a "Video detail" element; a card opens it with the video in the URL. Without one, cards open the video in a lightbox.', 'videooptimizer' ),
 			)
 		);
 		$this->end_controls_section();
@@ -175,11 +224,11 @@ class Widget extends \Elementor\Widget_Base {
 		foreach (
 			array(
 				'eyebrow'  => array( __( 'Eyebrow', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight' ) ),
-				'headline' => array( __( 'Headline', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight', 'video-grid' ) ),
+				'headline' => array( __( 'Headline', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-list' ) ),
 				'subline'  => array( __( 'Subline', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'background-hero' ) ),
 				'text'     => array( __( 'Text', 'videooptimizer' ), Controls_Manager::WYSIWYG, array( 'media-split' ) ),
-				'intro'    => array( __( 'Intro', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'video-grid' ) ),
-				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight', 'video-chapters' ) ),
+				'intro'    => array( __( 'Intro', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'video-grid', 'video-list' ) ),
+				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight', 'video-chapters', 'video-detail' ) ),
 				'ctaLabel' => array( __( 'Button text', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero' ) ),
 			) as $name => [ $label, $type, $layouts ]
 		) {
@@ -301,7 +350,7 @@ class Widget extends \Elementor\Widget_Base {
 					'lightbox' => __( 'Poster, plays in a lightbox', 'videooptimizer' ),
 					'direct'   => __( 'Player directly', 'videooptimizer' ),
 				),
-				'condition' => array( 'layout!' => array( 'background-hero', 'video-chapters' ) ),
+				'condition' => array( 'layout!' => array( 'background-hero', 'video-chapters', 'video-list' ) ),
 			)
 		);
 		foreach (
@@ -319,7 +368,7 @@ class Widget extends \Elementor\Widget_Base {
 					'type'      => Controls_Manager::SELECT,
 					'default'   => '',
 					'options'   => $tri,
-					'condition' => array( 'layout!' => 'background-hero' ),
+					'condition' => array( 'layout!' => array( 'background-hero', 'video-list' ) ),
 				)
 			);
 		}
@@ -409,6 +458,48 @@ class Widget extends \Elementor\Widget_Base {
 			)
 		);
 		$this->end_controls_section();
+	}
+
+	/**
+	 * Libraries for the list control; only fetched while editing (never on page views).
+	 *
+	 * @return array<string, string>
+	 */
+	private function library_options(): array {
+		$editor = \Elementor\Plugin::$instance->editor ?? null;
+		if ( ! $editor || ! $editor->is_edit_mode() ) {
+			return array();
+		}
+		try {
+			$options = array();
+			foreach ( Plugin::instance()->client->list_libraries() as $library ) {
+				if ( is_string( $library['id'] ?? null ) ) {
+					$options[ $library['id'] ] = is_string( $library['name'] ?? null ) ? $library['name'] : $library['id'];
+				}
+			}
+
+			return $options;
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+	}
+
+	/**
+	 * Published pages for the detail page control (editor only).
+	 *
+	 * @return array<string, string>
+	 */
+	private function page_options(): array {
+		$editor = \Elementor\Plugin::$instance->editor ?? null;
+		if ( ! $editor || ! $editor->is_edit_mode() ) {
+			return array();
+		}
+		$options = array();
+		foreach ( get_pages( array( 'number' => 200 ) ) as $page ) {
+			$options[ (string) $page->ID ] = $page->post_title;
+		}
+
+		return $options;
 	}
 
 	/**

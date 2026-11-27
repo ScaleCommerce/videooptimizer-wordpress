@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Attributes {
 
-	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-chapters' );
+	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-chapters', 'video-list', 'video-detail' );
 
 	/**
 	 * Display formats of the "every format from one video" option ('' = original ratio).
@@ -33,6 +33,8 @@ final class Attributes {
 		'spotlight'       => 'lightbox',
 		'video-grid'      => 'lightbox',
 		'video-chapters'  => 'direct',
+		'video-list'      => '',
+		'video-detail'    => 'direct',
 	);
 
 	/**
@@ -78,6 +80,11 @@ final class Attributes {
 			// video-chapters.
 			'scenes'        => array( 'num', 5, array( 3, 10 ) ),
 			'sceneTitles'   => array( 'lines', '' ),
+			// video-list / video-detail.
+			'libraryId'     => array( 'uuid', '' ),
+			'tag'           => array( 'text', '' ),
+			'perPage'       => array( 'num', 12, array( 1, 48 ) ),
+			'detailPage'    => array( 'num', 0, array( 0, 2147483647 ) ),
 		);
 	}
 
@@ -244,6 +251,9 @@ final class Attributes {
 		}
 		$map['video'] = 'uuid';
 		$map['id']    = 'uuid';
+		// Shortcode-friendly names for the list element.
+		$map['library'] = 'libraryId';
+		$map['detail']  = 'detailPage';
 
 		$out = array();
 		foreach ( $raw as $key => $value ) {

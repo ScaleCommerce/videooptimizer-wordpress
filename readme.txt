@@ -18,7 +18,8 @@ This plugin connects WordPress and WooCommerce to your [VideoOptimizer](https://
 
 = Highlights =
 
-* **Five blocks** for the block editor: Video, Video + Text, Background Hero, Spotlight and Video Grid — plus the `[videooptimizer]` shortcode and an **Elementor widget** with the same options.
+* **Eight blocks** for the block editor: Video, Video + Text, Background Hero, Spotlight, Video Grid, Video with Chapters, Video List and Video Detail — plus the `[videooptimizer]` shortcode and an **Elementor widget** with the same options.
+* **Content elements**: chapters with scene previews, video lists with detail pages, every format (9:16, 1:1, 21:9 …) from one video, play while scrolling and a floating mini player.
 * **Poster first**: until visitors click play, only a lightweight poster image is loaded (responsive `srcset`). Choose between the themable VideoOptimizer player and a native HTML5 player, playing in place, in a lightbox or directly.
 * **Media library integration**: send existing videos to VideoOptimizer with one click (or in bulk). Video blocks, `[video]` shortcodes and Elementor video widgets are then delivered via VideoOptimizer automatically — no content changes.
 * **WooCommerce**: product and variation videos in the product gallery (works with zoom and the lightbox; the gallery jumps to a variation's video when it is selected), a "Video" product tab and muted hover previews in shop and category grids.

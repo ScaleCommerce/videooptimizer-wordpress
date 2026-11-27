@@ -184,18 +184,38 @@ final class PageCache {
 		$max  = self::LIMIT + 1;
 
 		// phpcs:disable WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- ad-hoc lookup on rare events, uuid is validated.
-		$rows   = (array) $wpdb->get_results(
+		$rows = (array) $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT ID, post_type, post_parent FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type NOT IN ('revision','attachment') AND post_content LIKE %s LIMIT %d",
 				$like,
 				$max
 			)
 		);
-		$meta   = (array) $wpdb->get_col(
+		$meta = (array) $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key IN ('_elementor_data','_videooptimizer_product','_videooptimizer_variation') AND meta_value LIKE %s LIMIT %d",
 				$like,
 				$max
+			)
+		);
+		// Video lists show whatever videos a library has right now and the detail element a video
+		// chosen by the URL: their pages cannot be found by uuid, so every video change purges them.
+		$lists  = (array) $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type NOT IN ('revision','attachment') AND (post_content LIKE %s OR post_content LIKE %s) LIMIT %d",
+				'%' . $wpdb->esc_like( 'videooptimizer/video-list' ) . '%',
+				'%' . $wpdb->esc_like( 'layout="video-list"' ) . '%',
+				$max
+			)
+		);
+		$lists  = array_merge(
+			$lists,
+			(array) $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data' AND meta_value LIKE %s LIMIT %d",
+					'%' . $wpdb->esc_like( '"video-list"' ) . '%',
+					$max
+				)
 			)
 		);
 		$widget = $wpdb->get_var(
@@ -206,10 +226,10 @@ final class PageCache {
 		);
 		// phpcs:enable
 
-		$post_ids = array_map( 'intval', array_merge( wp_list_pluck( $rows, 'ID' ), $meta ) );
+		$post_ids = array_map( 'intval', array_merge( wp_list_pluck( $rows, 'ID' ), $meta, $lists ) );
 		// A linked media library video is referenced by attachment id (core/video, [video], galleries,
 		// media widgets, thumbnails): not findable by uuid, so purge everything.
-		$all = null !== $widget || count( $rows ) > self::LIMIT || count( $meta ) > self::LIMIT || array() !== $this->attachments->find_by_uuid( $uuid );
+		$all = null !== $widget || count( $rows ) > self::LIMIT || count( $meta ) > self::LIMIT || count( $lists ) > self::LIMIT || array() !== $this->attachments->find_by_uuid( $uuid );
 
 		/**
 		 * Filters the post types whose content appears on many pages (a match purges the whole site).

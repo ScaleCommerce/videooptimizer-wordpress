@@ -5,6 +5,7 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Upgrade
+- Pages with a video list or detail element are purged from page caches whenever any video changes; list pages are cached in transients for five minutes (generation counter option `videooptimizer_list_generation`), list and detail pages use the query arguments `vo_cursor`, `vo_video` ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
 - Scene previews load `https://api.videooptimizer.eu/api/v1/videos/{uuid}/thumbnails/{n}` (public, redirects to the CDN); allow it in a restrictive `img-src` Content-Security-Policy ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
 - Directly shown videos with the mini player option are wrapped in `div.vo-mini > div.vo-mini__box`; the box is pinned with `position: fixed` (z-index 99990) while pinned, adjust custom CSS if needed ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
 - Frames with a format get `vo-frame--fit`, `data-vo-ratio` and the `--vo-focus` custom property; `vo-frame--narrow` limits 9:16 and 4:5 to 420 px ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
@@ -15,6 +16,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 - Play while scrolling for direct players (video, video + text; `scrollPlay`): starts muted at 50 % visibility, pauses when it leaves, a visitor's pause sticks, no autoplay with `prefers-reduced-motion` or Save-Data, hls.js is attached on first play ([#23](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/23)).
 - Floating mini player for directly shown videos (`miniPlayer`): once playing and scrolled out of view the player is pinned bottom right (CSS only, from 600 px) with a close button, Escape support and a height placeholder; native and hosted ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
 - New element "Video with chapters" (block `videooptimizer/video-chapters`, shortcode `layout="video-chapters"`, Elementor layout): the video shown directly plus 3–10 scene previews (the video's thumbnails, start at `floor(duration / 11 * (i + 1))`, optional titles); a click starts the video at that scene (`currentTime` / hosted `t=…&autoplay=1`) ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
+- New elements "Video list" (`videooptimizer/video-list`, `layout="video-list"`: cards of a library's ready videos, optional tags, cursor paging, detail page or lightbox) and "Video detail" (`videooptimizer/video-detail`, `layout="video-detail"`: the video named by `?vo_video=<uuid>` with title, player and JSON-LD; unknown uuid answers 404, page title, meta description and canonical from the video), also as Elementor layouts ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Filter `videooptimizer_detail_meta` to turn off the detail page's meta description ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
 
 ### Fixed
 - The reprocess route rejects a non-boolean `force` with 400 ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).

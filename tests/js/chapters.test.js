@@ -121,6 +121,10 @@ describe( 'hosted chapters', () => {
 				} )
 			);
 
+		document.getElementById( 's3' ).click();
+		send( 'play', 0 ); // The reloaded player starts from 0 before it seeks.
+		expect( current() ).toEqual( [ 's3' ] );
+
 		send( 'play', 50 );
 		expect( current() ).toEqual( [ 's2' ] );
 		send( 'ended', 90 );

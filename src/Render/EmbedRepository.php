@@ -122,6 +122,25 @@ class EmbedRepository {
 	}
 
 	/**
+	 * The normalized embed when it is already cached (this request or transient); never calls the API.
+	 *
+	 * @param string $uuid Video uuid.
+	 * @return array<string, mixed>|null
+	 */
+	public function cached( string $uuid ): ?array {
+		if ( ! Embed::is_uuid( $uuid ) ) {
+			return null;
+		}
+		$uuid = strtolower( $uuid );
+		if ( array_key_exists( $uuid, $this->memo ) ) {
+			return $this->memo[ $uuid ];
+		}
+		$cached = get_transient( self::key( $uuid ) );
+
+		return is_array( $cached ) && ! isset( $cached['__failed'] ) ? $cached : null;
+	}
+
+	/**
 	 * Why the last lookup of a video returned null in this request: the API status and whether
 	 * the API as a whole is unavailable. Null when the video loaded or was not looked up.
 	 *

@@ -1,0 +1,72 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "videooptimizer/video-list",
+	"version": "2.1.0",
+	"title": "VideoOptimizer Video List",
+	"category": "videooptimizer",
+	"description": "Cards of the videos of a library, paged \u2014 each card opens a detail page or a lightbox.",
+	"keywords": [
+		"video",
+		"list",
+		"library",
+		"cards",
+		"archive",
+		"videooptimizer"
+	],
+	"textdomain": "videooptimizer",
+	"attributes": {
+		"libraryId": {
+			"type": "string",
+			"default": ""
+		},
+		"tag": {
+			"type": "string",
+			"default": ""
+		},
+		"perPage": {
+			"type": "number",
+			"default": 12
+		},
+		"detailPage": {
+			"type": "number",
+			"default": 0
+		},
+		"headline": {
+			"type": "string",
+			"default": ""
+		},
+		"intro": {
+			"type": "string",
+			"default": ""
+		},
+		"columns": {
+			"type": "number",
+			"default": 3
+		},
+		"priority": {
+			"type": "boolean",
+			"default": false
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"wide",
+			"full"
+		],
+		"spacing": {
+			"margin": true
+		},
+		"color": {
+			"background": true,
+			"text": true
+		}
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "videooptimizer-frontend"
+}

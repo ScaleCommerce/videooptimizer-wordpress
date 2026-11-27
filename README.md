@@ -15,7 +15,7 @@ Sister projects: [videooptimizer-shopware](https://github.com/ScaleCommerce/vide
 
 ## Highlights
 
-- **Five blocks**: Video, Video + Text, Background Hero, Spotlight, Video Grid, plus the `[videooptimizer]` shortcode and an **Elementor widget** with identical options and output.
+- **Eight blocks**: Video, Video + Text, Background Hero, Spotlight, Video Grid, Video with Chapters, Video List and Video Detail, plus the `[videooptimizer]` shortcode and an **Elementor widget** with identical options and output.
 - **Poster first**: visitors download nothing but a responsive poster until they press play. You can use the themable **VideoOptimizer player** (iframe) or a **native HTML5 player** (HLS natively in Safari/Chrome, hls.js on demand elsewhere). Either one can play in place, in a lightbox or directly.
 - **Media library integration**:
   - "Send to VideoOptimizer" per video or in bulk.
@@ -59,6 +59,22 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 4. **Media library**: *Send to VideoOptimizer* is available as a row action, bulk action and in the attachment details. On public https sites the server hands over the file URL. Locally or behind a password, the browser uploads the file instead.
 5. **WooCommerce**: use the *Product videos (VideoOptimizer)* box on the product edit screen for gallery videos, the tab video and the hover preview. Each variation has an additional *Variation video* field.
 6. **Webhook (optional)**: in the VideoOptimizer app, create a webhook for `video.ready` and `video.failed` that points to `https://your-site/wp-json/videooptimizer/v1/webhook`, and paste its secret into the plugin settings. Without a webhook, WP-Cron checks processing videos every 5 minutes.
+
+### Content elements
+
+| Element | Block / shortcode `layout` | What it does |
+|---|---|---|
+| Video with chapters | `video-chapters` | The video shown directly plus 3–10 scene previews (the video's thumbnails). A click starts the video at that scene. Options: `scenes` (3–10, default 5), `scene_titles` (one per line, or separated by `\|` in a shortcode), `player`. |
+| Video list | `video-list` | Cards of the ready videos of a library (`library`), optionally filtered by `tag`, `per_page` per page (1–48), `columns`. Paged with "First page / Next page" links (`?vo_cursor=…`). A card opens the page set in `detail_page` (page id) with the video in the URL, or a lightbox without one. |
+| Video detail | `video-detail` | Shows the video named in `?vo_video=<uuid>` with its title, player and JSON-LD; the page title, a meta description and the canonical URL come from the video. An invalid or unknown uuid answers 404. Without the argument it shows the default video (`uuid`). Switch off the meta description with the `videooptimizer_detail_meta` filter. |
+
+Options for the video (and video + text) element:
+
+- **Format** (`format`): `16:9`, `9:16`, `1:1`, `4:5`, `21:9` or original. The video fills the chosen ratio (native: `object-fit: cover`; hosted player: `fit=cover`). `focal_x` / `focal_y` (0–100) set the focal point of native video and poster; the hosted player always crops from the centre. 9:16 and 4:5 are limited to 420 px width.
+- **Play while scrolling** (`scroll_play="1"`, direct players): starts muted when the video is half visible, pauses when it leaves, a visitor's pause sticks. Never autoplays with `prefers-reduced-motion` or Save-Data.
+- **Floating mini player** (`mini_player="1"`, direct players; video and chapters): once started and scrolled out of view, the player is pinned to the bottom right (screens from 600 px) with a close button. Only CSS changes, the player is never moved, so playback continues.
+
+The scene previews load `https://api.videooptimizer.eu/api/v1/videos/{uuid}/thumbnails/{n}` (public, redirects to the CDN): allow it in a strict `img-src` Content-Security-Policy. Video lists use the list endpoint (cached for five minutes, cleared when a video changes) and pages that contain a list are purged from page caches whenever any video changes.
 
 ### Configuration reference
 

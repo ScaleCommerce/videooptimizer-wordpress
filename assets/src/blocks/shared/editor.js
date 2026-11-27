@@ -12,6 +12,8 @@ import {
 	Spinner,
 } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { store as coreStore } from '@wordpress/core-data';
 import ServerSideRender from '@wordpress/server-side-render';
 import VideoSelectControl from '../../components/VideoSelectControl';
 import { api } from '../../components/api';
@@ -286,6 +288,92 @@ export function FormatPanel( { attributes, setAttributes } ) {
 				</>
 			) : null }
 		</PanelBody>
+	);
+}
+
+/**
+ * Library of a video list (every library of the account when empty).
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    Library uuid.
+ * @param {Function} props.onChange Receives the uuid.
+ */
+export function LibrarySelect( { value, onChange } ) {
+	const [ libraries, setLibraries ] = useState( null );
+	useEffect( () => {
+		let current = true;
+		api.libraries().then(
+			( list ) => current && setLibraries( list ),
+			() => current && setLibraries( [] )
+		);
+		return () => {
+			current = false;
+		};
+	}, [] );
+	return (
+		<SelectControl
+			__nextHasNoMarginBottom
+			__next40pxDefaultSize
+			label={ __( 'Library', 'videooptimizer' ) }
+			value={ value }
+			onChange={ onChange }
+			disabled={ libraries === null }
+			options={ [
+				{
+					label: __( 'All libraries', 'videooptimizer' ),
+					value: '',
+				},
+				...( libraries || [] ).map( ( library ) => ( {
+					label: library.name,
+					value: library.id,
+				} ) ),
+			] }
+			help={ __(
+				'Lists the videos of this library that are ready to play.',
+				'videooptimizer'
+			) }
+		/>
+	);
+}
+
+/**
+ * Page picker (published pages).
+ *
+ * @param {Object}   props
+ * @param {number}   props.value    Page id (0 = none).
+ * @param {Function} props.onChange Receives the id.
+ * @param {string}   props.label    Field label.
+ * @param {string}   props.help     Field help.
+ */
+export function PageSelect( { value, onChange, label, help } ) {
+	const pages = useSelect( ( select ) =>
+		select( coreStore ).getEntityRecords( 'postType', 'page', {
+			per_page: 100,
+			status: 'publish',
+			orderby: 'title',
+			order: 'asc',
+		} )
+	);
+	return (
+		<SelectControl
+			__nextHasNoMarginBottom
+			__next40pxDefaultSize
+			label={ label }
+			value={ String( value || 0 ) }
+			onChange={ ( id ) => onChange( Number( id ) ) }
+			disabled={ pages === null }
+			options={ [
+				{
+					label: __( 'None (open in a lightbox)', 'videooptimizer' ),
+					value: '0',
+				},
+				...( pages || [] ).map( ( page ) => ( {
+					label: page.title?.rendered || `#${ page.id }`,
+					value: String( page.id ),
+				} ) ),
+			] }
+			help={ help }
+		/>
 	);
 }
 

@@ -63,6 +63,29 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->assertFalse( $found['all'] );
 	}
 
+	public function test_pages_with_a_video_list_or_detail_are_purged_for_any_video(): void {
+		$list      = $this->post( '<!-- wp:videooptimizer/video-list {"libraryId":"3293aeb1-64b7-42a8-b2f7-c5355dcdd58d"} /-->' );
+		$shortcode = $this->post( '[videooptimizer layout="video-list" library="3293aeb1-64b7-42a8-b2f7-c5355dcdd58d"]' );
+		$elementor = $this->post( 'Builder page' );
+		update_post_meta( $elementor, '_elementor_data', '[{"settings":{"layout":"video-list"}}]' );
+		$this->post( 'Unrelated page' );
+		$this->post( '<!-- wp:videooptimizer/video-list /-->', 'draft' );
+
+		$found = $this->cache()->locate( self::UUID );
+
+		$this->assertEqualsCanonicalizing( array( $list, $shortcode, $elementor ), $found['ids'] );
+		$this->assertFalse( $found['all'] );
+	}
+
+	public function test_a_video_change_invalidates_cached_list_pages(): void {
+		$generation = (int) get_option( \ScaleCommerce\VideoOptimizer\Render\VideoLists::GENERATION_KEY, 0 );
+
+		do_action( PageCache::CHANGED, self::UUID );
+		Plugin::instance()->embeds->forget( self::UUID );
+
+		$this->assertGreaterThan( $generation, (int) get_option( \ScaleCommerce\VideoOptimizer\Render\VideoLists::GENERATION_KEY, 0 ) );
+	}
+
 	public function test_variation_videos_purge_the_parent_product(): void {
 		$parent    = $this->post( 'Product', 'publish', 'post' );
 		$variation = self::factory()->post->create(

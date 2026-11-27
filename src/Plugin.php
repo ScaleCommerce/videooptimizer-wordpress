@@ -19,8 +19,10 @@ use ScaleCommerce\VideoOptimizer\Media\DeleteOffers;
 use ScaleCommerce\VideoOptimizer\Media\MediaLibrary;
 use ScaleCommerce\VideoOptimizer\Media\StatusSync;
 use ScaleCommerce\VideoOptimizer\Render\Assets;
+use ScaleCommerce\VideoOptimizer\Render\DetailPage;
 use ScaleCommerce\VideoOptimizer\Render\EmbedRepository;
 use ScaleCommerce\VideoOptimizer\Render\Renderer;
+use ScaleCommerce\VideoOptimizer\Render\VideoLists;
 use ScaleCommerce\VideoOptimizer\Rest\AdminController;
 use ScaleCommerce\VideoOptimizer\Rest\WebhookController;
 use ScaleCommerce\VideoOptimizer\Settings\Settings;
@@ -70,6 +72,13 @@ final class Plugin {
 	public readonly Assets $assets;
 
 	/**
+	 * Video list pages.
+	 *
+	 * @var VideoLists
+	 */
+	public readonly VideoLists $lists;
+
+	/**
 	 * Renderer.
 	 *
 	 * @var Renderer
@@ -105,7 +114,8 @@ final class Plugin {
 		$this->client        = new Client( fn (): ?string => $this->settings->token(), Settings::api_base_url() );
 		$this->embeds        = new EmbedRepository( $this->client );
 		$this->assets        = new Assets();
-		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets );
+		$this->lists         = new VideoLists( $this->client );
+		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets, $this->lists );
 		$this->attachments   = new Attachments( $this->client, $this->embeds );
 		$this->delete_offers = new DeleteOffers( $this->settings, $this->client, $this->embeds, $this->attachments );
 		$this->page_cache    = new PageCache( $this->attachments );
@@ -130,6 +140,8 @@ final class Plugin {
 
 		$plugin->assets->register_hooks();
 		$plugin->page_cache->register_hooks();
+		$plugin->lists->register_hooks();
+		( new DetailPage( $plugin->embeds ) )->register_hooks();
 		( new Blocks( $plugin->renderer ) )->register_hooks();
 		( new Shortcode( $plugin->renderer ) )->register_hooks();
 		( new AdminController( $plugin->settings, $plugin->client, $plugin->embeds, $plugin->attachments, $plugin->delete_offers ) )->register_hooks();
