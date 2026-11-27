@@ -4,6 +4,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-11-27
+
 ### Upgrade
 - Custom API base URLs (constant or filter) must be public hosts on port 80, 443 or 8080; allow others via the `http_request_host_is_external` and `http_allowed_safe_ports` filters ([#7](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/7)).
 

@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -83,6 +83,11 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 0.1.3 =
+* Background heroes and scroll-autoload players keep playing after the MP4 fallback.
+* Deleting or reprocessing a library refreshes the cached embed data of its videos.
+* API calls don't follow redirects and refuse internal base URL hosts (custom base URLs: public host on port 80, 443 or 8080).
 
 = 0.1.2 =
 * Embeds load from https://player.videooptimizer.eu (allow it in CSP frame-src and consent tools, or define VIDEOOPTIMIZER_EMBED_BASE_URL).
