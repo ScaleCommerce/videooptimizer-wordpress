@@ -16,6 +16,8 @@ function request( path, options = {} ) {
 		);
 		err.code = error && error.code;
 		err.status = error && error.data ? error.data.status : null;
+		err.upstreamCode =
+			error && error.data ? error.data.upstream_code : null;
 		err.upstreamStatus =
 			error && error.data ? error.data.upstream_status : null;
 		throw err;
@@ -38,8 +40,11 @@ export const api = {
 	createLibrary: ( data ) => post( '/libraries', data ),
 	updateLibrary: ( id, data ) => patch( '/libraries/' + enc( id ), data ),
 	deleteLibrary: ( id ) => del( '/libraries/' + enc( id ) ),
-	reprocessLibrary: ( id ) =>
-		post( '/libraries/' + enc( id ) + '/reprocess' ),
+	reprocessLibrary: ( id, force = false ) =>
+		post(
+			'/libraries/' + enc( id ) + '/reprocess',
+			force ? { force } : {}
+		),
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 
@@ -185,6 +190,23 @@ export function formatDuration( seconds ) {
 	return h
 		? `${ h }:${ String( m ).padStart( 2, '0' ) }:${ sec }`
 		: `${ m }:${ sec }`;
+}
+
+/**
+ * Whether a URL points to a video platform page (YouTube), which the API refuses for URL import.
+ *
+ * @param {string} value URL typed by the user.
+ * @return {boolean} True for youtube.com, youtu.be, youtube-nocookie.com and their subdomains.
+ */
+export function isVideoPlatformUrl( value ) {
+	try {
+		const host = new URL( String( value ).trim() ).hostname.toLowerCase();
+		return [ 'youtube.com', 'youtu.be', 'youtube-nocookie.com' ].some(
+			( domain ) => host === domain || host.endsWith( '.' + domain )
+		);
+	} catch ( e ) {
+		return false;
+	}
 }
 
 export function formatBytes( bytes ) {

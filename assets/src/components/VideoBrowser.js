@@ -15,7 +15,7 @@ import {
 	DropZone,
 } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { api, loadAllVideos, primeVideoCache } from './api';
+import { api, isVideoPlatformUrl, loadAllVideos, primeVideoCache } from './api';
 import { uploadVideo, pollVideo, createSignal } from './uploader';
 import { ProgressBar, VideoCard } from './ui';
 
@@ -291,15 +291,31 @@ export default function VideoBrowser( {
 							'Public https:// URL of a video file',
 							'videooptimizer'
 						) }
+						help={ __(
+							'Link to the video file itself, not to a video page such as YouTube.',
+							'videooptimizer'
+						) }
 						value={ url }
 						onChange={ setUrl }
 						placeholder="https://…/video.mp4"
 					/>
+					{ isVideoPlatformUrl( url ) ? (
+						<Notice status="warning" isDismissible={ false }>
+							{ __(
+								'Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube.',
+								'videooptimizer'
+							) }
+						</Notice>
+					) : null }
 					<Button
 						variant="primary"
 						onClick={ importUrl }
 						isBusy={ urlBusy }
-						disabled={ urlBusy || ! /^https:\/\/.+/i.test( url ) }
+						disabled={
+							urlBusy ||
+							! /^https:\/\/.+/i.test( url ) ||
+							isVideoPlatformUrl( url )
+						}
 					>
 						{ __( 'Import', 'videooptimizer' ) }
 					</Button>

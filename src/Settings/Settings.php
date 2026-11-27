@@ -262,7 +262,7 @@ final class Settings {
 	 * Base URL of the hosted player (/embed/{uuid}).
 	 */
 	public static function embed_base_url(): string {
-		$url = defined( 'VIDEOOPTIMIZER_EMBED_BASE_URL' ) ? (string) constant( 'VIDEOOPTIMIZER_EMBED_BASE_URL' ) : 'https://videooptimizer.eu';
+		$url = defined( 'VIDEOOPTIMIZER_EMBED_BASE_URL' ) ? (string) constant( 'VIDEOOPTIMIZER_EMBED_BASE_URL' ) : 'https://player.videooptimizer.eu';
 
 		/**
 		 * Filters the base URL of the hosted VideoOptimizer player. Must be https.

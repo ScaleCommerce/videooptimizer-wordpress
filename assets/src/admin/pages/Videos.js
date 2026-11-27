@@ -26,7 +26,7 @@ function Onboarding() {
 							target="_blank"
 							rel="noreferrer"
 						>
-							videooptimizer.eu ↗
+							app.videooptimizer.eu ↗
 						</a>
 					</li>
 					<li>

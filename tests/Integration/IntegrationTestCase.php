@@ -22,9 +22,17 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 	 */
 	protected array $api_calls = array();
 
+	/**
+	 * Request bodies seen by the fake API, parallel to $api_calls.
+	 *
+	 * @var array<int, string>
+	 */
+	protected array $api_bodies = array();
+
 	public function set_up(): void {
 		parent::set_up();
-		$this->api_calls = array();
+		$this->api_calls  = array();
+		$this->api_bodies = array();
 		\ScaleCommerce\VideoOptimizer\Plugin::instance()->settings->flush();
 		\ScaleCommerce\VideoOptimizer\Plugin::instance()->embeds->forget( self::UUID );
 		add_filter( 'pre_http_request', array( $this, 'fake_api' ), 10, 3 );
@@ -47,7 +55,8 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 		if ( ! str_starts_with( $url, 'https://api.videooptimizer.eu/' ) ) {
 			return $pre;
 		}
-		$this->api_calls[] = array( $args['method'], $url );
+		$this->api_calls[]  = array( $args['method'], $url );
+		$this->api_bodies[] = (string) ( $args['body'] ?? '' );
 		$path              = (string) wp_parse_url( $url, PHP_URL_PATH );
 
 		if ( str_contains( $path, '/embed/' ) ) {
@@ -73,6 +82,15 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 					),
 				)
 			);
+		}
+		if ( str_ends_with( $path, '/reprocess' ) ) {
+			return self::json( 200, array( 'data' => array( 'queued' => 2 ) ) );
+		}
+		if ( preg_match( '~/libraries/[^/]+$~', $path ) && 'PATCH' === $args['method'] ) {
+			return self::json( 200, array( 'data' => array_merge( array( 'id' => 'lib-1' ), (array) json_decode( (string) $args['body'], true ) ) ) );
+		}
+		if ( str_ends_with( $path, '/libraries' ) && 'POST' === $args['method'] ) {
+			return self::json( 201, array( 'data' => array_merge( array( 'id' => 'lib-2' ), (array) json_decode( (string) $args['body'], true ) ) ) );
 		}
 		if ( str_ends_with( $path, '/libraries' ) ) {
 			return self::json(

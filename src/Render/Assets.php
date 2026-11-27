@@ -44,11 +44,14 @@ class Assets {
 				'strategy'  => 'defer',
 			)
 		);
+		// Cache-bust hls.js with its own content: the bundle version does not change when only the library does.
+		$hls_file    = VIDEOOPTIMIZER_DIR . 'build/vendor/hls.light.min.js';
+		$hls_version = is_file( $hls_file ) ? substr( (string) md5_file( $hls_file ), 0, 8 ) : VIDEOOPTIMIZER_VERSION;
 		wp_add_inline_script(
 			self::HANDLE,
 			'window.videooptimizerFrontend=' . wp_json_encode(
 				array(
-					'hlsUrl' => VIDEOOPTIMIZER_URL . 'build/vendor/hls.light.min.js?ver=' . rawurlencode( $asset['version'] ),
+					'hlsUrl' => VIDEOOPTIMIZER_URL . 'build/vendor/hls.light.min.js?ver=' . rawurlencode( $asset['version'] . '-' . $hls_version ),
 					'i18n'   => array(
 						'close' => __( 'Close video', 'videooptimizer' ),
 						'play'  => __( 'Play video', 'videooptimizer' ),

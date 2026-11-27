@@ -181,6 +181,15 @@ final class ClientTest extends TestCase {
 		}
 	}
 
+	public function test_reprocess_sends_force_only_when_requested(): void {
+		$this->client()->reprocess_library( 'lib' );
+		$this->client()->reprocess_library( 'lib', true );
+
+		$this->assertStringEndsWith( '/libraries/lib/reprocess', $this->requests[0][0] );
+		$this->assertArrayNotHasKey( 'body', $this->requests[0][1] );
+		$this->assertSame( '{"force":true}', $this->requests[1][1]['body'] );
+	}
+
 	public function test_encodings_are_not_unwrapped(): void {
 		$this->responses[] = $this->response( 200, array( 'codecs' => array( array( 'key' => 'h264' ) ) ) );
 
@@ -204,6 +213,34 @@ final class ClientTest extends TestCase {
 			$this->assertSame( 'Video limit of your plan reached', $e->getMessage() );
 			$this->assertStringContainsString( 'plan limit', $e->user_message() );
 		}
+	}
+
+	public function test_rejected_video_platform_link_is_explained(): void {
+		$this->responses[] = $this->response(
+			400,
+			array(
+				'statusCode' => 400,
+				'message'    => 'Video platform links are not supported',
+				'data'       => array( 'code' => 'source_url_video_platform' ),
+			)
+		);
+
+		try {
+			$this->client()->ingest_url( array( 'source_url' => 'https://youtu.be/x' ) );
+			$this->fail( 'Expected exception' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 'source_url_video_platform', $e->api_code() );
+			$this->assertStringContainsString( 'not to a video page', $e->user_message() );
+		}
+	}
+
+	public function test_rate_limit_and_forbidden_messages(): void {
+		$limit = new ApiException( 'Reprocess limit reached (5 per hour)', 429 );
+		$this->assertStringContainsString( '5 per hour', $limit->user_message() );
+		$this->assertStringContainsString( 'wait a minute', ( new ApiException( 'Too many requests', 429 ) )->user_message() );
+
+		$this->assertStringContainsString( 'Organization is suspended', ( new ApiException( 'Organization is suspended', 403 ) )->user_message() );
+		$this->assertStringContainsString( 'permission', ( new ApiException( 'Missing permission library:update', 403 ) )->user_message() );
 	}
 
 	public function test_missing_token_and_insecure_base_url(): void {

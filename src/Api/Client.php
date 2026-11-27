@@ -99,11 +99,13 @@ class Client {
 	/**
 	 * Re-queues encoding of every video in a (media-managed) library.
 	 *
-	 * @param string $id Library id.
+	 * @param string $id    Library id.
+	 * @param bool   $force Also re-encode renditions that are already finished (needed after changing
+	 *                      the encoding quality; the API allows 5 per hour).
 	 * @return array<string, mixed> {queued}
 	 */
-	public function reprocess_library( string $id ): array {
-		return $this->request_data( 'POST', '/libraries/' . rawurlencode( $id ) . '/reprocess' );
+	public function reprocess_library( string $id, bool $force = false ): array {
+		return $this->request_data( 'POST', '/libraries/' . rawurlencode( $id ) . '/reprocess', $force ? array( 'force' => true ) : null );
 	}
 
 	/**
@@ -414,7 +416,8 @@ class Client {
 					break;
 				}
 			}
-			throw new ApiException( $message, $status ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+			$code = is_array( $decoded['data'] ?? null ) && is_string( $decoded['data']['code'] ?? null ) ? $decoded['data']['code'] : '';
+			throw new ApiException( $message, $status, null, $code ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 		}
 
 		return array(

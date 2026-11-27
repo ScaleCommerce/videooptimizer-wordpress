@@ -28,8 +28,9 @@ class AdminController {
 
 	public const NAMESPACE = 'videooptimizer/v1';
 
-	private const UUID   = '(?P<uuid>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})';
-	private const LIB_ID = '(?P<id>[A-Za-z0-9-]{1,64})';
+	private const UUID               = '(?P<uuid>[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})';
+	private const ENCODING_QUALITIES = array( 'performance', 'quality' );
+	private const LIB_ID             = '(?P<id>[A-Za-z0-9-]{1,64})';
 
 	/**
 	 * Settings.
@@ -219,6 +220,7 @@ class AdminController {
 					'status'          => $status >= 400 && $status < 600 ? $status : 502,
 					'upstream_status' => $status,
 					'upstream'        => $e->getMessage(),
+					'upstream_code'   => $e->api_code(),
 				)
 			);
 		}
@@ -329,7 +331,10 @@ class AdminController {
 	 * @return array<string, mixed>|\WP_Error
 	 */
 	private function create_library( \WP_REST_Request $request ) {
-		$payload = self::only( $request, array( 'name', 'description', 'codec', 'resolutions' ) );
+		$payload = self::library_payload( $request );
+		if ( $payload instanceof \WP_Error ) {
+			return $payload;
+		}
 		if ( ! isset( $payload['name'] ) || '' === trim( (string) $payload['name'] ) ) {
 			return new \WP_Error( 'videooptimizer_invalid', __( 'Please enter a name.', 'videooptimizer' ), array( 'status' => 400 ) );
 		}
@@ -342,10 +347,34 @@ class AdminController {
 	 * Updates a library.
 	 *
 	 * @param \WP_REST_Request $request Request.
-	 * @return array<string, mixed>
+	 * @return array<string, mixed>|\WP_Error
 	 */
-	private function update_library( \WP_REST_Request $request ): array {
-		return $this->client->update_library( (string) $request['id'], self::only( $request, array( 'name', 'description', 'codec', 'resolutions', 'encoding_tier' ) ) );
+	private function update_library( \WP_REST_Request $request ) {
+		$payload = self::library_payload( $request );
+
+		return $payload instanceof \WP_Error ? $payload : $this->client->update_library( (string) $request['id'], $payload );
+	}
+
+	/**
+	 * Library fields the API accepts. `encoding_quality` is validated here; the former `encoding_tier`
+	 * is not an API field and is dropped.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private static function library_payload( \WP_REST_Request $request ) {
+		$payload = self::only( $request, array( 'name', 'description', 'codec', 'resolutions', 'encoding_quality' ) );
+		if ( isset( $payload['encoding_quality'] ) && ! in_array( $payload['encoding_quality'], self::ENCODING_QUALITIES, true ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'The encoding quality must be "performance" or "quality".', 'videooptimizer' ), array( 'status' => 400 ) );
+		}
+
+		foreach ( array( 'codec', 'resolutions' ) as $field ) {
+			if ( isset( $payload[ $field ] ) && '' === trim( (string) $payload[ $field ] ) ) {
+				return new \WP_Error( 'videooptimizer_invalid', __( 'Please keep at least one codec and one resolution.', 'videooptimizer' ), array( 'status' => 400 ) );
+			}
+		}
+
+		return $payload;
 	}
 
 	/**
@@ -368,7 +397,12 @@ class AdminController {
 	 * @return array<string, mixed>
 	 */
 	private function reprocess_library( \WP_REST_Request $request ): array {
-		return $this->client->reprocess_library( (string) $request['id'] );
+		// Optional {"force": true}: re-encode finished renditions too (needed after a quality change).
+		$body = (array) $request->get_json_params();
+
+		$force = isset( $body['force'] ) && true === $body['force'];
+
+		return $this->client->reprocess_library( (string) $request['id'], $force );
 	}
 
 	/**

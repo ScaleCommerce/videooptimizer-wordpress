@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -39,7 +39,7 @@ This plugin connects WordPress and WooCommerce to your [VideoOptimizer](https://
 This plugin connects to the VideoOptimizer service operated by ScaleCommerce GmbH (Germany) to manage and deliver your videos:
 
 * **VideoOptimizer API** (`https://api.videooptimizer.eu`): used from your server when you browse, upload, edit or delete videos in WP-Admin, and to read the public playback data (sources, poster) of the videos you embed. Your API token is sent with admin requests. Every request identifies the plugin with its version, the WordPress and PHP versions and your site address (in the User-Agent header). Video files you upload are transferred directly from your browser to VideoOptimizer storage.
-* **VideoOptimizer player and CDN** (`https://videooptimizer.eu`, `*.cdn.videooptimizer.eu`): visitors' browsers load posters, video files and — if you use the VideoOptimizer player — the player iframe from there.
+* **VideoOptimizer player and CDN** (`https://player.videooptimizer.eu`, `*.cdn.videooptimizer.eu`): visitors' browsers load posters, video files and — if you use the VideoOptimizer player — the player iframe from there.
 
 Privacy policy: https://scale.sc/ueber-uns/datenschutz — Legal notice: https://scale.sc/ueber-uns/impressum
 
@@ -84,6 +84,12 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 
 == Changelog ==
 
+= 0.1.2 =
+* Embeds load from https://player.videooptimizer.eu (allow it in CSP frame-src and consent tools, or define VIDEOOPTIMIZER_EMBED_BASE_URL).
+* Libraries: encoding quality (performance or quality) and an optional forced re-encode.
+* URL import explains rejected video platform links such as YouTube.
+* hls.js 1.7.4.
+
 = 0.1.1 =
 * Requests to the VideoOptimizer API now identify the plugin, WordPress and PHP versions and the site address in the User-Agent header.
 
@@ -92,4 +98,4 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 
 == Third-party code ==
 
-* hls.js 1.6 — Apache License 2.0 — https://github.com/video-dev/hls.js (loaded on demand in browsers without native HLS).
+* hls.js 1.7 — Apache License 2.0 — https://github.com/video-dev/hls.js (loaded on demand in browsers without native HLS).

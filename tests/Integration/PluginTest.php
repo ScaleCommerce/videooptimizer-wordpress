@@ -26,7 +26,7 @@ final class PluginTest extends IntegrationTestCase {
 		$html = do_blocks( '<!-- wp:videooptimizer/video {"uuid":"' . self::UUID . '","align":"wide"} /-->' );
 
 		$this->assertMatchesRegularExpression( '~^<div class="[^"]*alignwide[^"]*wp-block-videooptimizer-video[^"]*vo-blocks~', $html );
-		$this->assertStringContainsString( 'data-vo-embed="https://videooptimizer.eu/embed/' . self::UUID, $html );
+		$this->assertStringContainsString( 'data-vo-embed="https://player.videooptimizer.eu/embed/' . self::UUID, $html );
 		$this->assertTrue( wp_style_is( 'videooptimizer-frontend', 'enqueued' ) );
 
 		// Second render of the same video: served from the transient, no extra API call.
@@ -64,6 +64,65 @@ final class PluginTest extends IntegrationTestCase {
 		$this->assertSame( 'lib-1', $libraries->get_data()[0]['id'] );
 	}
 
+	public function test_library_encoding_quality_is_forwarded_and_validated(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+
+		$update = $this->rest( 'PATCH', '/libraries/lib-1', array( 'name' => 'Main', 'encoding_quality' => 'quality', 'encoding_tier' => 'legacy' ) );
+		$this->assertSame( 200, $update->get_status() );
+		$sent = json_decode( $this->api_bodies[0], true );
+		$this->assertSame( 'quality', $sent['encoding_quality'] );
+		$this->assertArrayNotHasKey( 'encoding_tier', $sent );
+
+		$create = $this->rest( 'POST', '/libraries', array( 'name' => 'New', 'encoding_quality' => 'performance' ) );
+		$this->assertSame( 'performance', json_decode( end( $this->api_bodies ), true )['encoding_quality'] );
+		$this->assertSame( 200, $create->get_status() );
+
+		$calls = count( $this->api_calls );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'codec' => '' ) )->get_status() );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'resolutions' => '  ' ) )->get_status() );
+		$this->assertSame( 200, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'quality' ) )->get_status(), 'quality alone needs no ladder' );
+		$this->assertCount( $calls + 1, $this->api_calls );
+		$calls = count( $this->api_calls );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'ultra' ) )->get_status() );
+		$this->assertSame( 400, $this->rest( 'POST', '/libraries', array( 'name' => 'X', 'encoding_quality' => 'ultra' ) )->get_status() );
+		$this->assertCount( $calls, $this->api_calls, 'invalid quality never reaches the API' );
+	}
+
+	public function test_reprocess_sends_force_only_when_requested(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+
+		$this->assertSame( 200, $this->rest( 'POST', '/libraries/lib-1/reprocess' )->get_status() );
+		$this->assertSame( '', $this->api_bodies[0] );
+
+		$forced = $this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => true ) );
+		$this->assertSame( 2, $forced->get_data()['queued'] );
+		$this->assertSame( array( 'force' => true ), json_decode( $this->api_bodies[1], true ) );
+
+		$this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => 'yes' ) );
+		$this->assertSame( '', $this->api_bodies[2], 'only a real boolean true forces' );
+	}
+
+	public function test_ingest_of_a_video_platform_link_returns_the_hint(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+		add_filter(
+			'pre_http_request',
+			fn ( $pre, $args, $url ) => ( 'POST' === $args['method'] && str_ends_with( $url, '/videos' ) )
+				? self::json( 400, array( 'statusCode' => 400, 'message' => 'Not supported', 'data' => array( 'code' => 'source_url_video_platform' ) ) )
+				: $pre,
+			20,
+			3
+		);
+
+		$response = $this->rest( 'POST', '/videos/ingest', array( 'library_id' => 'lib-1', 'source_url' => 'https://www.youtube.com/watch?v=x' ) );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertStringContainsString( 'not to a video page', $response->get_data()['message'] );
+		$this->assertSame( 'source_url_video_platform', $response->get_data()['data']['upstream_code'] );
+	}
+
 	public function test_ingest_requires_https(): void {
 		$this->login_as( 'administrator' );
 		$this->configure_token();
@@ -83,7 +142,7 @@ final class PluginTest extends IntegrationTestCase {
 		update_post_meta( $id, Attachments::META_STATUS, 'ready' );
 		$html = do_blocks( $block );
 		$this->assertStringContainsString( 'videooptimizer--core-video', $html );
-		$this->assertStringContainsString( 'data-vo-autoload="https://videooptimizer.eu/embed/' . self::UUID, $html );
+		$this->assertStringContainsString( 'data-vo-autoload="https://player.videooptimizer.eu/embed/' . self::UUID, $html );
 		$this->assertStringContainsString( '<figcaption class="wp-element-caption">Caption</figcaption>', $html );
 		$this->assertStringNotContainsString( 'clip.mp4', $html );
 	}

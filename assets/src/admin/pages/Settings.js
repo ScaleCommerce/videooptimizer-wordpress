@@ -117,7 +117,7 @@ function Connection( { settings, onChange } ) {
 										'videooptimizer'
 									) }{ ' ' }
 									<ExternalLink href={ config.appUrl }>
-										videooptimizer.eu
+										app.videooptimizer.eu
 									</ExternalLink>
 								</>
 							}

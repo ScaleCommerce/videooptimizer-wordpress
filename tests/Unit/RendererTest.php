@@ -68,7 +68,7 @@ final class RendererTest extends TestCase {
 		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
 
 		$this->assertStringContainsString( 'class="vo-blocks videooptimizer videooptimizer--video"', $html );
-		$this->assertStringContainsString( 'data-vo-embed="https://videooptimizer.eu/embed/' . self::UUID . '?autoplay=1&#038;muted=0"', $html );
+		$this->assertStringContainsString( 'data-vo-embed="https://player.videooptimizer.eu/embed/' . self::UUID . '?autoplay=1&#038;muted=0"', $html );
 		$this->assertStringContainsString( 'aspect-ratio:1080 / 1920', $html );
 		$this->assertStringContainsString( 'vo-frame--portrait', $html );
 		$this->assertStringContainsString( '--vo-player-accent:#C72876', $html );
@@ -119,9 +119,9 @@ final class RendererTest extends TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'data-vo-autoload="https://videooptimizer.eu/embed/' . self::UUID . '?controls=0"', $lazy );
+		$this->assertStringContainsString( 'data-vo-autoload="https://player.videooptimizer.eu/embed/' . self::UUID . '?controls=0"', $lazy );
 		$this->assertStringContainsString( '<noscript><iframe', $lazy );
-		$this->assertMatchesRegularExpression( '~^<div[^>]*><figure class="vo-video"><div[^>]*><iframe src="https://videooptimizer.eu/embed/' . self::UUID . '" [^>]*loading="eager"~', $priority );
+		$this->assertMatchesRegularExpression( '~^<div[^>]*><figure class="vo-video"><div[^>]*><iframe src="https://player.videooptimizer.eu/embed/' . self::UUID . '" [^>]*loading="eager"~', $priority );
 		$this->assertStringContainsString( 'fetchpriority', $this->renderer->render( 'spotlight', array( 'uuid' => self::UUID, 'priority' => true ) ) );
 	}
 
