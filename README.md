@@ -110,6 +110,8 @@ The theme of the organization/library/video (VideoOptimizer app) is applied to t
 | `pictureInPicture` | `disablepictureinpicture` |
 | `accentColor` | `--vo-player-accent` (controls, focus ring) |
 
+Subtitles uploaded in VideoOptimizer appear as `<track>` elements (the video gets `crossorigin="anonymous"`); the viewer picks them in the browser's subtitle menu, the default track starts shown.
+
 Other keys (`controlBarBg`, `playButton*`, `bigPlayButton`, `qualitySelector`, `volumeControl`, `timeDisplay`) have no native equivalent and are ignored; use the VideoOptimizer player for them.
 
 ## Troubleshooting

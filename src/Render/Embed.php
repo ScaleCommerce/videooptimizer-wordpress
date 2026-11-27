@@ -22,7 +22,7 @@ final class Embed {
 	 *
 	 * @param string               $uuid Video uuid.
 	 * @param array<string, mixed> $data Raw `data` object of /embed/{uuid}.
-	 * @return array{uuid: string, title: string, poster: ?string, srcset: ?string, width: ?int, height: ?int, orientation: ?string, duration: ?int, hls: ?string, files: array<int, array{src: string, type: string, label: string, size: ?int}>, theme: array<string, mixed>, playable: bool}
+	 * @return array{uuid: string, title: string, poster: ?string, srcset: ?string, width: ?int, height: ?int, orientation: ?string, duration: ?int, hls: ?string, files: array<int, array{src: string, type: string, label: string, size: ?int}>, tracks: array<int, array{src: string, srclang: string, label: string, kind: string, default: bool}>, theme: array<string, mixed>, playable: bool}
 	 */
 	public static function normalize( string $uuid, array $data ): array {
 		$hls   = null;
@@ -66,6 +66,7 @@ final class Embed {
 			'duration'    => is_numeric( $data['duration'] ?? null ) ? (int) round( (float) $data['duration'] ) : null,
 			'hls'         => $hls,
 			'files'       => $files,
+			'tracks'      => self::parse_tracks( $data['tracks'] ?? null ),
 			'theme'       => is_array( $data['theme'] ?? null ) ? $data['theme'] : array(),
 			'playable'    => null !== $hls || array() !== $files,
 		);
@@ -84,6 +85,39 @@ final class Embed {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Subtitle tracks for <track> elements: http(s) src and a plausible BCP 47 srclang are
+	 * required, the first default track wins.
+	 *
+	 * @param mixed $tracks Raw tracks.
+	 * @return array<int, array{src: string, srclang: string, label: string, kind: string, default: bool}>
+	 */
+	public static function parse_tracks( mixed $tracks ): array {
+		$out         = array();
+		$has_default = false;
+		foreach ( is_array( $tracks ) ? $tracks : array() as $track ) {
+			if ( ! is_array( $track ) || ! is_string( $track['src'] ?? null ) || ! preg_match( '~^https?://~i', $track['src'] ) ) {
+				continue;
+			}
+			$lang = $track['srclang'] ?? null;
+			if ( ! is_string( $lang ) || ! preg_match( '/^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8})*$/', $lang ) ) {
+				continue;
+			}
+			$default     = ! $has_default && ! empty( $track['default'] );
+			$has_default = $has_default || $default;
+			$label       = is_string( $track['label'] ?? null ) ? trim( $track['label'] ) : '';
+			$out[]       = array(
+				'src'     => $track['src'],
+				'srclang' => $lang,
+				'label'   => '' !== $label ? $label : $lang,
+				'kind'    => 'captions' === ( $track['kind'] ?? '' ) ? 'captions' : 'subtitles',
+				'default' => $default,
+			);
+		}
+
+		return $out;
 	}
 
 	/**

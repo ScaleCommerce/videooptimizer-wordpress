@@ -213,6 +213,59 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( 'disablepictureinpicture', $html );
 	}
 
+	public function test_native_player_renders_subtitle_tracks_with_cors(): void {
+		$this->embed['tracks'] = array(
+			array(
+				'src'     => 'https://cdn.example/subs/de.vtt?v=2',
+				'srclang' => 'de',
+				'label'   => 'Deutsch',
+				'kind'    => 'captions',
+				'default' => true,
+			),
+			array(
+				'src'     => 'https://cdn.example/subs/en.vtt',
+				'srclang' => 'en',
+				'label'   => 'English "EN"',
+				'kind'    => 'subtitles',
+				'default' => false,
+			),
+		);
+		$html                  = $this->native_with_theme( array() );
+
+		$this->assertStringContainsString( ' crossorigin="anonymous"', $html );
+		$this->assertStringContainsString( '<track kind="captions" srclang="de" label="Deutsch" src="https://cdn.example/subs/de.vtt?v=2" default>', $html );
+		$this->assertStringContainsString( '<track kind="subtitles" srclang="en" label="English &quot;EN&quot;" src="https://cdn.example/subs/en.vtt">', $html );
+	}
+
+	public function test_native_lightbox_video_carries_tracks_too(): void {
+		$this->embed['tracks'] = array(
+			array(
+				'src'     => 'https://cdn.example/subs/de.vtt',
+				'srclang' => 'de',
+				'label'   => 'Deutsch',
+				'kind'    => 'subtitles',
+				'default' => false,
+			),
+		);
+		$html                  = $this->renderer->render(
+			'video',
+			array(
+				'uuid'         => self::UUID,
+				'player'       => 'native',
+				'presentation' => 'lightbox',
+			)
+		);
+
+		$this->assertStringContainsString( '<track kind="subtitles" srclang="de"', $html );
+	}
+
+	public function test_native_player_without_tracks_has_no_crossorigin(): void {
+		$html = $this->native_with_theme( array() );
+
+		$this->assertStringNotContainsString( 'crossorigin', $html );
+		$this->assertStringNotContainsString( '<track', $html );
+	}
+
 	public function test_hero_validates_colors_and_cta(): void {
 		$html = $this->renderer->render(
 			'background-hero',

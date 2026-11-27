@@ -458,7 +458,24 @@ class Renderer {
 			$sources .= '<source src="' . esc_url( $file['src'] ) . '" type="' . esc_attr( $file['type'] ) . '">';
 		}
 
-		return '<video' . self::attrs( $attrs ) . '>' . $sources . '</video>';
+		$tracks = '';
+		foreach ( (array) ( $embed['tracks'] ?? array() ) as $track ) {
+			$tracks .= '<track' . self::attrs(
+				array(
+					'kind'    => $track['kind'],
+					'srclang' => $track['srclang'],
+					'label'   => $track['label'],
+					'src'     => $track['src'],
+					'default' => $track['default'],
+				)
+			) . '>';
+		}
+		if ( '' !== $tracks ) {
+			// The CDN sends Access-Control-Allow-Origin: *; text tracks need a CORS request.
+			$attrs['crossorigin'] = 'anonymous';
+		}
+
+		return '<video' . self::attrs( $attrs ) . '>' . $sources . $tracks . '</video>';
 	}
 
 	/**
