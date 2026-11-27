@@ -422,8 +422,9 @@ class Renderer {
 
 		$direct = $eager || $autoload;
 		// interactive=false (pure design element) only applies to videos that start by themselves.
-		$static  = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
-		$preload = isset( $theme['preload'] ) && in_array( $theme['preload'], array( 'auto', 'metadata', 'none' ), true ) ? $theme['preload'] : 'auto';
+		$static = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		// Native players never buffer segments before playback: the theme's `auto` is capped at `metadata`.
+		$preload = isset( $theme['preload'] ) && 'none' === $theme['preload'] ? 'none' : 'metadata';
 
 		// Native controls cannot hide single buttons; these hints cover what browsers support.
 		$controls_list = array();
@@ -616,8 +617,8 @@ class Renderer {
 		}
 		$this->schema_printed[ $embed['uuid'] ] = true;
 
-		$name      = '' !== $name ? $name : $embed['title'];
-		$data      = array(
+		$name = '' !== $name ? $name : $embed['title'];
+		$data = array(
 			'@context'     => 'https://schema.org',
 			'@type'        => 'VideoObject',
 			'name'         => '' !== $name ? $name : __( 'Video', 'videooptimizer' ),
@@ -625,8 +626,9 @@ class Renderer {
 			'thumbnailUrl' => $embed['poster'],
 			'embedUrl'     => Settings::embed_base_url() . '/embed/' . rawurlencode( $embed['uuid'] ),
 		);
-		$post_date = get_post_time( 'c', true );
-		if ( is_string( $post_date ) ) {
+		// The embed's own upload date wins; the post date is the fallback.
+		$post_date = $embed['uploadDate'] ?? get_post_time( 'c', true );
+		if ( is_string( $post_date ) && '' !== $post_date ) {
 			$data['uploadDate'] = $post_date;
 		}
 		$duration = Embed::iso_duration( $embed['duration'] );

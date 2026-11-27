@@ -77,6 +77,13 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( '<b>', $html, 'title must be escaped' );
 	}
 
+	public function test_json_ld_uses_the_embed_upload_date_when_present(): void {
+		Functions\when( 'get_post_time' )->justReturn( '2020-01-01T00:00:00+00:00' );
+		$this->embed['uploadDate'] = '2026-05-04T10:00:00Z';
+
+		$this->assertStringContainsString( '"uploadDate":"2026-05-04T10:00:00Z"', $this->renderer->render( 'video', array( 'uuid' => self::UUID ) ) );
+	}
+
 	public function test_json_ld_is_printed_once_and_escaped(): void {
 		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID ) ) . $this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
 
@@ -137,7 +144,7 @@ final class RendererTest extends TestCase {
 			)
 		);
 
-		$this->assertStringContainsString( 'preload="auto"', $html );
+		$this->assertStringContainsString( 'preload="metadata"', $html );
 		$this->assertStringContainsString( ' autoplay muted', $html );
 	}
 
@@ -166,8 +173,9 @@ final class RendererTest extends TestCase {
 
 	public function test_theme_preload_applies_to_above_the_fold_video(): void {
 		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'metadata' ) ) );
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'auto' ) ), 'auto is capped' );
 		$this->assertStringContainsString( 'preload="none"', $this->native_with_theme( array( 'preload' => 'none' ) ) );
-		$this->assertStringContainsString( 'preload="auto"', $this->native_with_theme( array( 'preload' => 'bogus' ) ) );
+		$this->assertStringContainsString( 'preload="metadata"', $this->native_with_theme( array( 'preload' => 'bogus' ) ) );
 	}
 
 	public function test_theme_preload_never_wakes_a_deferred_video(): void {

@@ -18,7 +18,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ### Changed
 - The lightbox is a modal `<dialog>`: focus stays inside, Escape closes it, the page behind is inert (set by hand without `showModal()`) ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
-- The native player applies the theme's `preload`, `interactive`, `fullscreenButton`, `playbackSpeed` and `pictureInPicture` ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
+- JSON-LD `uploadDate` uses the embed's `uploadDate` when the API sends one.
+- The native player applies the theme's `preload` (`auto` capped at `metadata`), `interactive`, `fullscreenButton`, `playbackSpeed` and `pictureInPicture` ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
 
 ## [2.0.0] - 2026-11-27
 

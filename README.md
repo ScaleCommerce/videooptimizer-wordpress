@@ -105,7 +105,7 @@ The theme of the organization/library/video (VideoOptimizer app) is applied to t
 | `controls` | `controls` attribute |
 | `autoplay`, `mutedStart` | autoplay (always muted) / muted start |
 | `loopButton` | `loop` |
-| `preload` | `preload` for above-the-fold videos; deferred videos never preload |
+| `preload` | `none` stays `none`; `auto` and `metadata` become `metadata` for above-the-fold videos (native players never buffer segments before playback); deferred videos never preload. Only a prioritised background hero buffers eagerly |
 | `interactive: false` | `pointer-events: none` on videos that autoplay |
 | `fullscreenButton`, `playbackSpeed` | `controlslist="nofullscreen noplaybackrate"` |
 | `pictureInPicture` | `disablepictureinpicture` |
