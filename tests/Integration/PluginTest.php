@@ -26,7 +26,7 @@ final class PluginTest extends IntegrationTestCase {
 		$html = do_blocks( '<!-- wp:videooptimizer/video {"uuid":"' . self::UUID . '","align":"wide"} /-->' );
 
 		$this->assertMatchesRegularExpression( '~^<div class="[^"]*alignwide[^"]*wp-block-videooptimizer-video[^"]*vo-blocks~', $html );
-		$this->assertStringContainsString( 'data-vo-embed="https://videooptimizer.eu/embed/' . self::UUID, $html );
+		$this->assertStringContainsString( 'data-vo-embed="https://player.videooptimizer.eu/embed/' . self::UUID, $html );
 		$this->assertTrue( wp_style_is( 'videooptimizer-frontend', 'enqueued' ) );
 
 		// Second render of the same video: served from the transient, no extra API call.
@@ -83,7 +83,7 @@ final class PluginTest extends IntegrationTestCase {
 		update_post_meta( $id, Attachments::META_STATUS, 'ready' );
 		$html = do_blocks( $block );
 		$this->assertStringContainsString( 'videooptimizer--core-video', $html );
-		$this->assertStringContainsString( 'data-vo-autoload="https://videooptimizer.eu/embed/' . self::UUID, $html );
+		$this->assertStringContainsString( 'data-vo-autoload="https://player.videooptimizer.eu/embed/' . self::UUID, $html );
 		$this->assertStringContainsString( '<figcaption class="wp-element-caption">Caption</figcaption>', $html );
 		$this->assertStringNotContainsString( 'clip.mp4', $html );
 	}

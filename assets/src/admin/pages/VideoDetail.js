@@ -398,7 +398,7 @@ export default function VideoDetail( { uuid } ) {
 							<iframe
 								src={
 									video.embed_url ||
-									`https://videooptimizer.eu/embed/${ uuid }`
+									`https://player.videooptimizer.eu/embed/${ uuid }`
 								}
 								title={ videoTitle( video ) }
 								allow="autoplay; fullscreen; picture-in-picture"
