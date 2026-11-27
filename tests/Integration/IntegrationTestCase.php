@@ -116,6 +116,24 @@ abstract class IntegrationTestCase extends \WP_UnitTestCase {
 				)
 			);
 		}
+		if ( str_ends_with( $path, '/savings' ) ) {
+			return self::json(
+				200,
+				array(
+					'data' => array(
+						'traffic_available' => true,
+						'compression'       => array(
+							'videos'          => 4,
+							'original_bytes'  => 1000,
+							'encoded_bytes'   => 200,
+							'reduced_percent' => 80,
+						),
+						'range'             => null,
+						'all_time'          => array( 'saved_bytes' => 5000 ),
+					),
+				)
+			);
+		}
 		if ( str_ends_with( $path, '/tags' ) ) {
 			return self::json(
 				200,

@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { Button, Card, CardBody } from '@wordpress/components';
 import VideoBrowser from '../../components/VideoBrowser';
+import Savings from './Savings';
 
 const config = window.videooptimizerAdmin || {};
 
@@ -77,6 +78,7 @@ export default function VideosPage( { library = '' } ) {
 					) }
 				</a>
 			</p>
+			<Savings library={ library } />
 			<VideoBrowser
 				key={ library }
 				initialLibrary={ library }

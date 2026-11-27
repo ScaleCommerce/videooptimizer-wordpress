@@ -2,6 +2,7 @@
 	"assets/src/admin/index.js": "build/admin/index.js",
 	"assets/src/admin/notices.js": "build/admin/index.js",
 	"assets/src/admin/pages/Libraries.js": "build/admin/index.js",
+	"assets/src/admin/pages/Savings.js": "build/admin/index.js",
 	"assets/src/admin/pages/Send.js": "build/admin/index.js",
 	"assets/src/admin/pages/Settings.js": "build/admin/index.js",
 	"assets/src/admin/pages/SubtitleLanguages.js": "build/admin/index.js",
@@ -82,6 +83,7 @@
 		"build/blocks/spotlight/index.js",
 		"build/blocks/video-grid/index.js"
 	],
+	"assets/src/components/savings.js": "build/admin/index.js",
 	"assets/src/components/subtitles.js": "build/admin/index.js",
 	"assets/src/components/transfer.js": [
 		"build/admin/index.js",

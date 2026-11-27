@@ -115,6 +115,7 @@ class AdminController {
 			array( 'GET', '/encodings', 'list_encodings', 'upload_files' ),
 			array( 'GET', '/upload-library', 'upload_library', 'upload_files' ),
 
+			array( 'GET', '/savings', 'savings', 'upload_files' ),
 			array( 'GET', '/tags', 'list_tags', 'upload_files' ),
 			array( 'GET', '/subtitle-languages', 'list_subtitle_languages', 'upload_files' ),
 			array( 'POST', '/subtitle-languages', 'create_subtitle_language', 'manage_options' ),
@@ -487,6 +488,41 @@ class AdminController {
 	}
 
 	/* ---------------------------------------------------------------- Videos */
+
+	/**
+	 * Bandwidth and storage savings (optionally of a date range, one library or one video). Cached
+	 * for five minutes per filter: the numbers move slowly and the call is not free.
+	 *
+	 * @param \WP_REST_Request $request Request.
+	 * @return array<string, mixed>|\WP_Error
+	 */
+	private function savings( \WP_REST_Request $request ) {
+		$filters = array();
+		foreach ( array( 'from', 'to' ) as $key ) {
+			$value = (string) $request->get_param( $key );
+			if ( '' !== $value && ! preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ) {
+				return new \WP_Error( 'videooptimizer_invalid', __( 'Dates must look like 2026-11-27.', 'videooptimizer' ), array( 'status' => 400 ) );
+			}
+			$filters[ $key ] = '' !== $value ? $value : null;
+		}
+		$library = (string) $request->get_param( 'library_id' );
+		$video   = (string) $request->get_param( 'video_uuid' );
+		if ( ( '' !== $library && ! preg_match( '/^[A-Za-z0-9-]{1,64}$/', $library ) ) || ( '' !== $video && ! preg_match( '/^' . self::UUID . '$/', $video ) ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'Invalid library or video id.', 'videooptimizer' ), array( 'status' => 400 ) );
+		}
+		$filters['library_id'] = '' !== $library ? $library : null;
+		$filters['video_uuid'] = '' !== $video ? strtolower( $video ) : null;
+
+		$key    = 'videooptimizer_savings_' . md5( (string) wp_json_encode( $filters ) );
+		$cached = get_transient( $key );
+		if ( is_array( $cached ) ) {
+			return $cached;
+		}
+		$result = $this->client->get_savings( $filters['from'], $filters['to'], $filters['library_id'], $filters['video_uuid'] );
+		set_transient( $key, $result, 5 * MINUTE_IN_SECONDS );
+
+		return $result;
+	}
 
 	/**
 	 * The organization's tags.

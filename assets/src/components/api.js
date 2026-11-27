@@ -49,6 +49,19 @@ export const api = {
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 
+	savings: ( { libraryId = '', from = '', to = '' } = {} ) => {
+		const q = new URLSearchParams();
+		if ( libraryId ) {
+			q.set( 'library_id', libraryId );
+		}
+		if ( from && to ) {
+			q.set( 'from', from );
+			q.set( 'to', to );
+		}
+		const query = q.toString();
+		return get( '/savings' + ( query ? '?' + query : '' ) );
+	},
+
 	tags: () => get( '/tags' ),
 
 	subtitleLanguages: () => get( '/subtitle-languages' ),

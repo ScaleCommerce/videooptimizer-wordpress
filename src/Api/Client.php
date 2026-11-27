@@ -160,6 +160,32 @@ class Client {
 		$this->request( 'DELETE', '/subtitle-languages/' . rawurlencode( $code ) );
 	}
 
+	/**
+	 * Savings compared with serving the original files: file-size reduction of the encoded versions
+	 * and the (estimated) bandwidth saved. Covers the organization or one library or video.
+	 *
+	 * @param string|null $from       First UTC day of a range (YYYY-MM-DD, with `$to`).
+	 * @param string|null $to         Last UTC day, inclusive.
+	 * @param string|null $library_id Restrict to one library.
+	 * @param string|null $video_uuid Restrict to one video.
+	 * @return array<string, mixed> {traffic_available, compression, range, all_time}
+	 */
+	public function get_savings( ?string $from = null, ?string $to = null, ?string $library_id = null, ?string $video_uuid = null ): array {
+		$query = array_filter(
+			array(
+				'from'       => $from,
+				'to'         => $to,
+				'library_id' => $library_id,
+				'video_uuid' => $video_uuid,
+			),
+			static fn ( ?string $value ): bool => null !== $value && '' !== $value
+		);
+
+		$data = $this->request( 'GET', '/savings', null, $query )['body']['data'] ?? null;
+
+		return is_array( $data ) ? $data : array();
+	}
+
 	/* ---------------------------------------------------------------- Videos */
 
 	/**

@@ -75,4 +75,23 @@ final class AdminFeaturesTest extends IntegrationTestCase {
 		$this->assertStringContainsString( 'Hallo', $body );
 		$this->assertFalse( get_transient( 'videooptimizer_embed_' . self::UUID ), 'tracks live in the embed data' );
 	}
+
+	public function test_savings_are_served_and_cached(): void {
+		$this->login_as( 'editor' );
+		$this->configure_token();
+		delete_transient( 'videooptimizer_savings_' . md5( (string) wp_json_encode( array( 'from' => null, 'to' => null, 'library_id' => null, 'video_uuid' => null ) ) ) );
+
+		$first = $this->rest( 'GET', '/savings' );
+		$this->assertSame( 200, $first->get_status() );
+		$this->assertSame( 4, $first->get_data()['compression']['videos'] );
+		$this->rest( 'GET', '/savings' );
+
+		$this->assertCount( 1, array_filter( $this->api_calls, static fn ( array $c ): bool => str_ends_with( $c[1], '/savings' ) ), 'second call comes from the cache' );
+		$bad = new \WP_REST_Request( 'GET', '/videooptimizer/v1/savings' );
+		$bad->set_query_params( array( 'from' => 'yesterday' ) );
+		$this->assertSame( 400, rest_get_server()->dispatch( $bad )->get_status() );
+
+		$this->login_as( 'subscriber' );
+		$this->assertSame( 403, $this->rest( 'GET', '/savings' )->get_status() );
+	}
 }

@@ -494,4 +494,29 @@ final class ClientTest extends TestCase {
 			$this->assertStringContainsString( 'still', $e->user_message() );
 		}
 	}
+
+	public function test_savings_can_be_limited_to_a_range_a_library_or_a_video(): void {
+		$this->responses[] = $this->response(
+			200,
+			array(
+				'data' => array(
+					'traffic_available' => true,
+					'compression'       => array( 'videos' => 3 ),
+				),
+			)
+		);
+
+		$savings = $this->client()->get_savings( '2026-11-01', '2026-11-27', 'lib-1', 'e7ab89b1-b74f-42fd-b2a9-53bfe1d492a8' );
+
+		$this->assertSame( 3, $savings['compression']['videos'] );
+		$url = $this->requests[0][0];
+		$this->assertStringContainsString( '/savings?', $url );
+		$this->assertStringContainsString( 'from=2026-11-01', $url );
+		$this->assertStringContainsString( 'to=2026-11-27', $url );
+		$this->assertStringContainsString( 'library_id=lib-1', $url );
+		$this->assertStringContainsString( 'video_uuid=e7ab89b1-b74f-42fd-b2a9-53bfe1d492a8', $url );
+
+		$this->client()->get_savings();
+		$this->assertStringEndsWith( '/savings', $this->requests[1][0] );
+	}
 }

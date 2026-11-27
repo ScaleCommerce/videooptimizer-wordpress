@@ -442,3 +442,27 @@
 		}
 	}
 }
+
+.vo-savings {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+	gap: 12px;
+	margin-bottom: 16px;
+
+	&__label {
+		color: #757575;
+		font-size: 12px;
+	}
+
+	&__value {
+		margin-top: 4px;
+		font-size: 22px;
+		font-weight: 600;
+	}
+
+	&__note {
+		margin-top: 2px;
+		color: #757575;
+		font-size: 12px;
+	}
+}

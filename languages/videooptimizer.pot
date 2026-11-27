@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T21:45:57+00:00\n"
+"POT-Creation-Date: 2026-11-27T21:48:14+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -488,76 +488,84 @@ msgstr ""
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr ""
 
-#: src/Rest/AdminController.php:280
+#: src/Rest/AdminController.php:281
 msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN) and cannot be changed here."
 msgstr ""
 
-#: src/Rest/AdminController.php:284
+#: src/Rest/AdminController.php:285
 msgid "This does not look like a VideoOptimizer API token (vp_…)."
 msgstr ""
 
-#: src/Rest/AdminController.php:351
+#: src/Rest/AdminController.php:352
 msgid "Please enter a name."
 msgstr ""
 
-#: src/Rest/AdminController.php:425
+#: src/Rest/AdminController.php:426
 msgid "The encoding quality must be \"performance\" or \"quality\"."
 msgstr ""
 
-#: src/Rest/AdminController.php:430
+#: src/Rest/AdminController.php:431
 msgid "Please keep at least one codec and one resolution."
 msgstr ""
 
-#: src/Rest/AdminController.php:520
+#: src/Rest/AdminController.php:504
+msgid "Dates must look like 2026-11-27."
+msgstr ""
+
+#: src/Rest/AdminController.php:511
+msgid "Invalid library or video id."
+msgstr ""
+
+#: src/Rest/AdminController.php:556
 msgid "Filter by at most 5 metadata keys."
 msgstr ""
 
-#: src/Rest/AdminController.php:590
+#: src/Rest/AdminController.php:626
 msgid "Please enter a public https:// URL."
 msgstr ""
 
-#: src/Rest/AdminController.php:609
-#: src/Rest/AdminController.php:635
+#: src/Rest/AdminController.php:645
+#: src/Rest/AdminController.php:671
 msgid "Invalid upload request."
 msgstr ""
 
-#: src/Rest/AdminController.php:775
-#: src/Rest/AdminController.php:779
+#: src/Rest/AdminController.php:811
+#: src/Rest/AdminController.php:815
 #: assets/src/components/subtitles.js:16
 msgid "Please choose a .vtt or .srt file (up to 2 MB)."
 msgstr ""
 
-#: src/Rest/AdminController.php:782
+#: src/Rest/AdminController.php:818
 #: assets/src/components/subtitles.js:22
 msgid "The subtitle file is larger than 2 MB."
 msgstr ""
 
-#: src/Rest/AdminController.php:865
+#: src/Rest/AdminController.php:901
 msgid "Invalid frame."
 msgstr ""
 
-#: src/Rest/AdminController.php:883
+#: src/Rest/AdminController.php:919
 #: assets/src/components/uploader.js:172
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr ""
 
-#: src/Rest/AdminController.php:913
+#: src/Rest/AdminController.php:949
 msgid "Invalid poster source."
 msgstr ""
 
-#: src/Rest/AdminController.php:972
+#: src/Rest/AdminController.php:1008
 msgid "This video is no longer waiting for a decision."
 msgstr ""
 
-#: src/Rest/AdminController.php:975
+#: src/Rest/AdminController.php:1011
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr ""
 
-#: src/Rest/AdminController.php:1007
+#: src/Rest/AdminController.php:1043
 msgid "Invalid video id."
 msgstr ""
 
-#: src/Rest/AdminController.php:1038
+#: src/Rest/AdminController.php:1074
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr ""
 
@@ -771,6 +779,38 @@ msgstr ""
 #, js-format
 msgid "All %d videos of this library are deleted permanently and disappear from every page that embeds them."
 msgstr ""
+
+#: assets/src/admin/pages/Savings.js:49
+msgid "Optimized videos"
+msgstr ""
+
+#: assets/src/admin/pages/Savings.js:53
+msgid "Storage saved"
+msgstr ""
+
+#. translators: 1: size of the original files, 2: size of the encoded versions
+#: assets/src/admin/pages/Savings.js:57
+#, js-format
+msgid "%1$s original → %2$s encoded"
+msgstr ""
+
+#: assets/src/admin/pages/Savings.js:64
+msgid "Bandwidth saved (estimated)"
+msgstr ""
+
+#. translators: %s: percentage
+#: assets/src/admin/pages/Savings.js:71
+#, js-format
+msgid "%s of the traffic since the start"
+msgstr ""
+
+#. translators: %d: number of days
+#: assets/src/admin/pages/Savings.js:83
+#, js-format
+msgid "Bandwidth saved, last %d day"
+msgid_plural "Bandwidth saved, last %d days"
+msgstr[0] ""
+msgstr[1] ""
 
 #: assets/src/admin/pages/Send.js:121
 msgid "Send media library videos to VideoOptimizer"
@@ -1284,39 +1324,39 @@ msgstr ""
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:11
+#: assets/src/admin/pages/Videos.js:12
 msgid "Welcome to VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:13
+#: assets/src/admin/pages/Videos.js:14
 msgid "Deliver your videos adaptively from a European CDN — fast on every device, without YouTube branding or tracking."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:20
+#: assets/src/admin/pages/Videos.js:21
 msgid "Create an organization API token in VideoOptimizer (Organization → API tokens)."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:33
+#: assets/src/admin/pages/Videos.js:34
 msgid "Paste it under Settings and click \"Save & test\"."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:39
+#: assets/src/admin/pages/Videos.js:40
 msgid "Upload videos here — or send existing ones from the media library — and add them with the VideoOptimizer blocks, the [videooptimizer] shortcode or the Elementor widget."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:47
+#: assets/src/admin/pages/Videos.js:48
 msgid "Connect VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:51
+#: assets/src/admin/pages/Videos.js:52
 msgid "Please ask an administrator to connect VideoOptimizer."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:69
+#: assets/src/admin/pages/Videos.js:70
 msgid "Upload videos (drag & drop works too), then use them in blocks, the shortcode, Elementor or as WooCommerce product videos. Click a video for poster, options and embed code."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:74
+#: assets/src/admin/pages/Videos.js:75
 msgid "Send existing media library videos"
 msgstr ""
 
@@ -1631,7 +1671,7 @@ msgstr ""
 msgid "The request failed."
 msgstr ""
 
-#: assets/src/components/api.js:194
+#: assets/src/components/api.js:207
 msgid "Untitled video"
 msgstr ""
 

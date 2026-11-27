@@ -446,53 +446,53 @@ msgstr "Noch kein Video ausgewählt."
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr "Das Video %s konnte nicht geladen werden (gelöscht oder VideoOptimizer nicht erreichbar). Dieser Hinweis ist nur für Redakteure sichtbar."
 
-#: src/Rest/AdminController.php:280
+#: src/Rest/AdminController.php:281
 msgid "The token is defined in wp-config.php (VIDEOOPTIMIZER_API_TOKEN) and cannot be changed here."
 msgstr "Das Token ist in der wp-config.php definiert (VIDEOOPTIMIZER_API_TOKEN) und kann hier nicht geändert werden."
 
-#: src/Rest/AdminController.php:284
+#: src/Rest/AdminController.php:285
 msgid "This does not look like a VideoOptimizer API token (vp_…)."
 msgstr "Das sieht nicht nach einem VideoOptimizer-API-Token (vp_…) aus."
 
-#: src/Rest/AdminController.php:351
+#: src/Rest/AdminController.php:352
 msgid "Please enter a name."
 msgstr "Bitte geben Sie einen Namen ein."
 
-#: src/Rest/AdminController.php:590
+#: src/Rest/AdminController.php:626
 msgid "Please enter a public https:// URL."
 msgstr "Bitte geben Sie eine öffentliche https://-URL ein."
 
-#: src/Rest/AdminController.php:609
-#: src/Rest/AdminController.php:635
+#: src/Rest/AdminController.php:645
+#: src/Rest/AdminController.php:671
 msgid "Invalid upload request."
 msgstr "Ungültige Upload-Anfrage."
 
-#: src/Rest/AdminController.php:865
+#: src/Rest/AdminController.php:901
 msgid "Invalid frame."
 msgstr "Ungültiges Standbild."
 
-#: src/Rest/AdminController.php:883
+#: src/Rest/AdminController.php:919
 #: assets/src/components/uploader.js:172
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr "Bitte wählen Sie ein JPEG-, PNG- oder WebP-Bild."
 
-#: src/Rest/AdminController.php:913
+#: src/Rest/AdminController.php:949
 msgid "Invalid poster source."
 msgstr "Ungültige Poster-Quelle."
 
-#: src/Rest/AdminController.php:972
+#: src/Rest/AdminController.php:1008
 msgid "This video is no longer waiting for a decision."
 msgstr "Für dieses Video steht keine Entscheidung mehr aus."
 
-#: src/Rest/AdminController.php:975
+#: src/Rest/AdminController.php:1011
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr "Sie dürfen keine Videos in VideoOptimizer löschen."
 
-#: src/Rest/AdminController.php:1007
+#: src/Rest/AdminController.php:1043
 msgid "Invalid video id."
 msgstr "Ungültige Video-ID."
 
-#: src/Rest/AdminController.php:1038
+#: src/Rest/AdminController.php:1074
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr "Diese Website ist nicht öffentlich erreichbar, daher wird die Datei stattdessen aus Ihrem Browser hochgeladen."
 
@@ -1119,39 +1119,39 @@ msgstr "Endgültig löschen"
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr "Das Video wird aus VideoOptimizer und dem CDN entfernt. Seiten, die es einbinden, zeigen es nicht mehr an. Dateien in der Mediathek bleiben unberührt."
 
-#: assets/src/admin/pages/Videos.js:11
+#: assets/src/admin/pages/Videos.js:12
 msgid "Welcome to VideoOptimizer"
 msgstr "Willkommen bei VideoOptimizer"
 
-#: assets/src/admin/pages/Videos.js:13
+#: assets/src/admin/pages/Videos.js:14
 msgid "Deliver your videos adaptively from a European CDN — fast on every device, without YouTube branding or tracking."
 msgstr "Liefern Sie Ihre Videos adaptiv aus einem europäischen CDN aus – schnell auf jedem Gerät, ohne YouTube-Branding und Tracking."
 
-#: assets/src/admin/pages/Videos.js:20
+#: assets/src/admin/pages/Videos.js:21
 msgid "Create an organization API token in VideoOptimizer (Organization → API tokens)."
 msgstr "Erstellen Sie in VideoOptimizer ein Organisations-API-Token (Organisation → API-Tokens)."
 
-#: assets/src/admin/pages/Videos.js:33
+#: assets/src/admin/pages/Videos.js:34
 msgid "Paste it under Settings and click \"Save & test\"."
 msgstr "Fügen Sie es unter „Einstellungen“ ein und klicken Sie auf „Speichern & testen“."
 
-#: assets/src/admin/pages/Videos.js:39
+#: assets/src/admin/pages/Videos.js:40
 msgid "Upload videos here — or send existing ones from the media library — and add them with the VideoOptimizer blocks, the [videooptimizer] shortcode or the Elementor widget."
 msgstr "Laden Sie hier Videos hoch – oder senden Sie vorhandene aus der Mediathek – und binden Sie sie mit den VideoOptimizer-Blöcken, dem Shortcode [videooptimizer] oder dem Elementor-Widget ein."
 
-#: assets/src/admin/pages/Videos.js:47
+#: assets/src/admin/pages/Videos.js:48
 msgid "Connect VideoOptimizer"
 msgstr "VideoOptimizer verbinden"
 
-#: assets/src/admin/pages/Videos.js:51
+#: assets/src/admin/pages/Videos.js:52
 msgid "Please ask an administrator to connect VideoOptimizer."
 msgstr "Bitte bitten Sie einen Administrator, VideoOptimizer zu verbinden."
 
-#: assets/src/admin/pages/Videos.js:69
+#: assets/src/admin/pages/Videos.js:70
 msgid "Upload videos (drag & drop works too), then use them in blocks, the shortcode, Elementor or as WooCommerce product videos. Click a video for poster, options and embed code."
 msgstr "Laden Sie Videos hoch (auch per Drag & Drop) und verwenden Sie sie in Blöcken, im Shortcode, in Elementor oder als WooCommerce-Produktvideos. Ein Klick auf ein Video öffnet Poster, Optionen und Einbettungscode."
 
-#: assets/src/admin/pages/Videos.js:74
+#: assets/src/admin/pages/Videos.js:75
 msgid "Send existing media library videos"
 msgstr "Vorhandene Mediathek-Videos senden"
 
@@ -1306,7 +1306,7 @@ msgstr "Für Screenreader und Suchmaschinen. Standardmäßig der Videotitel."
 msgid "The request failed."
 msgstr "Die Anfrage ist fehlgeschlagen."
 
-#: assets/src/components/api.js:194
+#: assets/src/components/api.js:207
 msgid "Untitled video"
 msgstr "Unbenanntes Video"
 
@@ -1682,7 +1682,7 @@ msgstr "einbetten"
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr "Verlinken Sie eine Videodatei (z. B. https://…/video.mp4), keine Videoseite wie YouTube."
 
-#: src/Rest/AdminController.php:425
+#: src/Rest/AdminController.php:426
 msgid "The encoding quality must be \"performance\" or \"quality\"."
 msgstr "Die Encoding-Qualität muss „performance“ oder „quality“ sein."
 
@@ -1707,7 +1707,7 @@ msgstr "Link zur Videodatei selbst, nicht zu einer Videoseite wie YouTube."
 msgid "The re-encode limit has been reached (5 per hour). Please try again later."
 msgstr "Das Limit für erneutes Encodieren ist erreicht (5 pro Stunde). Bitte versuchen Sie es später erneut."
 
-#: src/Rest/AdminController.php:430
+#: src/Rest/AdminController.php:431
 msgid "Please keep at least one codec and one resolution."
 msgstr "Bitte behalten Sie mindestens einen Codec und eine Auflösung bei."
 
@@ -1774,7 +1774,7 @@ msgstr "Ein Metadaten-Wert hat höchstens 64 Zeichen."
 msgid "A video can have at most 10 metadata keys."
 msgstr "Ein Video kann höchstens 10 Metadaten-Schlüssel haben."
 
-#: src/Rest/AdminController.php:520
+#: src/Rest/AdminController.php:556
 msgid "Filter by at most 5 metadata keys."
 msgstr "Filtern Sie nach höchstens 5 Metadaten-Schlüsseln."
 
@@ -1861,13 +1861,13 @@ msgstr "Bitte geben Sie einen gültigen Sprachcode wie de oder en-US ein."
 msgid "The kind must be \"subtitles\" or \"captions\"."
 msgstr "Die Art muss „subtitles“ oder „captions“ sein."
 
-#: src/Rest/AdminController.php:775
-#: src/Rest/AdminController.php:779
+#: src/Rest/AdminController.php:811
+#: src/Rest/AdminController.php:815
 #: assets/src/components/subtitles.js:16
 msgid "Please choose a .vtt or .srt file (up to 2 MB)."
 msgstr "Bitte wählen Sie eine .vtt- oder .srt-Datei (bis 2 MB)."
 
-#: src/Rest/AdminController.php:782
+#: src/Rest/AdminController.php:818
 #: assets/src/components/subtitles.js:22
 msgid "The subtitle file is larger than 2 MB."
 msgstr "Die Untertiteldatei ist größer als 2 MB."
@@ -2030,3 +2030,43 @@ msgstr "Untertitel löschen"
 #, js-format
 msgid "The %s subtitle is removed from the video and the CDN."
 msgstr "Der Untertitel „%s“ wird vom Video und vom CDN entfernt."
+
+#: src/Rest/AdminController.php:504
+msgid "Dates must look like 2026-11-27."
+msgstr "Datumsangaben müssen wie 2026-11-27 aussehen."
+
+#: src/Rest/AdminController.php:511
+msgid "Invalid library or video id."
+msgstr "Ungültige Bibliotheks- oder Video-ID."
+
+#: assets/src/admin/pages/Savings.js:49
+msgid "Optimized videos"
+msgstr "Optimierte Videos"
+
+#: assets/src/admin/pages/Savings.js:53
+msgid "Storage saved"
+msgstr "Speicher gespart"
+
+#. translators: 1: size of the original files, 2: size of the encoded versions
+#: assets/src/admin/pages/Savings.js:57
+#, js-format
+msgid "%1$s original → %2$s encoded"
+msgstr "%1$s Original → %2$s encodiert"
+
+#: assets/src/admin/pages/Savings.js:64
+msgid "Bandwidth saved (estimated)"
+msgstr "Gesparte Bandbreite (geschätzt)"
+
+#. translators: %s: percentage
+#: assets/src/admin/pages/Savings.js:71
+#, js-format
+msgid "%s of the traffic since the start"
+msgstr "%s des Datenverkehrs seit Beginn"
+
+#. translators: %d: number of days
+#: assets/src/admin/pages/Savings.js:83
+#, js-format
+msgid "Bandwidth saved, last %d day"
+msgid_plural "Bandwidth saved, last %d days"
+msgstr[0] "Gesparte Bandbreite, letzter %d Tag"
+msgstr[1] "Gesparte Bandbreite, letzte %d Tage"
