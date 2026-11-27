@@ -64,6 +64,41 @@ final class PluginTest extends IntegrationTestCase {
 		$this->assertSame( 'lib-1', $libraries->get_data()[0]['id'] );
 	}
 
+	public function test_library_encoding_quality_is_forwarded_and_validated(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+
+		$update = $this->rest( 'PATCH', '/libraries/lib-1', array( 'name' => 'Main', 'encoding_quality' => 'quality', 'encoding_tier' => 'legacy' ) );
+		$this->assertSame( 200, $update->get_status() );
+		$sent = json_decode( $this->api_bodies[0], true );
+		$this->assertSame( 'quality', $sent['encoding_quality'] );
+		$this->assertArrayNotHasKey( 'encoding_tier', $sent );
+
+		$create = $this->rest( 'POST', '/libraries', array( 'name' => 'New', 'encoding_quality' => 'performance' ) );
+		$this->assertSame( 'performance', json_decode( end( $this->api_bodies ), true )['encoding_quality'] );
+		$this->assertSame( 200, $create->get_status() );
+
+		$calls = count( $this->api_calls );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'ultra' ) )->get_status() );
+		$this->assertSame( 400, $this->rest( 'POST', '/libraries', array( 'name' => 'X', 'encoding_quality' => 'ultra' ) )->get_status() );
+		$this->assertCount( $calls, $this->api_calls, 'invalid quality never reaches the API' );
+	}
+
+	public function test_reprocess_sends_force_only_when_requested(): void {
+		$this->login_as( 'administrator' );
+		$this->configure_token();
+
+		$this->assertSame( 200, $this->rest( 'POST', '/libraries/lib-1/reprocess' )->get_status() );
+		$this->assertSame( '', $this->api_bodies[0] );
+
+		$forced = $this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => true ) );
+		$this->assertSame( 2, $forced->get_data()['queued'] );
+		$this->assertSame( array( 'force' => true ), json_decode( $this->api_bodies[1], true ) );
+
+		$this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => 'yes' ) );
+		$this->assertSame( '', $this->api_bodies[2], 'only a real boolean true forces' );
+	}
+
 	public function test_ingest_requires_https(): void {
 		$this->login_as( 'administrator' );
 		$this->configure_token();

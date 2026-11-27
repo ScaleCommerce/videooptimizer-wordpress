@@ -99,11 +99,13 @@ class Client {
 	/**
 	 * Re-queues encoding of every video in a (media-managed) library.
 	 *
-	 * @param string $id Library id.
+	 * @param string $id    Library id.
+	 * @param bool   $force Also re-encode renditions that are already finished (needed after changing
+	 *                      the encoding quality; the API allows 5 per hour).
 	 * @return array<string, mixed> {queued}
 	 */
-	public function reprocess_library( string $id ): array {
-		return $this->request_data( 'POST', '/libraries/' . rawurlencode( $id ) . '/reprocess' );
+	public function reprocess_library( string $id, bool $force = false ): array {
+		return $this->request_data( 'POST', '/libraries/' . rawurlencode( $id ) . '/reprocess', $force ? array( 'force' => true ) : null );
 	}
 
 	/**

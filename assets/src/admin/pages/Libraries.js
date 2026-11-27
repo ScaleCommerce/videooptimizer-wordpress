@@ -7,6 +7,7 @@ import {
 	CheckboxControl,
 	Modal,
 	Notice,
+	SelectControl,
 	Spinner,
 	TextControl,
 	TextareaControl,
@@ -40,14 +41,39 @@ function selectable( option, library, kind ) {
 	return option.available !== false;
 }
 
+/**
+ * Encoding quality options (API field `encoding_quality`).
+ *
+ * @return {Array<{value: string, label: string}>} Select options.
+ */
+const qualityOptions = () => [
+	{
+		value: 'performance',
+		label: __( 'Performance (smaller files)', 'videooptimizer' ),
+	},
+	{
+		value: 'quality',
+		label: __( 'Quality (higher bitrate)', 'videooptimizer' ),
+	},
+];
+
+const QUALITY_HELP = () =>
+	__(
+		'Changing the quality only affects new uploads until the existing videos are re-encoded.',
+		'videooptimizer'
+	);
+
 function Ladder( { library, encodings, onSaved } ) {
 	const [ codecs, setCodecs ] = useState( csv( library.codec ) );
 	const [ resolutions, setResolutions ] = useState(
 		csv( library.resolutions )
 	);
 	const [ saving, setSaving ] = useState( false );
+	const storedQuality = library.encoding_quality || 'performance';
+	const [ quality, setQuality ] = useState( storedQuality );
 	const [ changed, setChanged ] = useState( false );
 	const [ offerReprocess, setOfferReprocess ] = useState( false );
+	const [ offerForce, setOfferForce ] = useState( false );
 	const [ confirming, setConfirming ] = useState( false );
 	const notify = useNotify();
 	const readOnly = library.media_managed === false;
@@ -64,8 +90,11 @@ function Ladder( { library, encodings, onSaved } ) {
 			.filter( ( k ) => keys.includes( k ) )
 			.join( ',' );
 
-	const reprocess = () =>
-		api.reprocessLibrary( library.id ).then( ( r ) => {
+	// A changed quality needs a forced run, otherwise finished renditions are kept as they are.
+	const qualityChanged = quality !== storedQuality;
+
+	const reprocess = ( force ) =>
+		api.reprocessLibrary( library.id, force ).then( ( r ) => {
 			notify(
 				sprintf(
 					/* translators: %d: number of videos */
@@ -87,19 +116,22 @@ function Ladder( { library, encodings, onSaved } ) {
 	 * @param {boolean} reencode Re-encode the existing videos right away.
 	 */
 	const save = ( reencode ) => {
+		const force = qualityChanged;
 		setConfirming( false );
 		setSaving( true );
 		api.updateLibrary( library.id, {
 			codec: ordered( codecs, encodings.codecs ),
 			resolutions: ordered( resolutions, encodings.resolutions ),
+			...( qualityChanged ? { encoding_quality: quality } : {} ),
 		} )
 			.then( ( updated ) => {
 				setChanged( false );
 				onSaved( updated );
 				if ( reencode ) {
-					return reprocess();
+					return reprocess( force );
 				}
 				notify( __( 'Encoding settings saved.', 'videooptimizer' ) );
+				setOfferForce( force );
 				setOfferReprocess( library.video_count > 0 );
 			} )
 			.catch( ( e ) => notify( e.message, 'error' ) )
@@ -150,6 +182,19 @@ function Ladder( { library, encodings, onSaved } ) {
 					) }
 				</Notice>
 			) : null }
+			<SelectControl
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
+				label={ __( 'Encoding quality', 'videooptimizer' ) }
+				help={ QUALITY_HELP() }
+				value={ quality }
+				options={ qualityOptions() }
+				disabled={ readOnly }
+				onChange={ ( value ) => {
+					setQuality( value );
+					setChanged( true );
+				} }
+			/>
 			<div className="vo-ladder__groups">
 				{ group( 'codecs', codecs, setCodecs, encodings.codecs ) }
 				{ group(
@@ -185,7 +230,7 @@ function Ladder( { library, encodings, onSaved } ) {
 					<Button
 						variant="link"
 						onClick={ () =>
-							reprocess().catch( ( e ) =>
+							reprocess( offerForce ).catch( ( e ) =>
 								notify( e.message, 'error' )
 							)
 						}
@@ -254,6 +299,7 @@ function LibraryModal( { library, onClose, onSaved } ) {
 	const [ description, setDescription ] = useState(
 		( library && library.description ) || ''
 	);
+	const [ quality, setQuality ] = useState( 'performance' );
 	const [ busy, setBusy ] = useState( false );
 	const [ error, setError ] = useState( '' );
 
@@ -262,7 +308,11 @@ function LibraryModal( { library, onClose, onSaved } ) {
 		setError( '' );
 		const request = library
 			? api.updateLibrary( library.id, { name, description } )
-			: api.createLibrary( { name, description } );
+			: api.createLibrary( {
+					name,
+					description,
+					encoding_quality: quality,
+			  } );
 		request
 			.then( onSaved )
 			.catch( ( e ) => setError( e.message ) )
@@ -296,6 +346,16 @@ function LibraryModal( { library, onClose, onSaved } ) {
 				value={ description }
 				onChange={ setDescription }
 			/>
+			{ ! library ? (
+				<SelectControl
+					__nextHasNoMarginBottom
+					__next40pxDefaultSize
+					label={ __( 'Encoding quality', 'videooptimizer' ) }
+					value={ quality }
+					options={ qualityOptions() }
+					onChange={ setQuality }
+				/>
+			) : null }
 			<div className="vo-modal-actions">
 				<Button variant="tertiary" onClick={ onClose }>
 					{ __( 'Cancel', 'videooptimizer' ) }

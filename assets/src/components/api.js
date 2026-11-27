@@ -38,8 +38,11 @@ export const api = {
 	createLibrary: ( data ) => post( '/libraries', data ),
 	updateLibrary: ( id, data ) => patch( '/libraries/' + enc( id ), data ),
 	deleteLibrary: ( id ) => del( '/libraries/' + enc( id ) ),
-	reprocessLibrary: ( id ) =>
-		post( '/libraries/' + enc( id ) + '/reprocess' ),
+	reprocessLibrary: ( id, force = false ) =>
+		post(
+			'/libraries/' + enc( id ) + '/reprocess',
+			force ? { force } : {}
+		),
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 

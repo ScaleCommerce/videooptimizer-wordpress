@@ -181,6 +181,15 @@ final class ClientTest extends TestCase {
 		}
 	}
 
+	public function test_reprocess_sends_force_only_when_requested(): void {
+		$this->client()->reprocess_library( 'lib' );
+		$this->client()->reprocess_library( 'lib', true );
+
+		$this->assertStringEndsWith( '/libraries/lib/reprocess', $this->requests[0][0] );
+		$this->assertArrayNotHasKey( 'body', $this->requests[0][1] );
+		$this->assertSame( '{"force":true}', $this->requests[1][1]['body'] );
+	}
+
 	public function test_encodings_are_not_unwrapped(): void {
 		$this->responses[] = $this->response( 200, array( 'codecs' => array( array( 'key' => 'h264' ) ) ) );
 
