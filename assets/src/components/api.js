@@ -4,6 +4,7 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
+import { PAGE_SIZE } from './paging';
 
 const BASE = '/videooptimizer/v1';
 const enc = encodeURIComponent;
@@ -48,8 +49,64 @@ export const api = {
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 
-	videosPage: ( { libraryId = '', cursor = '', limit = 100 } = {} ) => {
+	savings: ( { libraryId = '', from = '', to = '' } = {} ) => {
+		const q = new URLSearchParams();
+		if ( libraryId ) {
+			q.set( 'library_id', libraryId );
+		}
+		if ( from && to ) {
+			q.set( 'from', from );
+			q.set( 'to', to );
+		}
+		const query = q.toString();
+		return get( '/savings' + ( query ? '?' + query : '' ) );
+	},
+
+	tags: () => get( '/tags' ),
+
+	subtitleLanguages: () => get( '/subtitle-languages' ),
+	createSubtitleLanguage: ( data ) => post( '/subtitle-languages', data ),
+	deleteSubtitleLanguage: ( code ) =>
+		del( '/subtitle-languages/' + enc( code ) ),
+	subtitles: ( uuid ) => get( '/videos/' + enc( uuid ) + '/subtitles' ),
+	uploadSubtitle: (
+		uuid,
+		file,
+		{ language, kind = '', isDefault = null }
+	) => {
+		const form = new window.FormData();
+		form.append( 'file', file, file.name );
+		form.append( 'language', language );
+		if ( kind ) {
+			form.append( 'kind', kind );
+		}
+		if ( typeof isDefault === 'boolean' ) {
+			form.append( 'is_default', isDefault ? 'true' : 'false' );
+		}
+		return request( '/videos/' + enc( uuid ) + '/subtitles', {
+			method: 'POST',
+			body: form,
+		} );
+	},
+	downloadSubtitle: ( uuid, language ) =>
+		get( '/videos/' + enc( uuid ) + '/subtitles/' + enc( language ) ),
+	deleteSubtitle: ( uuid, language ) =>
+		del( '/videos/' + enc( uuid ) + '/subtitles/' + enc( language ) ),
+
+	videosPage: ( {
+		libraryId = '',
+		cursor = '',
+		limit = PAGE_SIZE,
+		tags = [],
+		metadata = {},
+	} = {} ) => {
 		const q = new URLSearchParams( { limit: String( limit ) } );
+		if ( tags.length ) {
+			q.set( 'tags', tags.join( ',' ) );
+		}
+		Object.entries( metadata ).forEach( ( [ key, value ] ) =>
+			q.set( 'metadata[' + key + ']', value )
+		);
 		if ( libraryId ) {
 			q.set( 'library_id', libraryId );
 		}
@@ -92,32 +149,6 @@ export const api = {
 	unlinkAttachment: ( id ) => del( '/attachments/' + id + '/link' ),
 	sendAttachmentUrl: ( id ) => post( '/attachments/' + id + '/send-url' ),
 };
-
-/**
- * Loads every video (following the cursor), calling onPage after each page so lists can render
- * progressively.
- *
- * @param {Object}   args
- * @param {string}   args.libraryId Optional library filter.
- * @param {Function} args.onPage    Called with the items loaded so far.
- * @return {Promise<Array>} All videos.
- */
-export async function loadAllVideos( { libraryId = '', onPage } = {} ) {
-	let cursor = '';
-	let items = [];
-	for ( let page = 0; page < 100; page++ ) {
-		const res = await api.videosPage( { libraryId, cursor } );
-		items = items.concat( ( res && res.items ) || [] );
-		if ( onPage ) {
-			onPage( items );
-		}
-		if ( ! res || ! res.next_cursor || res.next_cursor === cursor ) {
-			break;
-		}
-		cursor = res.next_cursor;
-	}
-	return items;
-}
 
 // Per-page cache for single video lookups (block editor, pickers).
 const videoCache = new Map();

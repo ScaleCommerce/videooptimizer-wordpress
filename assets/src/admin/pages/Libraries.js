@@ -14,7 +14,9 @@ import {
 } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
 import { api, formatBytes } from '../../components/api';
+import { optionState } from '../../components/ladder';
 import { resetLibraries } from '../../components/VideoBrowser';
+import { useGuardedAction } from '../../components/busy';
 import { ConfirmModal } from '../../components/ui';
 import { useNotify } from '../notices';
 
@@ -23,23 +25,6 @@ const csv = ( value ) =>
 		.split( ',' )
 		.map( ( s ) => s.trim() )
 		.filter( Boolean );
-
-/**
- * An option can be enabled when it is on the library allowlist (available_*), or — when that list
- * is empty — when the organization has it available. Options already on the library stay.
- *
- * @param {Object} option  Encoding option {key, available}.
- * @param {Object} library Library.
- * @param {string} kind    'codecs' | 'resolutions'.
- * @return {boolean} Whether the option may be enabled.
- */
-function selectable( option, library, kind ) {
-	const allow = library[ `available_${ kind }` ] || [];
-	if ( allow.length ) {
-		return allow.includes( option.key );
-	}
-	return option.available !== false;
-}
 
 /**
  * Encoding quality options (API field `encoding_quality`).
@@ -98,6 +83,7 @@ function Ladder( { library, encodings, onSaved } ) {
 	const encodingsLoaded =
 		encodings.codecs.length > 0 && encodings.resolutions.length > 0;
 
+	const [ reprocessing, runReprocess ] = useGuardedAction();
 	const reprocess = ( force ) =>
 		api.reprocessLibrary( library.id, force ).then( ( r ) => {
 			notify(
@@ -159,7 +145,8 @@ function Ladder( { library, encodings, onSaved } ) {
 			</legend>
 			{ options.map( ( option ) => {
 				const on = list.includes( option.key );
-				const can = on || selectable( option, library, kind );
+				const state = optionState( option, library, kind );
+				const can = on || state.selectable;
 				return (
 					<div className="vo-ladder__option" key={ option.key }>
 						<CheckboxControl
@@ -173,7 +160,21 @@ function Ladder( { library, encodings, onSaved } ) {
 								toggle( list, setList, option.key, value )
 							}
 						/>
-						{ option.access === 'addon' ? (
+						{ state.locked ? (
+							<span
+								className="vo-badge vo-badge--none"
+								title={ __(
+									'A paid add-on that your organization has not unlocked yet. Unlock it in VideoOptimizer to use it.',
+									'videooptimizer'
+								) }
+							>
+								{ __(
+									'Add-on not unlocked',
+									'videooptimizer'
+								) }
+							</span>
+						) : null }
+						{ ! state.locked && option.access === 'addon' ? (
 							<span className="vo-badge">
 								{ __( 'Add-on', 'videooptimizer' ) }
 							</span>
@@ -248,9 +249,13 @@ function Ladder( { library, encodings, onSaved } ) {
 					/>
 					<Button
 						variant="link"
+						isBusy={ reprocessing }
+						disabled={ reprocessing }
 						onClick={ () =>
-							reprocess( offerForce ).catch( ( e ) =>
-								notify( e.message, 'error' )
+							runReprocess( () =>
+								reprocess( offerForce ).catch( ( e ) =>
+									notify( e.message, 'error' )
+								)
 							)
 						}
 					>
@@ -332,24 +337,23 @@ function LibraryModal( { library, onClose, onSaved } ) {
 		( library && library.description ) || ''
 	);
 	const [ quality, setQuality ] = useState( 'performance' );
-	const [ busy, setBusy ] = useState( false );
+	const [ busy, run ] = useGuardedAction();
 	const [ error, setError ] = useState( '' );
 
-	const save = () => {
-		setBusy( true );
-		setError( '' );
-		const request = library
-			? api.updateLibrary( library.id, { name, description } )
-			: api.createLibrary( {
-					name,
-					description,
-					encoding_quality: quality,
-			  } );
-		request
-			.then( onSaved )
-			.catch( ( e ) => setError( e.message ) )
-			.finally( () => setBusy( false ) );
-	};
+	const save = () =>
+		run( () => {
+			setError( '' );
+			const request = library
+				? api.updateLibrary( library.id, { name, description } )
+				: api.createLibrary( {
+						name,
+						description,
+						encoding_quality: quality,
+				  } );
+			return request
+				.then( onSaved )
+				.catch( ( e ) => setError( e.message ) );
+		} );
 
 	return (
 		<Modal
@@ -398,9 +402,16 @@ function LibraryModal( { library, onClose, onSaved } ) {
 					isBusy={ busy }
 					disabled={ busy || ! name.trim() }
 				>
-					{ library
-						? __( 'Save', 'videooptimizer' )
-						: __( 'Create library', 'videooptimizer' ) }
+					{ busy && ! library
+						? __( 'Creating…', 'videooptimizer' )
+						: null }
+					{ ! busy || library
+						? [
+								library
+									? __( 'Save', 'videooptimizer' )
+									: __( 'Create library', 'videooptimizer' ),
+						  ]
+						: null }
 				</Button>
 			</div>
 		</Modal>

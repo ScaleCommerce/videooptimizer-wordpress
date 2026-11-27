@@ -15,7 +15,8 @@ import {
 	DropZone,
 } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { api, isVideoPlatformUrl, loadAllVideos, primeVideoCache } from './api';
+import { api, isVideoPlatformUrl, primeVideoCache } from './api';
+import { appendPage, mergeFirstPage, replaceVideo } from './paging';
 import { uploadVideo, pollVideo, createSignal } from './uploader';
 import { ProgressBar, VideoCard } from './ui';
 
@@ -29,6 +30,22 @@ const loadLibraries = () => {
 	}
 	return libraryPromise;
 };
+
+let tagPromise = null;
+const loadTags = () => {
+	if ( ! tagPromise ) {
+		tagPromise = api.tags().catch( () => {
+			tagPromise = null;
+			return [];
+		} );
+	}
+	return tagPromise;
+};
+
+/** Drops the cached tag list (after editing tags). */
+export function resetTags() {
+	tagPromise = null;
+}
 
 /** Drops the cached library list (after creating/editing libraries). */
 export function resetLibraries() {
@@ -75,12 +92,20 @@ export function NotConfigured( { error } ) {
 	);
 }
 
+const POLL_BATCH = 12;
+
 function uploadLabel( upload ) {
+	if ( upload.status === 'completing' ) {
+		return __( 'Finishing upload…', 'videooptimizer' );
+	}
 	if ( upload.status === 'processing' ) {
 		return __( 'Uploaded – processing…', 'videooptimizer' );
 	}
 	if ( upload.status === 'ready' ) {
 		return __( 'Ready', 'videooptimizer' );
+	}
+	if ( upload.status === 'canceled' ) {
+		return __( 'Canceled', 'videooptimizer' );
 	}
 	return upload.error || __( 'Failed', 'videooptimizer' );
 }
@@ -89,6 +114,7 @@ export default function VideoBrowser( {
 	onSelect,
 	selected = '',
 	initialLibrary = '',
+	onLibraryChange = () => {},
 } ) {
 	const { libraries, error: libError } = useLibraries();
 	const [ libraryId, setLibraryId ] = useState( initialLibrary );
@@ -100,6 +126,10 @@ export default function VideoBrowser( {
 	const [ showUrl, setShowUrl ] = useState( false );
 	const [ url, setUrl ] = useState( '' );
 	const [ urlBusy, setUrlBusy ] = useState( false );
+	const [ tag, setTag ] = useState( '' );
+	const [ tags, setTags ] = useState( [] );
+	const [ hasMore, setHasMore ] = useState( false );
+	const [ loadingMore, setLoadingMore ] = useState( false );
 	const signals = useRef( [] );
 
 	const uploadTarget = useMemo( () => {
@@ -113,37 +143,125 @@ export default function VideoBrowser( {
 		return managed.length ? managed[ 0 ].id : '';
 	}, [ libraries, libraryId ] );
 
-	const reload = () => {
-		setError( null );
-		loadAllVideos( {
-			libraryId,
-			onPage: ( items ) => setVideos( items ),
-		} ).catch( ( e ) => {
-			setError( e );
-			setVideos( [] );
-		} );
+	const requestId = useRef( 0 );
+	const cursorRef = useRef( null );
+
+	/**
+	 * Loads the first page (replacing the list) or the next one (appending).
+	 *
+	 * @param {boolean} more Load the next page instead of starting over.
+	 */
+	const loadPage = ( more = false ) => {
+		const id = more ? requestId.current : ++requestId.current;
+		if ( more ) {
+			setLoadingMore( true );
+		} else {
+			setError( null );
+		}
+		return api
+			.videosPage( {
+				libraryId,
+				tags: tag ? [ tag ] : [],
+				cursor: more ? cursorRef.current : '',
+			} )
+			.then( ( res ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				const items = ( res && res.items ) || [];
+				cursorRef.current = ( res && res.next_cursor ) || null;
+				setHasMore( !! cursorRef.current );
+				setVideos( ( list ) =>
+					more ? appendPage( list || [], items ) : items
+				);
+			} )
+			.catch( ( e ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				setError( e );
+				setVideos( ( list ) => list || [] );
+			} )
+			.finally(
+				() => id === requestId.current && setLoadingMore( false )
+			);
+	};
+
+	/**
+	 * Picks up new and changed videos without losing the pages that were loaded after the first.
+	 */
+	const refresh = () => {
+		const id = requestId.current;
+		return api
+			.videosPage( { libraryId, tags: tag ? [ tag ] : [] } )
+			.then( ( res ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				const items = ( res && res.items ) || [];
+				setVideos( ( list ) => mergeFirstPage( list || [], items ) );
+				if ( ! cursorRef.current && res && res.next_cursor ) {
+					cursorRef.current = res.next_cursor;
+					setHasMore( true );
+				}
+			} )
+			.catch( ( e ) => setError( e ) );
 	};
 
 	useEffect( () => {
 		setVideos( null );
-		reload();
+		setHasMore( false );
+		cursorRef.current = null;
+		loadPage();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ libraryId ] );
+	}, [ libraryId, tag ] );
+
+	useEffect( () => {
+		let live = true;
+		loadTags().then( ( list ) => live && setTags( list ) );
+		return () => {
+			live = false;
+		};
+	}, [] );
 
 	useEffect( () => () => signals.current.forEach( ( s ) => s.abort() ), [] );
 
-	// Refresh while videos are still processing (e.g. uploaded elsewhere or just now).
-	const processing = ( videos || [] ).some(
-		( v ) => v.status === 'processing'
-	);
+	// Follow videos that are still processing (uploaded elsewhere or just now), on any loaded page.
+	const processingIds = ( videos || [] )
+		.filter( ( v ) => v.status === 'processing' )
+		.map( ( v ) => v.uuid )
+		.join( ',' );
+	const pollOffset = useRef( 0 );
 	useEffect( () => {
-		if ( ! processing ) {
+		if ( ! processingIds ) {
 			return undefined;
 		}
-		const timer = setInterval( reload, 10000 );
+		const timer = setInterval( () => {
+			// At most 12 lookups per tick; the rest follow on the next ticks.
+			const all = processingIds.split( ',' );
+			const start = pollOffset.current % all.length;
+			pollOffset.current = start + POLL_BATCH;
+			all.slice( start, start + POLL_BATCH ).forEach( ( uuid ) =>
+				api.video( uuid ).then(
+					( video ) =>
+						setVideos( ( list ) =>
+							replaceVideo( list || [], video )
+						),
+					( e ) => {
+						// Deleted elsewhere: stop following it.
+						if ( e.status === 404 ) {
+							setVideos( ( list ) =>
+								( list || [] ).filter(
+									( v ) => v.uuid !== uuid
+								)
+							);
+						}
+					}
+				)
+			);
+		}, 10000 );
 		return () => clearInterval( timer );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ processing, libraryId ] );
+	}, [ processingIds ] );
 
 	const filtered = useMemo( () => {
 		const q = search.trim().toLowerCase();
@@ -168,33 +286,45 @@ export default function VideoBrowser( {
 			signals.current.push( signal );
 			setUploads( ( list ) => [
 				...list,
-				{ id, name: file.name, progress: 0, status: 'uploading' },
+				{
+					id,
+					name: file.name,
+					progress: 0,
+					status: 'uploading',
+					signal,
+				},
 			] );
 			uploadVideo( file, {
 				libraryId: uploadTarget,
 				signal,
 				onProgress: ( progress ) => updateUpload( id, { progress } ),
+				onCompleting: () =>
+					updateUpload( id, { status: 'completing' } ),
 			} )
 				.then( ( { uuid } ) => {
 					updateUpload( id, { status: 'processing', uuid } );
-					reload();
+					refresh();
 					return pollVideo( uuid, {
 						signal,
 						onTick: ( video ) =>
 							setVideos( ( list ) =>
-								( list || [] ).map( ( v ) =>
-									v.uuid === uuid ? video : v
-								)
+								replaceVideo( list || [], video )
 							),
 					} );
 				} )
 				.then( ( video ) => {
 					if ( video ) {
-						updateUpload( id, { status: video.status } );
+						updateUpload( id, {
+							status: video.status,
+							error: video.error,
+						} );
 					}
 				} )
 				.catch( ( e ) =>
-					updateUpload( id, { status: 'failed', error: e.message } )
+					updateUpload( id, {
+						status: signal.aborted ? 'canceled' : 'failed',
+						error: e.message,
+					} )
 				);
 		} );
 	};
@@ -205,7 +335,7 @@ export default function VideoBrowser( {
 			.then( () => {
 				setUrl( '' );
 				setShowUrl( false );
-				reload();
+				refresh();
 			} )
 			.catch( ( e ) => setError( e ) )
 			.finally( () => setUrlBusy( false ) );
@@ -229,7 +359,10 @@ export default function VideoBrowser( {
 					label={ __( 'Library', 'videooptimizer' ) }
 					hideLabelFromVision
 					value={ libraryId }
-					onChange={ setLibraryId }
+					onChange={ ( value ) => {
+						setLibraryId( value );
+						onLibraryChange( value );
+					} }
 					options={ [
 						{
 							label: __( 'All libraries', 'videooptimizer' ),
@@ -241,6 +374,26 @@ export default function VideoBrowser( {
 						} ) ),
 					] }
 				/>
+				{ tags.length ? (
+					<SelectControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __( 'Tag', 'videooptimizer' ) }
+						hideLabelFromVision
+						value={ tag }
+						onChange={ setTag }
+						options={ [
+							{
+								label: __( 'All tags', 'videooptimizer' ),
+								value: '',
+							},
+							...tags.map( ( t ) => ( {
+								label: t.name,
+								value: t.name,
+							} ) ),
+						] }
+					/>
+				) : null }
 				<SearchControl
 					__nextHasNoMarginBottom
 					value={ search }
@@ -328,7 +481,16 @@ export default function VideoBrowser( {
 						<li key={ u.id }>
 							<span className="vo-uploads__name">{ u.name }</span>
 							{ u.status === 'uploading' ? (
-								<ProgressBar value={ u.progress } />
+								<>
+									<ProgressBar value={ u.progress } />
+									<Button
+										variant="link"
+										isDestructive
+										onClick={ () => u.signal.abort() }
+									>
+										{ __( 'Cancel', 'videooptimizer' ) }
+									</Button>
+								</>
 							) : (
 								<span
 									className={ `vo-badge vo-badge--${ u.status }` }
@@ -374,14 +536,39 @@ export default function VideoBrowser( {
 					) ) }
 				</div>
 				{ videos && videos.length ? (
-					<p className="vo-count">
-						{ sprintf(
-							/* translators: 1: shown videos, 2: total videos */
-							__( '%1$d of %2$d videos', 'videooptimizer' ),
-							filtered.length,
-							videos.length
-						) }
-					</p>
+					<div className="vo-load-more">
+						<p className="vo-count">
+							{ hasMore
+								? sprintf(
+										/* translators: 1: shown videos, 2: loaded videos */
+										__(
+											'%1$d of %2$d loaded videos',
+											'videooptimizer'
+										),
+										filtered.length,
+										videos.length
+								  )
+								: sprintf(
+										/* translators: 1: shown videos, 2: total videos */
+										__(
+											'%1$d of %2$d videos',
+											'videooptimizer'
+										),
+										filtered.length,
+										videos.length
+								  ) }
+						</p>
+						{ hasMore ? (
+							<Button
+								variant="secondary"
+								onClick={ () => loadPage( true ) }
+								isBusy={ loadingMore }
+								disabled={ loadingMore }
+							>
+								{ __( 'Load more', 'videooptimizer' ) }
+							</Button>
+						) : null }
+					</div>
 				) : null }
 			</div>
 		</div>

@@ -22,8 +22,11 @@ if ( ! class_exists( 'WP_Error' ) ) {
 if ( ! class_exists( 'WP_REST_Request' ) ) {
 	class WP_REST_Request implements ArrayAccess {
 		private array $json;
-		public function __construct( array $json = array(), private array $params = array() ) {
+		public function __construct( array $json = array(), private array $params = array(), private array $files = array() ) {
 			$this->json = $json;
+		}
+		public function get_file_params(): array {
+			return $this->files;
 		}
 		public function get_json_params(): array {
 			return $this->json;

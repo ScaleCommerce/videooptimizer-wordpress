@@ -90,8 +90,14 @@ class ApiException extends \RuntimeException {
 			/* translators: %s: upstream message */
 			return sprintf( __( 'The API token is missing a permission for this action (%s). Use an organization token.', 'videooptimizer' ), $message );
 		}
+		if ( 404 === $status && '' !== $message && false !== stripos( $message, 'subtitle' ) ) {
+			return $message;
+		}
 		if ( 404 === $status ) {
 			return __( 'The video or library no longer exists in VideoOptimizer.', 'videooptimizer' );
+		}
+		if ( 409 === $status && 'subtitle_language_in_use' === $this->api_code ) {
+			return __( 'Videos still have subtitles in this language. Delete those subtitles first.', 'videooptimizer' );
 		}
 		if ( 413 === $status ) {
 			return __( 'The file is too large for VideoOptimizer.', 'videooptimizer' );

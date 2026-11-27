@@ -30,6 +30,20 @@ abstract class TestCase extends PolyfillTestCase {
 	 */
 	protected array $transients = array();
 
+	/**
+	 * Expiration passed to set_transient(), per transient name.
+	 *
+	 * @var array<string, int>
+	 */
+	protected array $transient_ttls = array();
+
+	/**
+	 * Number of set_transient() calls, per transient name.
+	 *
+	 * @var array<string, int>
+	 */
+	protected array $transient_writes = array();
+
 	protected function set_up(): void {
 		parent::set_up();
 		Monkey\setUp();
@@ -40,6 +54,7 @@ abstract class TestCase extends PolyfillTestCase {
 			array(
 				'wp_json_encode'       => static fn ( $data, $flags = 0 ) => json_encode( $data, $flags ),
 				'sanitize_text_field'  => static fn ( $v ) => trim( strip_tags( (string) $v ) ),
+				'sanitize_file_name'   => static fn ( $v ) => preg_replace( '/[^A-Za-z0-9._-]/', '-', basename( (string) $v ) ),
 				'sanitize_key'         => static fn ( $v ) => preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $v ) ),
 				'wp_kses_post'         => static fn ( $v ) => strip_tags( (string) $v, '<p><a><strong><em><br><ul><ol><li>' ),
 				'esc_url_raw'          => static fn ( $v ) => (string) $v,
@@ -64,8 +79,10 @@ abstract class TestCase extends PolyfillTestCase {
 					return true;
 				},
 				'get_transient'        => fn ( $name ) => $this->transients[ $name ] ?? false,
-				'set_transient'        => function ( $name, $value ) {
-					$this->transients[ $name ] = $value;
+				'set_transient'        => function ( $name, $value, $expiration = 0 ) {
+					$this->transients[ $name ]       = $value;
+					$this->transient_ttls[ $name ]   = (int) $expiration;
+					$this->transient_writes[ $name ] = ( $this->transient_writes[ $name ] ?? 0 ) + 1;
 					return true;
 				},
 				'delete_transient'     => function ( $name ) {

@@ -18,12 +18,14 @@
 
 	&--processing,
 	&--uploading,
+	&--completing,
 	&--pending {
 		background: #fcf9e8;
 		color: #8a6100;
 	}
 
-	&--failed {
+	&--failed,
+	&--canceled {
 		background: #fcf0f1;
 		color: #b32d2e;
 	}
@@ -290,4 +292,16 @@
 	gap: 8px;
 	justify-content: flex-end;
 	margin-top: 24px;
+}
+
+.vo-load-more {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	margin-top: 16px;
+
+	.vo-count {
+		margin: 0;
+	}
 }

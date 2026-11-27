@@ -20,13 +20,16 @@ import {
 	posterPreview,
 	videoTitle,
 } from '../../components/api';
-import { pollVideo, uploadPoster } from '../../components/uploader';
+import { pollVideo, uploadCustomPoster } from '../../components/uploader';
 import {
 	ConfirmModal,
 	StatusBadge,
 	copyToClipboard,
 } from '../../components/ui';
+import { useGuardedAction } from '../../components/busy';
 import { useNotify } from '../notices';
+import { MetadataCard, TagsCard } from './VideoTagsMetadata';
+import VideoSubtitles from './VideoSubtitles';
 
 const config = window.videooptimizerAdmin || {};
 
@@ -104,27 +107,8 @@ function CustomPoster( { video, onChanged } ) {
 
 	const upload = ( file ) => {
 		setBusy( true );
-		uploadPoster( video.uuid, file )
-			.then( () =>
-				pollVideo( video.uuid, {
-					interval: 2000,
-					max: 40,
-					until: ( v ) =>
-						v.poster &&
-						[ 'ready', 'failed' ].includes(
-							v.poster.custom_status
-						),
-				} )
-			)
-			.then( ( v ) => {
-				if ( v.poster && v.poster.custom_status === 'failed' ) {
-					throw new Error(
-						__(
-							'The poster image could not be processed.',
-							'videooptimizer'
-						)
-					);
-				}
+		uploadCustomPoster( video.uuid, file )
+			.then( () => {
 				bumpPosterCache();
 				notify( __( 'Custom poster is active.', 'videooptimizer' ) );
 				onChanged();
@@ -309,6 +293,7 @@ export default function VideoDetail( { uuid } ) {
 	const [ confirmDelete, setConfirmDelete ] = useState( false );
 	const [ deleting, setDeleting ] = useState( false );
 	const notify = useNotify();
+	const [ savingOption, runOption ] = useGuardedAction();
 
 	const load = () =>
 		api.video( uuid ).then( ( v ) => {
@@ -350,14 +335,16 @@ export default function VideoDetail( { uuid } ) {
 	}
 
 	const options = video.options || {};
-	const setOption = ( key, value ) => {
-		api.updateVideo( uuid, { option: { [ key ]: value } } )
-			.then( ( v ) => {
-				setVideo( v );
-				notify( __( 'Saved.', 'videooptimizer' ) );
-			} )
-			.catch( ( e ) => notify( e.message, 'error' ) );
-	};
+	const setOption = ( key, value ) =>
+		runOption( () =>
+			api
+				.updateVideo( uuid, { option: { [ key ]: value } } )
+				.then( ( v ) => {
+					setVideo( v );
+					notify( __( 'Saved.', 'videooptimizer' ) );
+				} )
+				.catch( ( e ) => notify( e.message, 'error' ) )
+		);
 
 	const saveTitle = () => {
 		setSaving( true );
@@ -449,6 +436,8 @@ export default function VideoDetail( { uuid } ) {
 							<CustomPoster video={ video } onChanged={ load } />
 						</CardBody>
 					</Card>
+
+					<VideoSubtitles video={ video } />
 
 					<Card>
 						<CardHeader>
@@ -556,6 +545,9 @@ export default function VideoDetail( { uuid } ) {
 						</CardBody>
 					</Card>
 
+					<TagsCard video={ video } onSaved={ setVideo } />
+					<MetadataCard video={ video } onSaved={ setVideo } />
+
 					<Card>
 						<CardHeader>
 							<h2>
@@ -576,24 +568,28 @@ export default function VideoDetail( { uuid } ) {
 									'videooptimizer'
 								) }
 								checked={ !! options.autoplay }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'autoplay', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Loop', 'videooptimizer' ) }
 								checked={ !! options.loop }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'loop', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Start muted', 'videooptimizer' ) }
 								checked={ !! options.muted }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'muted', v ) }
 							/>
 							<ToggleControl
 								__nextHasNoMarginBottom
 								label={ __( 'Preload', 'videooptimizer' ) }
 								checked={ !! options.preload }
+								disabled={ savingOption }
 								onChange={ ( v ) => setOption( 'preload', v ) }
 							/>
 						</CardBody>

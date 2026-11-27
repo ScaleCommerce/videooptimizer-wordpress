@@ -64,13 +64,14 @@ function putBlob( url, blob, onProgress, signal, type ) {
 /**
  * Uploads a video file.
  *
- * @param {File|Blob} file               File (a Blob needs options.filename).
+ * @param {File|Blob} file                 File (a Blob needs options.filename).
  * @param {Object}    options
- * @param {string}    options.libraryId  Target library.
- * @param {string}    options.title      Optional title.
- * @param {string}    options.filename   File name for Blobs.
- * @param {Function}  options.onProgress Called with 0..1.
- * @param {Object}    options.signal     Cancelation holder from createSignal().
+ * @param {string}    options.libraryId    Target library.
+ * @param {string}    options.title        Optional title.
+ * @param {string}    options.filename     File name for Blobs.
+ * @param {Function}  options.onProgress   Called with 0..1.
+ * @param {Function}  options.onCompleting Called when the upload is complete and can no longer be canceled.
+ * @param {Object}    options.signal       Cancelation holder from createSignal().
  * @return {Promise<{uuid: string}>} The new video.
  */
 export async function uploadVideo( file, options ) {
@@ -78,6 +79,7 @@ export async function uploadVideo( file, options ) {
 		libraryId,
 		title,
 		onProgress = () => {},
+		onCompleting = () => {},
 		signal = createSignal(),
 	} = options;
 	const filename = options.filename || file.name || 'video.mp4';
@@ -145,6 +147,11 @@ export async function uploadVideo( file, options ) {
 		etags.push( { partNumber: part.partNumber, etag } );
 	}
 
+	// A cancel that landed after the last part must not create the video.
+	if ( signal.aborted ) {
+		throw new Error( __( 'Upload canceled.', 'videooptimizer' ) );
+	}
+	onCompleting();
 	await api.completeUpload( {
 		libraryId,
 		uuid: init.uuid,
@@ -178,6 +185,35 @@ export async function uploadPoster( uuid, file ) {
 	} );
 	await putBlob( init.uploadUrl, file, () => {}, createSignal(), type );
 	await api.completePoster( uuid, init.key );
+}
+
+/**
+ * Uploads a custom poster and waits until the API has processed it. The API activates a processed
+ * custom poster by itself, so no `poster/select` call follows.
+ *
+ * @param {string}    uuid             Video uuid.
+ * @param {File|Blob} file             JPEG, PNG or WebP.
+ * @param {Object}    options
+ * @param {number}    options.interval ms between polls.
+ * @param {number}    options.max      Max polls.
+ * @return {Promise<Object>} The video with its processed custom poster.
+ */
+export async function uploadCustomPoster( uuid, file, options = {} ) {
+	const { interval = 2000, max = 40 } = options;
+	await uploadPoster( uuid, file );
+	const video = await pollVideo( uuid, {
+		interval,
+		max,
+		until: ( v ) =>
+			v.poster &&
+			[ 'ready', 'failed' ].includes( v.poster.custom_status ),
+	} );
+	if ( video.poster && video.poster.custom_status === 'failed' ) {
+		throw new Error(
+			__( 'The poster image could not be processed.', 'videooptimizer' )
+		);
+	}
+	return video;
 }
 
 export function createSignal() {
@@ -218,6 +254,9 @@ export function pollVideo( uuid, options = {} ) {
 		let attempts = 0;
 		const tick = () => {
 			if ( signal.aborted ) {
+				reject(
+					new Error( __( 'Upload canceled.', 'videooptimizer' ) )
+				);
 				return;
 			}
 			attempts++;

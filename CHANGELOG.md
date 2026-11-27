@@ -4,6 +4,27 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-27
+
+### Upgrade
+- Subtitles, tags, metadata and subtitle languages are written with the API token you already use: it needs `video:edit` (subtitles, tags, metadata) and `library:edit` (subtitle languages); without them the editor sees the API's message ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8), [#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
+
+### Added
+- JavaScript tests for the frontend player: facade, lightbox, HLS wiring and fallbacks, deferred loading, reduced motion, heroes ([#14](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/14)).
+- The Videos page shows the savings (storage reduction and estimated bandwidth saved, all-time and last 30 days; per library when one is selected) ([#10](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/10)).
+- Plugin REST route `GET /videooptimizer/v1/savings` (cached for 5 minutes) ([#10](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/10)).
+- Subtitles per video: list, upload (.vtt / .srt, replaces per language), download and delete, with kind (subtitles / captions) and default track ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
+- Settings manage the organization's subtitle languages (add, remove; languages still in use are refused) ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
+- Plugin REST routes `/subtitle-languages` and `/videos/{uuid}/subtitles[/{language}]`; changing subtitles drops the cached embed data ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8)).
+- Video detail shows and edits tags (with suggestions) and metadata key/values; URL import and upload accept them on the plugin REST routes ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
+- The video browser filters by tag on the server; `GET /videooptimizer/v1/videos` accepts `tags` and `metadata[key]`, new route `GET /videooptimizer/v1/tags` ([#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
+- Running uploads can be canceled in the video browser, and failed processing shows the API's error ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).
+
+### Changed
+- Codecs and resolutions that are paid add-ons the organization has not unlocked carry an "Add-on not unlocked" badge ([#11](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/11)).
+- The video browser loads 60 videos per page with "Load more" instead of every page on each reload, and keeps the loaded pages after uploads and edits ([#12](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/12)).
+- After a transport error, rate limit or gateway error the plugin stops asking the API for uncached embeds for 60 seconds (cached videos are still served) ([#13](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/13)).
+
 ## [0.1.3] - 2026-11-27
 
 ### Upgrade
