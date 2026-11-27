@@ -4,6 +4,13 @@
  * and only in browsers without native HLS.
  */
 import './frontend.css';
+import {
+	fallbackToMp4,
+	markPlayIntent,
+	pauseBySystem,
+	trackPlayIntent,
+	wantsPlayback,
+} from './playback-fallback';
 
 const config = window.videooptimizerFrontend || {};
 const i18n = config.i18n || {};
@@ -47,19 +54,10 @@ function playNativeHls( video, src ) {
 	const fallback = video.getAttribute( 'src' );
 	video.addEventListener(
 		'error',
-		() => {
-			if ( fallback && fallback !== src ) {
-				video.src = fallback;
-			} else {
-				video.removeAttribute( 'src' );
-			}
-			video.load();
-			if ( video.autoplay ) {
-				video.play().catch( () => {} );
-			}
-		},
+		() => fallbackToMp4( video, src, fallback ),
 		{ once: true }
 	);
+	trackPlayIntent( video );
 	video.src = src;
 }
 
@@ -90,6 +88,7 @@ function loadHls() {
  * @return {Promise<void>} Resolves once the video can be played.
  */
 function attachHls( video, { startLoad = true } = {} ) {
+	trackPlayIntent( video );
 	if ( video.voReady ) {
 		return video.voReady;
 	}
@@ -127,11 +126,11 @@ function attachHls( video, { startLoad = true } = {} ) {
 				hls.on( Hls.Events.MANIFEST_PARSED, () => resolve() );
 				hls.on( Hls.Events.ERROR, ( _event, data ) => {
 					if ( data && data.fatal ) {
-						// Fall back to the MP4 <source> children.
+						// Fall back to the MP4 (data-mp4 or <source> children).
+						const resume = wantsPlayback( video );
 						hls.destroy();
 						video.voHls = null;
-						video.removeAttribute( 'src' );
-						video.load();
+						fallbackToMp4( video, src, null, resume );
 						resolve();
 					}
 				} );
@@ -142,6 +141,7 @@ function attachHls( video, { startLoad = true } = {} ) {
 }
 
 function play( video ) {
+	markPlayIntent( video );
 	return attachHls( video ).then( () => {
 		const result = video.play();
 		return result && result.catch ? result.catch( () => {} ) : result;
@@ -197,7 +197,7 @@ function pauseIframe( iframe ) {
  * @param {Element} root Container.
  */
 function pauseWithin( root ) {
-	root.querySelectorAll( 'video.vo-native' ).forEach( ( v ) => v.pause() );
+	root.querySelectorAll( 'video.vo-native' ).forEach( pauseBySystem );
 	root.querySelectorAll( '.vo-frame iframe' ).forEach( pauseIframe );
 }
 
@@ -473,6 +473,7 @@ function initBackgrounds( root ) {
 	}
 
 	const start = ( video ) => {
+		markPlayIntent( video );
 		const mp4 = video.getAttribute( 'data-mp4' );
 		const src = video.getAttribute( 'data-hls' );
 		const canNative = src && preferNativeHls( video );
@@ -520,7 +521,7 @@ function initBackgrounds( root ) {
 				if ( entry.isIntersecting ) {
 					video.play().catch( () => {} );
 				} else {
-					video.pause();
+					pauseBySystem( video );
 				}
 			} );
 		} );

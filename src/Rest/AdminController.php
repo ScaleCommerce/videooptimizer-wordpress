@@ -352,7 +352,52 @@ class AdminController {
 	private function update_library( \WP_REST_Request $request ) {
 		$payload = self::library_payload( $request );
 
-		return $payload instanceof \WP_Error ? $payload : $this->client->update_library( (string) $request['id'], $payload );
+		if ( $payload instanceof \WP_Error ) {
+			return $payload;
+		}
+
+		$library = $this->client->update_library( (string) $request['id'], $payload );
+		// A changed ladder or quality re-encodes the videos, so their cached embed data is stale.
+		if ( array_intersect_key( $payload, array_flip( array( 'codec', 'resolutions', 'encoding_quality' ) ) ) ) {
+			$this->forget_embeds( $this->library_video_uuids( (string) $request['id'] ) );
+		}
+
+		return $library;
+	}
+
+	/**
+	 * Video uuids of a library, best effort (empty when the API cannot be reached).
+	 *
+	 * @param string $library_id Library id.
+	 * @return array<int, string>
+	 */
+	private function library_video_uuids( string $library_id ): array {
+		try {
+			$videos = $this->client->list_videos( $library_id );
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+
+		$uuids = array();
+		foreach ( $videos as $video ) {
+			$uuid = $video['uuid'] ?? ( $video['id'] ?? null );
+			if ( is_string( $uuid ) && '' !== $uuid ) {
+				$uuids[] = $uuid;
+			}
+		}
+
+		return $uuids;
+	}
+
+	/**
+	 * Drops the cached embed data of the given videos.
+	 *
+	 * @param array<int, string> $uuids Video uuids.
+	 */
+	private function forget_embeds( array $uuids ): void {
+		foreach ( $uuids as $uuid ) {
+			$this->embeds->forget( $uuid );
+		}
 	}
 
 	/**
@@ -384,8 +429,11 @@ class AdminController {
 	 * @return array<string, bool>
 	 */
 	private function delete_library( \WP_REST_Request $request ): array {
+		// Collect the videos first: they are gone from the API after the delete.
+		$uuids = $this->library_video_uuids( (string) $request['id'] );
 		$this->client->delete_library( (string) $request['id'] );
 		delete_transient( Sender::LIBRARY_CACHE );
+		$this->forget_embeds( $uuids );
 
 		return array( 'deleted' => true );
 	}
@@ -402,7 +450,10 @@ class AdminController {
 
 		$force = isset( $body['force'] ) && true === $body['force'];
 
-		return $this->client->reprocess_library( (string) $request['id'], $force );
+		$result = $this->client->reprocess_library( (string) $request['id'], $force );
+		$this->forget_embeds( $this->library_video_uuids( (string) $request['id'] ) );
+
+		return $result;
 	}
 
 	/**
