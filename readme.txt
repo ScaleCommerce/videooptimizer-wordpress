@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.1
+Stable tag: 0.1.2
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -83,6 +83,12 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 0.1.2 =
+* Embeds load from https://player.videooptimizer.eu (allow it in CSP frame-src and consent tools, or define VIDEOOPTIMIZER_EMBED_BASE_URL).
+* Libraries: encoding quality (performance or quality) and an optional forced re-encode.
+* URL import explains rejected video platform links such as YouTube.
+* hls.js 1.7.4.
 
 = 0.1.1 =
 * Requests to the VideoOptimizer API now identify the plugin, WordPress and PHP versions and the site address in the User-Agent header.
