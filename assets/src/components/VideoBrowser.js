@@ -15,7 +15,8 @@ import {
 	DropZone,
 } from '@wordpress/components';
 import { useEffect, useMemo, useRef, useState } from '@wordpress/element';
-import { api, isVideoPlatformUrl, loadAllVideos, primeVideoCache } from './api';
+import { api, isVideoPlatformUrl, primeVideoCache } from './api';
+import { appendPage, mergeFirstPage, replaceVideo } from './paging';
 import { uploadVideo, pollVideo, createSignal } from './uploader';
 import { ProgressBar, VideoCard } from './ui';
 
@@ -100,6 +101,8 @@ export default function VideoBrowser( {
 	const [ showUrl, setShowUrl ] = useState( false );
 	const [ url, setUrl ] = useState( '' );
 	const [ urlBusy, setUrlBusy ] = useState( false );
+	const [ hasMore, setHasMore ] = useState( false );
+	const [ loadingMore, setLoadingMore ] = useState( false );
 	const signals = useRef( [] );
 
 	const uploadTarget = useMemo( () => {
@@ -113,37 +116,103 @@ export default function VideoBrowser( {
 		return managed.length ? managed[ 0 ].id : '';
 	}, [ libraries, libraryId ] );
 
-	const reload = () => {
-		setError( null );
-		loadAllVideos( {
-			libraryId,
-			onPage: ( items ) => setVideos( items ),
-		} ).catch( ( e ) => {
-			setError( e );
-			setVideos( [] );
-		} );
+	const requestId = useRef( 0 );
+	const cursorRef = useRef( null );
+
+	/**
+	 * Loads the first page (replacing the list) or the next one (appending).
+	 *
+	 * @param {boolean} more Load the next page instead of starting over.
+	 */
+	const loadPage = ( more = false ) => {
+		const id = more ? requestId.current : ++requestId.current;
+		if ( more ) {
+			setLoadingMore( true );
+		} else {
+			setError( null );
+		}
+		return api
+			.videosPage( {
+				libraryId,
+				cursor: more ? cursorRef.current : '',
+			} )
+			.then( ( res ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				const items = ( res && res.items ) || [];
+				cursorRef.current = ( res && res.next_cursor ) || null;
+				setHasMore( !! cursorRef.current );
+				setVideos( ( list ) =>
+					more ? appendPage( list || [], items ) : items
+				);
+			} )
+			.catch( ( e ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				setError( e );
+				setVideos( ( list ) => list || [] );
+			} )
+			.finally(
+				() => id === requestId.current && setLoadingMore( false )
+			);
+	};
+
+	/**
+	 * Picks up new and changed videos without losing the pages that were loaded after the first.
+	 */
+	const refresh = () => {
+		const id = requestId.current;
+		return api
+			.videosPage( { libraryId } )
+			.then( ( res ) => {
+				if ( id !== requestId.current ) {
+					return;
+				}
+				const items = ( res && res.items ) || [];
+				setVideos( ( list ) => mergeFirstPage( list || [], items ) );
+				if ( ! cursorRef.current && res && res.next_cursor ) {
+					cursorRef.current = res.next_cursor;
+					setHasMore( true );
+				}
+			} )
+			.catch( ( e ) => setError( e ) );
 	};
 
 	useEffect( () => {
 		setVideos( null );
-		reload();
+		setHasMore( false );
+		cursorRef.current = null;
+		loadPage();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [ libraryId ] );
 
 	useEffect( () => () => signals.current.forEach( ( s ) => s.abort() ), [] );
 
-	// Refresh while videos are still processing (e.g. uploaded elsewhere or just now).
-	const processing = ( videos || [] ).some(
-		( v ) => v.status === 'processing'
-	);
+	// Follow videos that are still processing (uploaded elsewhere or just now), on any loaded page.
+	const processingIds = ( videos || [] )
+		.filter( ( v ) => v.status === 'processing' )
+		.slice( 0, 12 )
+		.map( ( v ) => v.uuid )
+		.join( ',' );
 	useEffect( () => {
-		if ( ! processing ) {
+		if ( ! processingIds ) {
 			return undefined;
 		}
-		const timer = setInterval( reload, 10000 );
+		const timer = setInterval( () => {
+			processingIds.split( ',' ).forEach( ( uuid ) =>
+				api.video( uuid ).then(
+					( video ) =>
+						setVideos( ( list ) =>
+							replaceVideo( list || [], video )
+						),
+					() => {}
+				)
+			);
+		}, 10000 );
 		return () => clearInterval( timer );
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [ processing, libraryId ] );
+	}, [ processingIds ] );
 
 	const filtered = useMemo( () => {
 		const q = search.trim().toLowerCase();
@@ -177,14 +246,12 @@ export default function VideoBrowser( {
 			} )
 				.then( ( { uuid } ) => {
 					updateUpload( id, { status: 'processing', uuid } );
-					reload();
+					refresh();
 					return pollVideo( uuid, {
 						signal,
 						onTick: ( video ) =>
 							setVideos( ( list ) =>
-								( list || [] ).map( ( v ) =>
-									v.uuid === uuid ? video : v
-								)
+								replaceVideo( list || [], video )
 							),
 					} );
 				} )
@@ -205,7 +272,7 @@ export default function VideoBrowser( {
 			.then( () => {
 				setUrl( '' );
 				setShowUrl( false );
-				reload();
+				refresh();
 			} )
 			.catch( ( e ) => setError( e ) )
 			.finally( () => setUrlBusy( false ) );
@@ -374,14 +441,39 @@ export default function VideoBrowser( {
 					) ) }
 				</div>
 				{ videos && videos.length ? (
-					<p className="vo-count">
-						{ sprintf(
-							/* translators: 1: shown videos, 2: total videos */
-							__( '%1$d of %2$d videos', 'videooptimizer' ),
-							filtered.length,
-							videos.length
-						) }
-					</p>
+					<div className="vo-load-more">
+						<p className="vo-count">
+							{ hasMore
+								? sprintf(
+										/* translators: 1: shown videos, 2: loaded videos */
+										__(
+											'%1$d of %2$d loaded videos',
+											'videooptimizer'
+										),
+										filtered.length,
+										videos.length
+								  )
+								: sprintf(
+										/* translators: 1: shown videos, 2: total videos */
+										__(
+											'%1$d of %2$d videos',
+											'videooptimizer'
+										),
+										filtered.length,
+										videos.length
+								  ) }
+						</p>
+						{ hasMore ? (
+							<Button
+								variant="secondary"
+								onClick={ () => loadPage( true ) }
+								isBusy={ loadingMore }
+								disabled={ loadingMore }
+							>
+								{ __( 'Load more', 'videooptimizer' ) }
+							</Button>
+						) : null }
+					</div>
 				) : null }
 			</div>
 		</div>

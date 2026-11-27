@@ -4,6 +4,7 @@
  */
 import apiFetch from '@wordpress/api-fetch';
 import { __ } from '@wordpress/i18n';
+import { PAGE_SIZE } from './paging';
 
 const BASE = '/videooptimizer/v1';
 const enc = encodeURIComponent;
@@ -48,7 +49,7 @@ export const api = {
 	encodings: () => get( '/encodings' ),
 	uploadLibrary: () => get( '/upload-library' ),
 
-	videosPage: ( { libraryId = '', cursor = '', limit = 100 } = {} ) => {
+	videosPage: ( { libraryId = '', cursor = '', limit = PAGE_SIZE } = {} ) => {
 		const q = new URLSearchParams( { limit: String( limit ) } );
 		if ( libraryId ) {
 			q.set( 'library_id', libraryId );
@@ -92,32 +93,6 @@ export const api = {
 	unlinkAttachment: ( id ) => del( '/attachments/' + id + '/link' ),
 	sendAttachmentUrl: ( id ) => post( '/attachments/' + id + '/send-url' ),
 };
-
-/**
- * Loads every video (following the cursor), calling onPage after each page so lists can render
- * progressively.
- *
- * @param {Object}   args
- * @param {string}   args.libraryId Optional library filter.
- * @param {Function} args.onPage    Called with the items loaded so far.
- * @return {Promise<Array>} All videos.
- */
-export async function loadAllVideos( { libraryId = '', onPage } = {} ) {
-	let cursor = '';
-	let items = [];
-	for ( let page = 0; page < 100; page++ ) {
-		const res = await api.videosPage( { libraryId, cursor } );
-		items = items.concat( ( res && res.items ) || [] );
-		if ( onPage ) {
-			onPage( items );
-		}
-		if ( ! res || ! res.next_cursor || res.next_cursor === cursor ) {
-			break;
-		}
-		cursor = res.next_cursor;
-	}
-	return items;
-}
 
 // Per-page cache for single video lookups (block editor, pickers).
 const videoCache = new Map();

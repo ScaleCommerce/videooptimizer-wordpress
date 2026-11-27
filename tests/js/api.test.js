@@ -1,7 +1,9 @@
 /**
  * Pure helpers of the shared admin/editor API module.
  */
+import apiFetch from '@wordpress/api-fetch';
 import {
+	api,
 	formatBytes,
 	formatDuration,
 	isVideoPlatformUrl,
@@ -77,5 +79,23 @@ describe( 'isVideoPlatformUrl', () => {
 		'',
 	] )( '%s is not', ( url ) => {
 		expect( isVideoPlatformUrl( url ) ).toBe( false );
+	} );
+} );
+
+describe( 'api.videosPage', () => {
+	beforeEach( () => apiFetch.mockReset().mockResolvedValue( {} ) );
+
+	it( 'asks for 60 videos per page by default', async () => {
+		await api.videosPage();
+		expect( apiFetch ).toHaveBeenCalledWith( {
+			path: '/videooptimizer/v1/videos?limit=60',
+		} );
+	} );
+
+	it( 'passes the library and the cursor on', async () => {
+		await api.videosPage( { libraryId: 'lib-1', cursor: 'c1' } );
+		const { path } = apiFetch.mock.calls[ 0 ][ 0 ];
+		expect( path ).toContain( 'library_id=lib-1' );
+		expect( path ).toContain( 'cursor=c1' );
 	} );
 } );
