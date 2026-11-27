@@ -100,8 +100,11 @@ final class PluginTest extends IntegrationTestCase {
 		$this->assertSame( 2, $forced->get_data()['queued'] );
 		$this->assertSame( array( 'force' => true ), json_decode( $this->write_bodies()[1], true ) );
 
-		$this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => 'yes' ) );
-		$this->assertSame( '', $this->write_bodies()[2], 'only a real boolean true forces' );
+		$calls = count( $this->write_bodies() );
+		foreach ( array( 'yes', 'true', 1 ) as $value ) {
+			$this->assertSame( 400, $this->rest( 'POST', '/libraries/lib-1/reprocess', array( 'force' => $value ) )->get_status() );
+		}
+		$this->assertCount( $calls, $this->write_bodies(), 'a non-boolean force never reaches the API' );
 	}
 
 	public function test_ingest_of_a_video_platform_link_returns_the_hint(): void {

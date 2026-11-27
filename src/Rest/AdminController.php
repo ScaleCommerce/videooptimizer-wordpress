@@ -455,13 +455,16 @@ class AdminController {
 	 * Re-encodes a library.
 	 *
 	 * @param \WP_REST_Request $request Request.
-	 * @return array<string, mixed>
+	 * @return array<string, mixed>|\WP_Error
 	 */
-	private function reprocess_library( \WP_REST_Request $request ): array {
+	private function reprocess_library( \WP_REST_Request $request ) {
 		// Optional {"force": true}: re-encode finished renditions too (needed after a quality change).
 		$body = (array) $request->get_json_params();
+		if ( array_key_exists( 'force', $body ) && ! is_bool( $body['force'] ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'The "force" option must be true or false.', 'videooptimizer' ), array( 'status' => 400 ) );
+		}
 
-		$force = isset( $body['force'] ) && true === $body['force'];
+		$force = true === ( $body['force'] ?? false );
 
 		$result = $this->client->reprocess_library( (string) $request['id'], $force );
 		$this->forget_embeds( $this->library_video_uuids( (string) $request['id'] ) );
