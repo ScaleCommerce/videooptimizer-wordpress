@@ -362,6 +362,9 @@ class Client {
 		if ( 0 !== stripos( $this->base_url, 'https://' ) ) {
 			throw new ApiException( 'The VideoOptimizer API base URL must use https.', 400 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 		}
+		if ( ! self::is_public_base_url( $this->base_url ) ) {
+			throw new ApiException( 'The VideoOptimizer API base URL must point to a public host.', 400 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+		}
 
 		$headers = array( 'Accept' => 'application/json' );
 		if ( $auth ) {
@@ -373,11 +376,14 @@ class Client {
 		}
 
 		$args = array(
-			'method'     => $method,
-			'timeout'    => $timeout,
-			'headers'    => $headers,
+			'method'             => $method,
+			'timeout'            => $timeout,
+			'headers'            => $headers,
 			// Identifies plugin, WordPress and PHP version plus the site to VideoOptimizer.
-			'user-agent' => UserAgent::get(),
+			'user-agent'         => UserAgent::get(),
+			// Authenticated calls must never be redirected, and never reach internal addresses.
+			'redirection'        => 0,
+			'reject_unsafe_urls' => true,
 		);
 		if ( null !== $json ) {
 			$args['headers']['Content-Type'] = 'application/json';
@@ -392,6 +398,9 @@ class Client {
 		for ( $attempt = 0; ; $attempt++ ) {
 			$response = wp_remote_request( $url, $args );
 			if ( is_wp_error( $response ) ) {
+				if ( 'A valid URL was not provided.' === $response->get_error_message() ) {
+					throw new ApiException( 'WordPress rejected the VideoOptimizer API base URL: it must be a public host on port 80, 443 or 8080 (see the http_request_host_is_external and http_allowed_safe_ports filters).', 400 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+				}
 				throw new ApiException( $response->get_error_message(), ApiException::UNREACHABLE ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 			}
 
@@ -407,6 +416,10 @@ class Client {
 		$raw     = (string) wp_remote_retrieve_body( $response );
 		$decoded = '' === $raw ? array() : json_decode( $raw, true );
 		$decoded = is_array( $decoded ) ? $decoded : array();
+
+		if ( $status >= 300 && $status < 400 ) {
+			throw new ApiException( 'VideoOptimizer API answered with an unexpected redirect (HTTP ' . $status . ').', 502 ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+		}
 
 		if ( $status >= 400 ) {
 			$message = 'VideoOptimizer request failed (HTTP ' . $status . ').';
@@ -424,6 +437,70 @@ class Client {
 			'status' => $status,
 			'body'   => $decoded,
 		);
+	}
+
+	/**
+	 * Whether the base URL has a public host: no userinfo, query or fragment, no localhost, no
+	 * single-label names and no private or reserved IP literals (checked after IDN conversion).
+	 *
+	 * @param string $url Base URL.
+	 */
+	private static function is_public_base_url( string $url ): bool {
+		$parts = wp_parse_url( $url );
+		if ( ! is_array( $parts ) || isset( $parts['user'] ) || isset( $parts['pass'] ) || isset( $parts['query'] ) || isset( $parts['fragment'] ) ) {
+			return false;
+		}
+		$host = rtrim( strtolower( trim( (string) ( $parts['host'] ?? '' ), '[]' ) ), '.' );
+		if ( '' === $host ) {
+			return false;
+		}
+		if ( false !== filter_var( $host, FILTER_VALIDATE_IP ) ) {
+			return self::is_global_ip( $host );
+		}
+		if ( function_exists( 'idn_to_ascii' ) ) {
+			$ascii = idn_to_ascii( $host, IDNA_DEFAULT, INTL_IDNA_VARIANT_UTS46 );
+			if ( false === $ascii ) {
+				return false;
+			}
+			$host = rtrim( $ascii, '.' );
+		}
+		// A numeric or hex last label is an IPv4 shorthand (127.1, 0x7f.0.0.1, 2130706433), never a TLD.
+		$labels = explode( '.', $host );
+		if ( preg_match( '/^(0x[0-9a-f]*|\d+)$/', (string) end( $labels ) ) ) {
+			return false;
+		}
+
+		return count( $labels ) > 1 && 'localhost' !== $host && ! str_ends_with( $host, '.localhost' );
+	}
+
+	/**
+	 * Whether an IP literal is globally routable (no private, loopback, link-local, CGNAT,
+	 * documentation or mapped addresses).
+	 *
+	 * @param string $ip IP address.
+	 */
+	private static function is_global_ip( string $ip ): bool {
+		$flags = FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE;
+		if ( defined( 'FILTER_FLAG_GLOBAL_RANGE' ) ) {
+			$flags |= FILTER_FLAG_GLOBAL_RANGE;
+		}
+		if ( false === filter_var( $ip, FILTER_VALIDATE_IP, $flags ) ) {
+			return false;
+		}
+		$packed = inet_pton( $ip );
+		if ( false === $packed ) {
+			return false;
+		}
+		if ( 4 === strlen( $packed ) ) {
+			// 100.64.0.0/10 (carrier-grade NAT).
+			return ! ( 100 === ord( $packed[0] ) && ( ord( $packed[1] ) & 0xC0 ) === 0x40 );
+		}
+
+		if ( "\0\0\0\0\0\0\0\0\0\0\xff\xff" === substr( $packed, 0, 12 ) ) {
+			return false; // IPv4-mapped IPv6 address.
+		}
+
+		return "\x20\x01\x0d\xb8" !== substr( $packed, 0, 4 ); // Documentation prefix 2001:db8.
 	}
 
 	/**

@@ -267,4 +267,78 @@ final class ClientTest extends TestCase {
 		}
 		$this->assertEmpty( $this->responses );
 	}
+
+	public function test_requests_do_not_follow_redirects_and_reject_unsafe_urls(): void {
+		$this->client()->get_video( 'abc' );
+
+		$this->assertSame( 0, $this->requests[0][1]['redirection'] );
+		$this->assertTrue( $this->requests[0][1]['reject_unsafe_urls'] );
+	}
+
+	/**
+	 * @dataProvider unsafe_base_urls
+	 */
+	public function test_rejects_internal_base_urls( string $base ): void {
+		try {
+			$this->client( 'vp_secret', $base )->get_video( 'abc' );
+			$this->fail( 'Expected ApiException' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 400, $e->getCode() );
+		}
+		$this->assertSame( array(), $this->requests );
+	}
+
+	/**
+	 * @return array<string, array{0: string}>
+	 */
+	public static function unsafe_base_urls(): array {
+		return array(
+			'localhost'         => array( 'https://localhost/api/v1' ),
+			'localhost suffix'  => array( 'https://api.localhost/api/v1' ),
+			'loopback ip'       => array( 'https://127.0.0.1/api/v1' ),
+			'private ip'        => array( 'https://10.0.0.5/api/v1' ),
+			'link local ip'     => array( 'https://169.254.169.254/api/v1' ),
+			'ipv6 loopback'     => array( 'https://[::1]/api/v1' ),
+			'userinfo'          => array( 'https://user:pw@api.videooptimizer.eu/api/v1' ),
+			'single label host' => array( 'https://intranet/api/v1' ),
+			'query'             => array( 'https://api.videooptimizer.eu/api/v1?x=1' ),
+			'short ipv4'        => array( 'https://127.1/api/v1' ),
+			'hex ipv4'          => array( 'https://0x7f.0.0.1/api/v1' ),
+			'decimal ipv4'      => array( 'https://2130706433/api/v1' ),
+			'trailing dot ip'   => array( 'https://127.0.0.1./api/v1' ),
+			'cgnat'             => array( 'https://100.64.0.1/api/v1' ),
+			'doc ipv6'          => array( 'https://[2001:db8::1]/api/v1' ),
+			'mapped ipv6'       => array( 'https://[::ffff:127.0.0.1]/api/v1' ),
+		);
+	}
+
+	public function test_accepts_public_and_idn_hosts(): void {
+		$this->client( 'vp_secret', 'https://api.videooptimizer.eu/api/v1' )->get_video( 'abc' );
+		$this->client( 'vp_secret', 'https://api.bücher.example/api/v1' )->get_video( 'abc' );
+		$this->assertCount( 2, $this->requests );
+	}
+
+	public function test_redirect_responses_are_errors(): void {
+		$this->responses[] = $this->response( 302, array(), array( 'location' => 'https://internal.example/' ) );
+
+		try {
+			$this->client()->get_video( 'abc' );
+			$this->fail( 'Expected ApiException' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 502, $e->status() );
+			$this->assertStringContainsString( 'redirect', $e->getMessage() );
+		}
+	}
+
+	public function test_wordpress_url_rejection_is_a_configuration_error(): void {
+		$this->responses[] = new \WP_Error( 'http_request_failed', 'A valid URL was not provided.' );
+
+		try {
+			$this->client()->get_video( 'abc' );
+			$this->fail( 'Expected ApiException' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 400, $e->status() );
+			$this->assertStringContainsString( 'base URL', $e->getMessage() );
+		}
+	}
 }
