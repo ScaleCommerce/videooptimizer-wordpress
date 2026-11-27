@@ -91,6 +91,25 @@ afterEach( () => {
 	delete window.videooptimizer;
 } );
 
+/**
+ * jsdom has no modal dialogs: install showModal()/close() that behave like the browser's.
+ */
+function installDialog() {
+	const proto = window.HTMLDialogElement.prototype;
+	proto.showModal = jest.fn( function () {
+		this.setAttribute( 'open', '' );
+	} );
+	proto.close = jest.fn( function () {
+		this.removeAttribute( 'open' );
+		this.dispatchEvent( new Event( 'close' ) );
+	} );
+}
+
+afterEach( () => {
+	delete window.HTMLDialogElement.prototype.showModal;
+	delete window.HTMLDialogElement.prototype.close;
+} );
+
 describe( 'initialization', () => {
 	it( 'marks the page, exposes init and is idempotent', () => {
 		loadFrontend(
@@ -368,9 +387,11 @@ describe( 'one player at a time', () => {
 describe( 'lightbox', () => {
 	const markup = `<div class="vo-frame vo-frame--portrait" style="aspect-ratio: 9 / 16">
 		<button id="open" data-vo-lightbox="https://player.example/embed/u" aria-label="Play in lightbox">x</button>
-	</div>`;
+	</div><main id="page"><a href="/x">link</a></main>`;
 
-	it( 'opens the hosted player in a dialog and closes it with Escape, restoring focus', () => {
+	beforeEach( installDialog );
+
+	it( 'opens the hosted player in a modal dialog and closes it with Escape, restoring focus', () => {
 		loadFrontend( markup );
 		const trigger = document.getElementById( 'open' );
 		trigger.focus();
@@ -378,9 +399,9 @@ describe( 'lightbox', () => {
 		trigger.click();
 
 		const box = document.querySelector( '.vo-lightbox' );
-		expect( box.getAttribute( 'role' ) ).toBe( 'dialog' );
-		expect( box.getAttribute( 'aria-modal' ) ).toBe( 'true' );
-		expect( box.getAttribute( 'data-open' ) ).toBe( 'true' );
+		expect( box.tagName ).toBe( 'DIALOG' );
+		expect( box.showModal ).toHaveBeenCalledTimes( 1 );
+		expect( box.hasAttribute( 'open' ) ).toBe( true );
 		expect( box.querySelector( 'iframe' ).src ).toBe(
 			'https://player.example/embed/u'
 		);
@@ -394,16 +415,30 @@ describe( 'lightbox', () => {
 			box.querySelector( '.vo-lightbox__close' )
 		);
 
-		document.dispatchEvent(
-			new KeyboardEvent( 'keydown', { key: 'Escape' } )
-		);
+		// Native Escape fires `cancel` on the dialog.
+		const cancel = new Event( 'cancel', { cancelable: true } );
+		box.dispatchEvent( cancel );
 
-		expect( box.hasAttribute( 'data-open' ) ).toBe( false );
+		expect( cancel.defaultPrevented ).toBe( true );
+		expect( box.hasAttribute( 'open' ) ).toBe( false );
 		expect( box.querySelector( 'iframe' ) ).toBeNull();
 		expect( document.documentElement.classList ).not.toContain(
 			'vo-lightbox-open'
 		);
 		expect( document.activeElement ).toBe( trigger );
+	} );
+
+	it( 'also closes on an Escape key press that reaches the page', () => {
+		loadFrontend( markup );
+		document.getElementById( 'open' ).click();
+
+		document.dispatchEvent(
+			new KeyboardEvent( 'keydown', { key: 'Escape' } )
+		);
+
+		expect(
+			document.querySelector( '.vo-lightbox' ).hasAttribute( 'open' )
+		).toBe( false );
 	} );
 
 	it( 'closes with the close button and the backdrop', () => {
@@ -413,29 +448,54 @@ describe( 'lightbox', () => {
 		trigger.click();
 		document.querySelector( '.vo-lightbox__close' ).click();
 		expect(
-			document.querySelector( '.vo-lightbox' ).hasAttribute( 'data-open' )
+			document.querySelector( '.vo-lightbox' ).hasAttribute( 'open' )
 		).toBe( false );
 
 		trigger.click();
 		document.querySelector( '.vo-lightbox' ).click();
 		expect(
-			document.querySelector( '.vo-lightbox' ).hasAttribute( 'data-open' )
+			document.querySelector( '.vo-lightbox' ).hasAttribute( 'open' )
 		).toBe( false );
 	} );
 
-	it( 'keeps Tab inside the dialog', () => {
+	it( 'leaves the page inert handling to the browser when showModal exists', () => {
+		loadFrontend( markup );
+		document.getElementById( 'open' ).click();
+
+		expect(
+			document.getElementById( 'page' ).hasAttribute( 'inert' )
+		).toBe( false );
+	} );
+
+	it( 'without showModal: opens the dialog, makes the rest of the page inert and restores it', () => {
+		delete window.HTMLDialogElement.prototype.showModal;
+		delete window.HTMLDialogElement.prototype.close;
+		loadFrontend( markup );
+		document.getElementById( 'open' ).click();
+		const box = document.querySelector( '.vo-lightbox' );
+
+		expect( box.hasAttribute( 'open' ) ).toBe( true );
+		expect(
+			document.getElementById( 'page' ).hasAttribute( 'inert' )
+		).toBe( true );
+		expect( box.hasAttribute( 'inert' ) ).toBe( false );
+
+		document.querySelector( '.vo-lightbox__close' ).click();
+
+		expect( box.hasAttribute( 'open' ) ).toBe( false );
+		expect(
+			document.getElementById( 'page' ).hasAttribute( 'inert' )
+		).toBe( false );
+	} );
+
+	it( 'without showModal: keeps Tab inside the dialog', () => {
+		delete window.HTMLDialogElement.prototype.showModal;
+		delete window.HTMLDialogElement.prototype.close;
 		loadFrontend( markup );
 		document.getElementById( 'open' ).click();
 		const close = document.querySelector( '.vo-lightbox__close' );
 		const iframe = document.querySelector( '.vo-lightbox iframe' );
 
-		iframe.focus();
-		const event = new KeyboardEvent( 'keydown', {
-			key: 'Tab',
-			cancelable: true,
-		} );
-		document.dispatchEvent( event );
-		// Iframe is the first focusable element; close is the last: Tab from the last wraps.
 		close.focus();
 		const wrap = new KeyboardEvent( 'keydown', {
 			key: 'Tab',
@@ -463,9 +523,7 @@ describe( 'lightbox', () => {
 		).toBe( true );
 		expect( document.querySelector( '.vo-lightbox iframe' ) ).toBeNull();
 
-		document.dispatchEvent(
-			new KeyboardEvent( 'keydown', { key: 'Escape' } )
-		);
+		document.querySelector( '.vo-lightbox__close' ).click();
 
 		expect( video.pause ).toHaveBeenCalled();
 		expect(
@@ -523,5 +581,83 @@ describe( 'background hero', () => {
 
 		expect( FakeHls.instances ).toHaveLength( 1 );
 		expect( FakeHls.instances[ 0 ].source ).toBe( HLS_MASTER );
+	} );
+} );
+
+describe( 'background hero pause button', () => {
+	const hero = ( video = '' ) => `<section class="vo-bg-hero">
+		<video class="vo-bg-hero__video" muted playsinline data-mp4="${ MP4 }" ${ video }></video>
+		<button type="button" class="vo-bg-hero__toggle" data-vo-hero-toggle data-label-pause="Pause background video" data-label-play="Play background video" aria-label="Pause background video" hidden></button>
+	</section>`;
+	const toggle = () => document.querySelector( '[data-vo-hero-toggle]' );
+
+	it( 'shows the button once scripts run and pauses and resumes the video', () => {
+		loadFrontend( hero() );
+		const video = document.querySelector( 'video' );
+
+		expect( toggle().hidden ).toBe( false );
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Pause background video'
+		);
+
+		toggle().click();
+
+		expect( video.pause ).toHaveBeenCalled();
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Play background video'
+		);
+		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'paused' );
+
+		video.play.mockClear();
+		toggle().click();
+
+		expect( video.play ).toHaveBeenCalled();
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Pause background video'
+		);
+		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'playing' );
+	} );
+
+	it( 'does not resume a paused hero when it scrolls back into view', () => {
+		const observers = [];
+		window.IntersectionObserver = class {
+			constructor( callback ) {
+				this.callback = callback;
+				observers.push( this );
+			}
+			observe() {}
+			unobserve() {}
+		};
+		loadFrontend( hero() );
+		const video = document.querySelector( 'video' );
+		// The last observer is the one that pauses and resumes heroes by visibility.
+		const visibility = observers[ observers.length - 1 ];
+		Object.defineProperty( video, 'currentSrc', { value: MP4 } );
+
+		toggle().click();
+		video.play.mockClear();
+		visibility.callback( [ { isIntersecting: true, target: video } ] );
+
+		expect( video.play ).not.toHaveBeenCalled();
+	} );
+
+	it( 'for reduced motion offers play on the poster and starts the video on request', () => {
+		setMatchMedia( true );
+		loadFrontend( hero() );
+		const video = document.querySelector( 'video' );
+
+		expect( toggle().hidden ).toBe( false );
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Play background video'
+		);
+		expect( video.play ).not.toHaveBeenCalled();
+
+		toggle().click();
+
+		expect( video.src ).toBe( MP4 );
+		expect( video.play ).toHaveBeenCalled();
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Pause background video'
+		);
 	} );
 } );

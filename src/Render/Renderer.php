@@ -204,7 +204,7 @@ class Renderer {
 
 		$video = '';
 		if ( null !== $embed ) {
-			$video = $this->poster_preload( $embed, null, $a['priority'] ) . $this->background_video( $embed, $a['priority'] ) . $this->schema( $embed, $a['headline'] );
+			$video = $this->poster_preload( $embed, null, $a['priority'] ) . $this->background_video( $embed, $a['priority'] ) . $this->hero_toggle() . $this->schema( $embed, $a['headline'] );
 		} elseif ( '' !== $a['uuid'] ) {
 			$video = $this->missing_notice( $a['uuid'] );
 		}
@@ -514,6 +514,29 @@ class Renderer {
 				'data-mp4'    => $fallback,
 			)
 		) . '></video>';
+	}
+
+	/**
+	 * Pause/play button for the looping background video (WCAG 2.2.2). Hidden until the frontend
+	 * script runs, because without it the video does not play at all.
+	 */
+	private function hero_toggle(): string {
+		$pause = __( 'Pause background video', 'videooptimizer' );
+
+		return '<button' . self::attrs(
+			array(
+				'type'                => 'button',
+				'class'               => 'vo-bg-hero__toggle',
+				'data-vo-hero-toggle' => true,
+				'data-label-pause'    => $pause,
+				'data-label-play'     => __( 'Play background video', 'videooptimizer' ),
+				'aria-label'          => $pause,
+				'hidden'              => true,
+			)
+		) . '>'
+			. '<svg class="vo-bg-hero__toggle-pause" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zM13 5h4v14h-4z" fill="currentColor"/></svg>'
+			. '<svg class="vo-bg-hero__toggle-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M8 5.14v13.72a1 1 0 0 0 1.5.86l11-6.86a1 1 0 0 0 0-1.72l-11-6.86A1 1 0 0 0 8 5.14z" fill="currentColor"/></svg>'
+			. '</button>';
 	}
 
 	/**

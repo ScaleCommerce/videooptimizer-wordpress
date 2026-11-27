@@ -308,6 +308,18 @@ final class RendererTest extends TestCase {
 		$this->assertStringContainsString( '<link rel="preload" as="image" href="https://cdn.example/poster.jpg" fetchpriority="high">', $hero );
 	}
 
+	public function test_hero_renders_a_pause_button_hidden_until_scripts_run(): void {
+		$html = $this->renderer->render( 'background-hero', array( 'uuid' => self::UUID ) );
+
+		$this->assertStringContainsString( '<button type="button" class="vo-bg-hero__toggle" data-vo-hero-toggle data-label-pause="Pause background video" data-label-play="Play background video" aria-label="Pause background video" hidden>', $html );
+	}
+
+	public function test_hero_without_a_video_has_no_pause_button(): void {
+		$this->embed = null;
+
+		$this->assertStringNotContainsString( 'vo-bg-hero__toggle', $this->renderer->render( 'background-hero', array( 'headline' => 'Hi' ) ) );
+	}
+
 	public function test_hero_validates_colors_and_cta(): void {
 		$html = $this->renderer->render(
 			'background-hero',

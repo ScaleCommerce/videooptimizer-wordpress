@@ -5,15 +5,19 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Upgrade
+- The lightbox is a native `<dialog class="vo-lightbox">` (shown with `showModal()`, `[open]` instead of `[data-open]`); update custom CSS or scripts that targeted the old `div` ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
+- Background heroes contain a `button.vo-bg-hero__toggle`; hide it with CSS if a theme must not show it ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
 - Videos with "Above the fold" print a `<link rel="preload" as="image">` for their poster next to the player; disable it with the `videooptimizer_preload_poster` filter ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
 - Native players with subtitles get `crossorigin="anonymous"` and `<track>` children; cached embed data without tracks refreshes within an hour (or run `wp videooptimizer flush`) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
 - Native `<video>` elements may now carry `preload` from the player theme (above the fold), `controlslist`, `disablepictureinpicture` and the class `vo-native--static`; check custom CSS or markup filters ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
 
 ### Added
+- Background heroes have a pause/play button (WCAG 2.2.2); with `prefers-reduced-motion` they show the poster and start on request ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
 - Above-the-fold posters are preloaded with `fetchpriority="high"` (matching `srcset`/`sizes` for facades) ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
 - The native player renders the subtitle `tracks` of the embed as `<track>` elements (kind, srclang, label, default) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
 
 ### Changed
+- The lightbox is a modal `<dialog>`: focus stays inside, Escape closes it, the page behind is inert (set by hand without `showModal()`) ([#18](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/18)).
 - The native player applies the theme's `preload`, `interactive`, `fullscreenButton`, `playbackSpeed` and `pictureInPicture` ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
 
 ## [2.0.0] - 2026-11-27
