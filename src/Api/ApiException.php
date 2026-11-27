@@ -82,6 +82,10 @@ class ApiException extends \RuntimeException {
 			/* translators: %s: upstream message, e.g. "Video limit of your plan reached" */
 			return sprintf( __( 'Your VideoOptimizer plan limit has been reached (%s). Please upgrade your plan or delete unused videos.', 'videooptimizer' ), $message );
 		}
+		if ( 403 === $status && '' !== $message && ! preg_match( '/permission|scope|token|forbidden/i', $message ) ) {
+			// Trial lock, suspended organization and similar: the API's own wording is the useful one.
+			return $message;
+		}
 		if ( 403 === $status ) {
 			/* translators: %s: upstream message */
 			return sprintf( __( 'The API token is missing a permission for this action (%s). Use an organization token.', 'videooptimizer' ), $message );
@@ -94,6 +98,9 @@ class ApiException extends \RuntimeException {
 		}
 		if ( 415 === $status ) {
 			return __( 'This file type is not supported.', 'videooptimizer' );
+		}
+		if ( 429 === $status && false !== stripos( $message, 'reprocess' ) ) {
+			return __( 'The re-encode limit has been reached (5 per hour). Please try again later.', 'videooptimizer' );
 		}
 		if ( 429 === $status ) {
 			return __( 'Too many requests to VideoOptimizer. Please wait a minute and try again.', 'videooptimizer' );

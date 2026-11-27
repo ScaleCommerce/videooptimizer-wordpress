@@ -368,6 +368,12 @@ class AdminController {
 			return new \WP_Error( 'videooptimizer_invalid', __( 'The encoding quality must be "performance" or "quality".', 'videooptimizer' ), array( 'status' => 400 ) );
 		}
 
+		foreach ( array( 'codec', 'resolutions' ) as $field ) {
+			if ( isset( $payload[ $field ] ) && '' === trim( (string) $payload[ $field ] ) ) {
+				return new \WP_Error( 'videooptimizer_invalid', __( 'Please keep at least one codec and one resolution.', 'videooptimizer' ), array( 'status' => 400 ) );
+			}
+		}
+
 		return $payload;
 	}
 

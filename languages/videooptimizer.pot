@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T19:35:27+00:00\n"
+"POT-Creation-Date: 2026-11-27T19:42:01+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -52,7 +52,7 @@ msgid "Libraries"
 msgstr ""
 
 #: src/Admin/AdminPage.php:70
-#: src/Admin/AdminPage.php:185
+#: src/Admin/AdminPage.php:186
 #: assets/src/admin/index.js:79
 #: assets/src/admin/pages/Send.js:139
 #: assets/src/media/index.js:55
@@ -64,15 +64,15 @@ msgstr ""
 msgid "Loading…"
 msgstr ""
 
-#: src/Admin/AdminPage.php:142
+#: src/Admin/AdminPage.php:143
 msgid "The stored API token can no longer be decrypted (the security keys in wp-config.php changed). Please enter it again."
 msgstr ""
 
-#: src/Admin/AdminPage.php:143
+#: src/Admin/AdminPage.php:144
 msgid "Almost done — connect your VideoOptimizer account to deliver fast, adaptive video."
 msgstr ""
 
-#: src/Admin/AdminPage.php:146
+#: src/Admin/AdminPage.php:147
 msgid "Connect now"
 msgstr ""
 
@@ -97,37 +97,41 @@ msgid "Your VideoOptimizer plan limit has been reached (%s). Please upgrade your
 msgstr ""
 
 #. translators: %s: upstream message
-#: src/Api/ApiException.php:87
+#: src/Api/ApiException.php:91
 #, php-format
 msgid "The API token is missing a permission for this action (%s). Use an organization token."
 msgstr ""
 
-#: src/Api/ApiException.php:90
+#: src/Api/ApiException.php:94
 msgid "The video or library no longer exists in VideoOptimizer."
 msgstr ""
 
-#: src/Api/ApiException.php:93
+#: src/Api/ApiException.php:97
 msgid "The file is too large for VideoOptimizer."
 msgstr ""
 
-#: src/Api/ApiException.php:96
+#: src/Api/ApiException.php:100
 msgid "This file type is not supported."
 msgstr ""
 
-#: src/Api/ApiException.php:99
+#: src/Api/ApiException.php:103
+msgid "The re-encode limit has been reached (5 per hour). Please try again later."
+msgstr ""
+
+#: src/Api/ApiException.php:106
 msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
 msgstr ""
 
-#: src/Api/ApiException.php:102
+#: src/Api/ApiException.php:109
 #: assets/src/components/VideoBrowser.js:304
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr ""
 
-#: src/Api/ApiException.php:105
+#: src/Api/ApiException.php:112
 msgid "This library is delivery-only (not media-managed) — uploads and poster changes are not possible here."
 msgstr ""
 
-#: src/Api/ApiException.php:108
+#: src/Api/ApiException.php:115
 msgid "The VideoOptimizer request failed."
 msgstr ""
 
@@ -285,7 +289,7 @@ msgid "Player directly"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:235
-#: assets/src/admin/pages/VideoDetail.js:571
+#: assets/src/admin/pages/VideoDetail.js:574
 #: assets/src/blocks/shared/editor.js:136
 msgid "Autoplay (muted)"
 msgstr ""
@@ -296,7 +300,7 @@ msgid "Muted"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:237
-#: assets/src/admin/pages/VideoDetail.js:580
+#: assets/src/admin/pages/VideoDetail.js:583
 #: assets/src/blocks/shared/editor.js:156
 msgid "Loop"
 msgstr ""
@@ -427,11 +431,11 @@ msgstr ""
 msgid "No media-managed library found. Please create a library under VideoOptimizer → Libraries."
 msgstr ""
 
-#: src/Render/Assets.php:53
+#: src/Render/Assets.php:56
 msgid "Close video"
 msgstr ""
 
-#: src/Render/Assets.php:54
+#: src/Render/Assets.php:57
 msgid "Play video"
 msgstr ""
 
@@ -467,41 +471,45 @@ msgstr ""
 msgid "The encoding quality must be \"performance\" or \"quality\"."
 msgstr ""
 
-#: src/Rest/AdminController.php:450
+#: src/Rest/AdminController.php:373
+msgid "Please keep at least one codec and one resolution."
+msgstr ""
+
+#: src/Rest/AdminController.php:456
 msgid "Please enter a public https:// URL."
 msgstr ""
 
-#: src/Rest/AdminController.php:469
-#: src/Rest/AdminController.php:495
+#: src/Rest/AdminController.php:475
+#: src/Rest/AdminController.php:501
 msgid "Invalid upload request."
 msgstr ""
 
-#: src/Rest/AdminController.php:578
+#: src/Rest/AdminController.php:584
 msgid "Invalid frame."
 msgstr ""
 
-#: src/Rest/AdminController.php:596
+#: src/Rest/AdminController.php:602
 #: assets/src/components/uploader.js:172
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr ""
 
-#: src/Rest/AdminController.php:626
+#: src/Rest/AdminController.php:632
 msgid "Invalid poster source."
 msgstr ""
 
-#: src/Rest/AdminController.php:685
+#: src/Rest/AdminController.php:691
 msgid "This video is no longer waiting for a decision."
 msgstr ""
 
-#: src/Rest/AdminController.php:688
+#: src/Rest/AdminController.php:694
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr ""
 
-#: src/Rest/AdminController.php:720
+#: src/Rest/AdminController.php:726
 msgid "Invalid video id."
 msgstr ""
 
-#: src/Rest/AdminController.php:751
+#: src/Rest/AdminController.php:757
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr ""
 
@@ -542,157 +550,166 @@ msgid "Quality (higher bitrate)"
 msgstr ""
 
 #: assets/src/admin/pages/Libraries.js:61
-msgid "Changing the quality only affects new uploads until the existing videos are re-encoded."
+msgid "Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads until the existing videos are re-encoded."
 msgstr ""
 
 #. translators: %d: number of videos
-#: assets/src/admin/pages/Libraries.js:101
+#: assets/src/admin/pages/Libraries.js:106
 #, js-format
 msgid "Encoding settings saved — %d video is being re-encoded in the background."
 msgid_plural "Encoding settings saved — %d videos are being re-encoded in the background."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/admin/pages/Libraries.js:133
+#: assets/src/admin/pages/Libraries.js:145
 msgid "Encoding settings saved."
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:145
+#: assets/src/admin/pages/Libraries.js:157
 msgid "Codecs"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:146
+#: assets/src/admin/pages/Libraries.js:158
 msgid "Resolutions"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:166
+#: assets/src/admin/pages/Libraries.js:178
 msgid "Add-on"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:179
+#: assets/src/admin/pages/Libraries.js:191
 msgid "This library is delivery-only (managed outside VideoOptimizer media) — encoding settings are read-only and uploads go to other libraries."
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:188
-#: assets/src/admin/pages/Libraries.js:353
+#: assets/src/admin/pages/Libraries.js:200
+#: assets/src/admin/pages/Libraries.js:385
 msgid "Encoding quality"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:218
+#: assets/src/admin/pages/Libraries.js:228
 msgid "Save encoding settings"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:226
+#: assets/src/admin/pages/Libraries.js:236
 msgid "New uploads use the new settings. Re-encode the existing videos of this library too?"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:238
+#: assets/src/admin/pages/Libraries.js:242
+#: assets/src/admin/pages/Libraries.js:283
+msgid "Re-encode all qualities (forced, 5 per hour)"
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:257
 msgid "Re-encode now"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:244
+#: assets/src/admin/pages/Libraries.js:263
 msgid "Re-encode existing videos?"
 msgstr ""
 
 #. translators: %d: number of videos
-#: assets/src/admin/pages/Libraries.js:253
+#: assets/src/admin/pages/Libraries.js:272
 #, js-format
-msgid "The new settings apply to new uploads right away. %d existing video of this library only gets the new codecs and resolutions when it is re-encoded. This runs in the background and can take a while."
-msgid_plural "The new settings apply to new uploads right away. The %d existing videos of this library only get the new codecs and resolutions when they are re-encoded. This runs in the background and can take a while, depending on the number and length of the videos."
+msgid "The new settings apply to new uploads right away. %d existing video of this library only gets them when it is re-encoded. This runs in the background and can take a while."
+msgid_plural "The new settings apply to new uploads right away. The %d existing videos of this library only get them when they are re-encoded. This runs in the background and can take a while, depending on the number and length of the videos."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/admin/pages/Libraries.js:267
-#: assets/src/admin/pages/Libraries.js:361
+#: assets/src/admin/pages/Libraries.js:287
+msgid "Needed after changing the encoding quality: without it, already finished renditions are kept."
+msgstr ""
+
+#: assets/src/admin/pages/Libraries.js:299
+#: assets/src/admin/pages/Libraries.js:393
 #: assets/src/components/ui.js:120
 msgid "Cancel"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:273
+#: assets/src/admin/pages/Libraries.js:305
 msgid "Only save"
 msgstr ""
 
 #. translators: %d: number of videos
-#: assets/src/admin/pages/Libraries.js:281
+#: assets/src/admin/pages/Libraries.js:313
 #, js-format
 msgid "Save & re-encode %d video"
 msgid_plural "Save & re-encode %d videos"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/admin/pages/Libraries.js:326
+#: assets/src/admin/pages/Libraries.js:358
 msgid "Edit library"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:327
-#: assets/src/admin/pages/Libraries.js:437
+#: assets/src/admin/pages/Libraries.js:359
+#: assets/src/admin/pages/Libraries.js:469
 msgid "New library"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:339
+#: assets/src/admin/pages/Libraries.js:371
 msgid "Name"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:345
+#: assets/src/admin/pages/Libraries.js:377
 msgid "Description"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:370
+#: assets/src/admin/pages/Libraries.js:402
 #: assets/src/admin/pages/Settings.js:307
-#: assets/src/admin/pages/VideoDetail.js:482
+#: assets/src/admin/pages/VideoDetail.js:485
 msgid "Save"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:371
+#: assets/src/admin/pages/Libraries.js:403
 msgid "Create library"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:415
+#: assets/src/admin/pages/Libraries.js:447
 msgid "Library deleted."
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:431
+#: assets/src/admin/pages/Libraries.js:463
 msgid "Libraries group your videos and define how they are encoded (codecs and resolutions). New uploads go to the default library from the settings."
 msgstr ""
 
 #. translators: %d: number of videos
-#: assets/src/admin/pages/Libraries.js:459
+#: assets/src/admin/pages/Libraries.js:491
 #, js-format
 msgid "%d videos"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:482
+#: assets/src/admin/pages/Libraries.js:514
 msgid "Encoding settings"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:488
+#: assets/src/admin/pages/Libraries.js:520
 msgid "Rename"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:497
+#: assets/src/admin/pages/Libraries.js:529
 msgid "Show videos"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:504
+#: assets/src/admin/pages/Libraries.js:536
 msgid "Delete"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:531
+#: assets/src/admin/pages/Libraries.js:563
 msgid "Library saved."
 msgstr ""
 
 #. translators: %s: library name
-#: assets/src/admin/pages/Libraries.js:541
+#: assets/src/admin/pages/Libraries.js:573
 #, js-format
 msgid "Delete \"%s\"?"
 msgstr ""
 
-#: assets/src/admin/pages/Libraries.js:547
+#: assets/src/admin/pages/Libraries.js:579
 msgid "Delete library and all its videos"
 msgstr ""
 
 #. translators: %d: number of videos
-#: assets/src/admin/pages/Libraries.js:558
+#: assets/src/admin/pages/Libraries.js:590
 #, js-format
 msgid "All %d videos of this library are deleted permanently and disappear from every page that embeds them."
 msgstr ""
@@ -714,7 +731,7 @@ msgid "No videos selected."
 msgstr ""
 
 #: assets/src/admin/pages/Send.js:176
-#: assets/src/admin/pages/VideoDetail.js:463
+#: assets/src/admin/pages/VideoDetail.js:466
 msgid "Details"
 msgstr ""
 
@@ -1071,83 +1088,83 @@ msgstr ""
 msgid "Video deleted."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:419
+#: assets/src/admin/pages/VideoDetail.js:422
 msgid "VideoOptimizer is encoding this video. This page updates automatically."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:435
+#: assets/src/admin/pages/VideoDetail.js:438
 msgid "Poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:439
+#: assets/src/admin/pages/VideoDetail.js:442
 msgid "Pick one of the frames or upload your own image. The change is live everywhere within seconds."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:445
+#: assets/src/admin/pages/VideoDetail.js:448
 msgid "Custom poster"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:452
+#: assets/src/admin/pages/VideoDetail.js:455
 msgid "Embed"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:470
+#: assets/src/admin/pages/VideoDetail.js:473
 msgid "Title"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:486
+#: assets/src/admin/pages/VideoDetail.js:489
 msgid "Status"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:493
+#: assets/src/admin/pages/VideoDetail.js:496
 msgid "Duration"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:506
+#: assets/src/admin/pages/VideoDetail.js:509
 msgid "Resolution"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:517
+#: assets/src/admin/pages/VideoDetail.js:520
 msgid "Renditions"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:535
+#: assets/src/admin/pages/VideoDetail.js:538
 msgid "Views"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:543
+#: assets/src/admin/pages/VideoDetail.js:546
 msgid "Size"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:559
+#: assets/src/admin/pages/VideoDetail.js:562
 msgid "Player defaults"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:564
+#: assets/src/admin/pages/VideoDetail.js:567
 msgid "Used by the VideoOptimizer player unless a block overrides them."
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:586
+#: assets/src/admin/pages/VideoDetail.js:589
 msgid "Start muted"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:592
+#: assets/src/admin/pages/VideoDetail.js:595
 msgid "Preload"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:607
+#: assets/src/admin/pages/VideoDetail.js:610
 msgid "Delete video"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:617
+#: assets/src/admin/pages/VideoDetail.js:620
 msgid "Delete this video?"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:618
+#: assets/src/admin/pages/VideoDetail.js:621
 msgid "Delete permanently"
 msgstr ""
 
-#: assets/src/admin/pages/VideoDetail.js:627
+#: assets/src/admin/pages/VideoDetail.js:630
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr ""
 

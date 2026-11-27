@@ -234,6 +234,15 @@ final class ClientTest extends TestCase {
 		}
 	}
 
+	public function test_rate_limit_and_forbidden_messages(): void {
+		$limit = new ApiException( 'Reprocess limit reached (5 per hour)', 429 );
+		$this->assertStringContainsString( '5 per hour', $limit->user_message() );
+		$this->assertStringContainsString( 'wait a minute', ( new ApiException( 'Too many requests', 429 ) )->user_message() );
+
+		$this->assertStringContainsString( 'Organization is suspended', ( new ApiException( 'Organization is suspended', 403 ) )->user_message() );
+		$this->assertStringContainsString( 'permission', ( new ApiException( 'Missing permission library:update', 403 ) )->user_message() );
+	}
+
 	public function test_missing_token_and_insecure_base_url(): void {
 		try {
 			$this->client( null )->list_libraries();

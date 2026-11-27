@@ -4,18 +4,22 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
-### Added
-- Libraries show and set the encoding quality (`performance` | `quality`); changing it re-encodes existing videos with `force` ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
-- `POST /libraries/{id}/reprocess` accepts `{"force": true}` ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
+### Breaking
+- Embeds now load from `https://player.videooptimizer.eu`: allow it in your CSP `frame-src` and in consent tools (Borlabs, Complianz, ...), or define `VIDEOOPTIMIZER_EMBED_BASE_URL` as `https://videooptimizer.eu` to keep the old host ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
 
+### Added
+- Libraries show and set the encoding quality (`performance` | `quality`); after a change the plugin offers a forced re-encode of existing videos ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
+- The plugin REST route `POST /videooptimizer/v1/libraries/{id}/reprocess` accepts `{"force": true}` ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
 - URL import explains rejected video platform links (`source_url_video_platform`) and hints at the URL field to link a video file ([#3](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/3)).
 
 ### Changed
 - Default player host is `https://player.videooptimizer.eu` (was `videooptimizer.eu`); `VIDEOOPTIMIZER_EMBED_BASE_URL` and the `videooptimizer_embed_base_url` filter still override it, old embed URLs keep working ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
 - App links point to `https://app.videooptimizer.eu` ([#1](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/1)).
-- hls.js updated to 1.7.4 ([#4](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/4)).
+- hls.js updated to 1.7.4 and cache-busted by its own content ([#4](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/4)).
 
 ### Fixed
+- Library updates never send an empty codec or resolution list; the REST proxy rejects it ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
+- API 403 messages such as trial locks are shown as sent; reprocess rate limits name the 5-per-hour limit ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
 - Libraries no longer send the unknown `encoding_tier` field, which the API dropped silently ([#2](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/2)).
 
 ## [0.1.1] - 2026-11-27

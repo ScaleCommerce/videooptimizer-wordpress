@@ -110,6 +110,7 @@ class AdminPage {
 					'configured' => null !== $this->settings->token(),
 					'version'    => VIDEOOPTIMIZER_VERSION,
 					'appUrl'     => 'https://app.videooptimizer.eu',
+					'embedUrl'   => Settings::embed_base_url(),
 					'mediaUrl'   => admin_url( 'upload.php?mode=list' ),
 					'woo'        => class_exists( 'WooCommerce' ),
 					'elementor'  => did_action( 'elementor/loaded' ) > 0,

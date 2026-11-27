@@ -79,6 +79,11 @@ final class PluginTest extends IntegrationTestCase {
 		$this->assertSame( 200, $create->get_status() );
 
 		$calls = count( $this->api_calls );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'codec' => '' ) )->get_status() );
+		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'resolutions' => '  ' ) )->get_status() );
+		$this->assertSame( 200, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'quality' ) )->get_status(), 'quality alone needs no ladder' );
+		$this->assertCount( $calls + 1, $this->api_calls );
+		$calls = count( $this->api_calls );
 		$this->assertSame( 400, $this->rest( 'PATCH', '/libraries/lib-1', array( 'encoding_quality' => 'ultra' ) )->get_status() );
 		$this->assertSame( 400, $this->rest( 'POST', '/libraries', array( 'name' => 'X', 'encoding_quality' => 'ultra' ) )->get_status() );
 		$this->assertCount( $calls, $this->api_calls, 'invalid quality never reaches the API' );

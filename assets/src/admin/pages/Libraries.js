@@ -59,7 +59,7 @@ const qualityOptions = () => [
 
 const QUALITY_HELP = () =>
 	__(
-		'Changing the quality only affects new uploads until the existing videos are re-encoded.',
+		'Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads until the existing videos are re-encoded.',
 		'videooptimizer'
 	);
 
@@ -71,7 +71,8 @@ function Ladder( { library, encodings, onSaved } ) {
 	const [ saving, setSaving ] = useState( false );
 	const storedQuality = library.encoding_quality || 'performance';
 	const [ quality, setQuality ] = useState( storedQuality );
-	const [ changed, setChanged ] = useState( false );
+	const [ ladderChanged, setLadderChanged ] = useState( false );
+	const [ forceChecked, setForceChecked ] = useState( false );
 	const [ offerReprocess, setOfferReprocess ] = useState( false );
 	const [ offerForce, setOfferForce ] = useState( false );
 	const [ confirming, setConfirming ] = useState( false );
@@ -80,7 +81,7 @@ function Ladder( { library, encodings, onSaved } ) {
 
 	const toggle = ( list, setList, key, on ) => {
 		setList( on ? [ ...list, key ] : list.filter( ( k ) => k !== key ) );
-		setChanged( true );
+		setLadderChanged( true );
 	};
 
 	// Keep the API's order when joining.
@@ -92,6 +93,10 @@ function Ladder( { library, encodings, onSaved } ) {
 
 	// A changed quality needs a forced run, otherwise finished renditions are kept as they are.
 	const qualityChanged = quality !== storedQuality;
+	const changed = ladderChanged || qualityChanged;
+	// Without the catalog nothing can be ordered; never send an empty ladder.
+	const encodingsLoaded =
+		encodings.codecs.length > 0 && encodings.resolutions.length > 0;
 
 	const reprocess = ( force ) =>
 		api.reprocessLibrary( library.id, force ).then( ( r ) => {
@@ -116,22 +121,29 @@ function Ladder( { library, encodings, onSaved } ) {
 	 * @param {boolean} reencode Re-encode the existing videos right away.
 	 */
 	const save = ( reencode ) => {
-		const force = qualityChanged;
+		const force = forceChecked;
 		setConfirming( false );
 		setSaving( true );
 		api.updateLibrary( library.id, {
-			codec: ordered( codecs, encodings.codecs ),
-			resolutions: ordered( resolutions, encodings.resolutions ),
+			...( ladderChanged
+				? {
+						codec: ordered( codecs, encodings.codecs ),
+						resolutions: ordered(
+							resolutions,
+							encodings.resolutions
+						),
+				  }
+				: {} ),
 			...( qualityChanged ? { encoding_quality: quality } : {} ),
 		} )
 			.then( ( updated ) => {
-				setChanged( false );
+				setLadderChanged( false );
 				onSaved( updated );
 				if ( reencode ) {
 					return reprocess( force );
 				}
 				notify( __( 'Encoding settings saved.', 'videooptimizer' ) );
-				setOfferForce( force );
+				setOfferForce( ( prev ) => prev || force );
 				setOfferReprocess( library.video_count > 0 );
 			} )
 			.catch( ( e ) => notify( e.message, 'error' ) )
@@ -190,10 +202,7 @@ function Ladder( { library, encodings, onSaved } ) {
 				value={ quality }
 				options={ qualityOptions() }
 				disabled={ readOnly }
-				onChange={ ( value ) => {
-					setQuality( value );
-					setChanged( true );
-				} }
+				onChange={ setQuality }
 			/>
 			<div className="vo-ladder__groups">
 				{ group( 'codecs', codecs, setCodecs, encodings.codecs ) }
@@ -209,11 +218,12 @@ function Ladder( { library, encodings, onSaved } ) {
 					variant="primary"
 					onClick={ () =>
 						library.video_count > 0
-							? setConfirming( true )
+							? ( setForceChecked( qualityChanged ),
+							  setConfirming( true ) )
 							: save( false )
 					}
 					isBusy={ saving }
-					disabled={ ! changed || saving }
+					disabled={ ! changed || saving || ! encodingsLoaded }
 				>
 					{ __( 'Save encoding settings', 'videooptimizer' ) }
 				</Button>
@@ -227,6 +237,15 @@ function Ladder( { library, encodings, onSaved } ) {
 						'New uploads use the new settings. Re-encode the existing videos of this library too?',
 						'videooptimizer'
 					) }{ ' ' }
+					<CheckboxControl
+						__nextHasNoMarginBottom
+						label={ __(
+							'Re-encode all qualities (forced, 5 per hour)',
+							'videooptimizer'
+						) }
+						checked={ offerForce }
+						onChange={ setOfferForce }
+					/>
 					<Button
 						variant="link"
 						onClick={ () =>
@@ -251,14 +270,27 @@ function Ladder( { library, encodings, onSaved } ) {
 						{ sprintf(
 							/* translators: %d: number of videos */
 							_n(
-								'The new settings apply to new uploads right away. %d existing video of this library only gets the new codecs and resolutions when it is re-encoded. This runs in the background and can take a while.',
-								'The new settings apply to new uploads right away. The %d existing videos of this library only get the new codecs and resolutions when they are re-encoded. This runs in the background and can take a while, depending on the number and length of the videos.',
+								'The new settings apply to new uploads right away. %d existing video of this library only gets them when it is re-encoded. This runs in the background and can take a while.',
+								'The new settings apply to new uploads right away. The %d existing videos of this library only get them when they are re-encoded. This runs in the background and can take a while, depending on the number and length of the videos.',
 								library.video_count,
 								'videooptimizer'
 							),
 							library.video_count
 						) }
 					</p>
+					<CheckboxControl
+						__nextHasNoMarginBottom
+						label={ __(
+							'Re-encode all qualities (forced, 5 per hour)',
+							'videooptimizer'
+						) }
+						help={ __(
+							'Needed after changing the encoding quality: without it, already finished renditions are kept.',
+							'videooptimizer'
+						) }
+						checked={ forceChecked }
+						onChange={ setForceChecked }
+					/>
 					<div className="vo-modal-actions">
 						<Button
 							variant="tertiary"
