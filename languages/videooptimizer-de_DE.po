@@ -1380,20 +1380,20 @@ msgstr "URL importieren"
 msgid "Public https:// URL of a video file"
 msgstr "Öffentliche https://-URL einer Videodatei"
 
-#: assets/src/components/VideoBrowser.js:308
+#: assets/src/components/VideoBrowser.js:320
 msgid "Import"
 msgstr "Importieren"
 
-#: assets/src/components/VideoBrowser.js:344
+#: assets/src/components/VideoBrowser.js:356
 msgid "No videos match your filter."
 msgstr "Keine Videos entsprechen Ihrem Filter."
 
-#: assets/src/components/VideoBrowser.js:348
+#: assets/src/components/VideoBrowser.js:360
 msgid "No videos yet. Upload your first video or drop a file here."
 msgstr "Noch keine Videos. Laden Sie Ihr erstes Video hoch oder ziehen Sie eine Datei hierher."
 
 #. translators: 1: shown videos, 2: total videos
-#: assets/src/components/VideoBrowser.js:368
+#: assets/src/components/VideoBrowser.js:380
 #, js-format
 msgid "%1$d of %2$d videos"
 msgstr "%1$d von %2$d Videos"
@@ -1680,6 +1680,7 @@ msgid "embed"
 msgstr "einbetten"
 
 #: src/Api/ApiException.php:102
+#: assets/src/components/VideoBrowser.js:304
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr "Verlinken Sie eine Videodatei (z. B. https://…/video.mp4), keine Videoseite wie YouTube."
 

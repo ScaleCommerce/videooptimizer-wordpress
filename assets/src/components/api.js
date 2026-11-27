@@ -192,6 +192,23 @@ export function formatDuration( seconds ) {
 		: `${ m }:${ sec }`;
 }
 
+/**
+ * Whether a URL points to a video platform page (YouTube), which the API refuses for URL import.
+ *
+ * @param {string} value URL typed by the user.
+ * @return {boolean} True for youtube.com, youtu.be, youtube-nocookie.com and their subdomains.
+ */
+export function isVideoPlatformUrl( value ) {
+	try {
+		const host = new URL( String( value ).trim() ).hostname.toLowerCase();
+		return [ 'youtube.com', 'youtu.be', 'youtube-nocookie.com' ].some(
+			( domain ) => host === domain || host.endsWith( '.' + domain )
+		);
+	} catch ( e ) {
+		return false;
+	}
+}
+
 export function formatBytes( bytes ) {
 	const b = Number( bytes ) || 0;
 	if ( b < 1024 ) {

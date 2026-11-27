@@ -4,6 +4,7 @@
 import {
 	formatBytes,
 	formatDuration,
+	isVideoPlatformUrl,
 	posterPreview,
 	videoTitle,
 } from '../../assets/src/components/api';
@@ -53,5 +54,28 @@ describe( 'posterPreview', () => {
 			posterPreview( { poster_url: 'https://cdn/p.jpg?w=640' } )
 		).toMatch( /^https:\/\/cdn\/p\.jpg\?w=640&_vo=\d+$/ );
 		expect( posterPreview( {} ) ).toBeNull();
+	} );
+} );
+
+describe( 'isVideoPlatformUrl', () => {
+	it.each( [
+		'https://youtube.com/watch?v=x',
+		'https://www.youtube.com/watch?v=x',
+		'https://m.youtube.com/watch?v=x',
+		'https://youtu.be/x',
+		'https://www.youtube-nocookie.com/embed/x',
+		'HTTPS://WWW.YOUTUBE.COM/x',
+	] )( '%s is a platform link', ( url ) => {
+		expect( isVideoPlatformUrl( url ) ).toBe( true );
+	} );
+
+	it.each( [
+		'https://example.com/a.mp4',
+		'https://notyoutube.com/a.mp4',
+		'https://youtube.com.evil.example/a.mp4',
+		'not a url',
+		'',
+	] )( '%s is not', ( url ) => {
+		expect( isVideoPlatformUrl( url ) ).toBe( false );
 	} );
 } );

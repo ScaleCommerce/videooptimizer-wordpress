@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T19:33:08+00:00\n"
+"POT-Creation-Date: 2026-11-27T19:35:27+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -119,6 +119,7 @@ msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
 msgstr ""
 
 #: src/Api/ApiException.php:102
+#: assets/src/components/VideoBrowser.js:304
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr ""
 
@@ -1411,20 +1412,20 @@ msgstr ""
 msgid "Link to the video file itself, not to a video page such as YouTube."
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:308
+#: assets/src/components/VideoBrowser.js:320
 msgid "Import"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:344
+#: assets/src/components/VideoBrowser.js:356
 msgid "No videos match your filter."
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:348
+#: assets/src/components/VideoBrowser.js:360
 msgid "No videos yet. Upload your first video or drop a file here."
 msgstr ""
 
 #. translators: 1: shown videos, 2: total videos
-#: assets/src/components/VideoBrowser.js:368
+#: assets/src/components/VideoBrowser.js:380
 #, js-format
 msgid "%1$d of %2$d videos"
 msgstr ""
