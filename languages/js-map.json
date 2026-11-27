@@ -21,20 +21,26 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/blocks/shared/icon.js": [
 		"build/blocks/video/index.js",
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/blocks/spotlight/index.js": [
 		"build/blocks/spotlight/index.js"
 	],
+	"assets/src/blocks/video-chapters/index.js": [
+		"build/blocks/video-chapters/index.js"
+	],
 	"assets/src/blocks/video-grid/index.js": [
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/blocks/video/index.js": [
 		"build/blocks/video/index.js"
@@ -48,7 +54,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/VideoPicker.js": [
 		"build/admin/index.js",
@@ -59,7 +66,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/VideoSelectControl.js": [
 		"build/admin/index.js",
@@ -70,7 +78,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/api.js": [
 		"build/admin/index.js",
@@ -81,7 +90,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/busy.js": "build/admin/index.js",
 	"assets/src/components/savings.js": "build/admin/index.js",
@@ -95,7 +105,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/ui.js": [
 		"build/admin/index.js",
@@ -106,7 +117,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/components/uploader.js": [
 		"build/admin/index.js",
@@ -117,7 +129,8 @@
 		"build/blocks/media-split/index.js",
 		"build/blocks/background-hero/index.js",
 		"build/blocks/spotlight/index.js",
-		"build/blocks/video-grid/index.js"
+		"build/blocks/video-grid/index.js",
+		"build/blocks/video-chapters/index.js"
 	],
 	"assets/src/elementor/index.js": "build/elementor/index.js",
 	"assets/src/frontend/index.js": "build/frontend/index.js",

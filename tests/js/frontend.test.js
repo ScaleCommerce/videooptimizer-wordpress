@@ -439,8 +439,12 @@ describe( 'lightbox', () => {
 		const inner = document.querySelector( '.vo-lightbox__inner' );
 		expect( inner.style.getPropertyValue( '--vo-ratio' ) ).toBe( '0.5625' );
 		expect( inner.classList ).toContain( 'vo-lightbox__inner--cover' );
-		expect( inner.classList ).not.toContain( 'vo-lightbox__inner--portrait' );
-		expect( inner.style.getPropertyValue( '--vo-focus' ) ).toBe( '30% 70%' );
+		expect( inner.classList ).not.toContain(
+			'vo-lightbox__inner--portrait'
+		);
+		expect( inner.style.getPropertyValue( '--vo-focus' ) ).toBe(
+			'30% 70%'
+		);
 	} );
 
 	it( 'also closes on an Escape key press that reaches the page', () => {

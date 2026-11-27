@@ -5,6 +5,7 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Upgrade
+- Scene previews load `https://api.videooptimizer.eu/api/v1/videos/{uuid}/thumbnails/{n}` (public, redirects to the CDN); allow it in a restrictive `img-src` Content-Security-Policy ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
 - Directly shown videos with the mini player option are wrapped in `div.vo-mini > div.vo-mini__box`; the box is pinned with `position: fixed` (z-index 99990) while pinned, adjust custom CSS if needed ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
 - Frames with a format get `vo-frame--fit`, `data-vo-ratio` and the `--vo-focus` custom property; `vo-frame--narrow` limits 9:16 and 4:5 to 420 px ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
 - `POST /libraries/{id}/reprocess` answers 400 when `force` is present but not a boolean (it used to be treated as `false`) ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).
@@ -13,6 +14,7 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 - Format option for the video and video + text elements (block, shortcode `format`, Elementor): original, 16:9, 9:16, 1:1, 4:5, 21:9 with a focal point (`focalX`/`focalY`); native video and poster use `object-fit: cover`, the hosted player gets `fit=cover` ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
 - Play while scrolling for direct players (video, video + text; `scrollPlay`): starts muted at 50 % visibility, pauses when it leaves, a visitor's pause sticks, no autoplay with `prefers-reduced-motion` or Save-Data, hls.js is attached on first play ([#23](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/23)).
 - Floating mini player for directly shown videos (`miniPlayer`): once playing and scrolled out of view the player is pinned bottom right (CSS only, from 600 px) with a close button, Escape support and a height placeholder; native and hosted ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
+- New element "Video with chapters" (block `videooptimizer/video-chapters`, shortcode `layout="video-chapters"`, Elementor layout): the video shown directly plus 3–10 scene previews (the video's thumbnails, start at `floor(duration / 11 * (i + 1))`, optional titles); a click starts the video at that scene (`currentTime` / hosted `t=…&autoplay=1`) ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
 
 ### Fixed
 - The reprocess route rejects a non-boolean `force` with 400 ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).

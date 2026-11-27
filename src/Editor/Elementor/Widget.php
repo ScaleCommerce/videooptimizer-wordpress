@@ -117,6 +117,7 @@ class Widget extends \Elementor\Widget_Base {
 					'background-hero' => __( 'Background hero', 'videooptimizer' ),
 					'spotlight'       => __( 'Spotlight', 'videooptimizer' ),
 					'video-grid'      => __( 'Video grid', 'videooptimizer' ),
+					'video-chapters'  => __( 'Video with chapters', 'videooptimizer' ),
 				),
 			)
 		);
@@ -178,7 +179,7 @@ class Widget extends \Elementor\Widget_Base {
 				'subline'  => array( __( 'Subline', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'background-hero' ) ),
 				'text'     => array( __( 'Text', 'videooptimizer' ), Controls_Manager::WYSIWYG, array( 'media-split' ) ),
 				'intro'    => array( __( 'Intro', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'video-grid' ) ),
-				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight' ) ),
+				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight', 'video-chapters' ) ),
 				'ctaLabel' => array( __( 'Button text', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero' ) ),
 			) as $name => [ $label, $type, $layouts ]
 		) {
@@ -246,6 +247,34 @@ class Widget extends \Elementor\Widget_Base {
 		}
 		$this->end_controls_section();
 
+		$this->start_controls_section(
+			'section_scenes',
+			array(
+				'label'     => __( 'Scenes', 'videooptimizer' ),
+				'condition' => array( 'layout' => 'video-chapters' ),
+			)
+		);
+		$this->add_control(
+			'scenes',
+			array(
+				'label'       => __( 'Number of scenes', 'videooptimizer' ),
+				'type'        => Controls_Manager::NUMBER,
+				'min'         => 3,
+				'max'         => 10,
+				'default'     => 5,
+				'description' => __( 'The scenes are the preview frames VideoOptimizer creates for every video, evenly spread over its length.', 'videooptimizer' ),
+			)
+		);
+		$this->add_control(
+			'sceneTitles',
+			array(
+				'label'       => __( 'Scene titles', 'videooptimizer' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'description' => __( 'Optional, one per line in the order of the scenes. Without a title a scene is called "Scene 1", "Scene 2" …', 'videooptimizer' ),
+			)
+		);
+		$this->end_controls_section();
+
 		$this->start_controls_section( 'section_player', array( 'label' => __( 'Player', 'videooptimizer' ) ) );
 		$this->add_control(
 			'player',
@@ -272,7 +301,7 @@ class Widget extends \Elementor\Widget_Base {
 					'lightbox' => __( 'Poster, plays in a lightbox', 'videooptimizer' ),
 					'direct'   => __( 'Player directly', 'videooptimizer' ),
 				),
-				'condition' => array( 'layout!' => 'background-hero' ),
+				'condition' => array( 'layout!' => array( 'background-hero', 'video-chapters' ) ),
 			)
 		);
 		foreach (
@@ -319,7 +348,7 @@ class Widget extends \Elementor\Widget_Base {
 				'description'  => __( 'Only for "Player directly": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it.', 'videooptimizer' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'return_value' => 'yes',
-				'condition'    => array( 'layout' => 'video' ),
+				'condition'    => array( 'layout' => array( 'video', 'video-chapters' ) ),
 			)
 		);
 		$this->add_control(
@@ -402,7 +431,7 @@ class Widget extends \Elementor\Widget_Base {
 		foreach ( array( 'scrollPlay', 'miniPlayer' ) as $flag ) {
 			$attrs[ $flag ] = 'yes' === ( $settings[ $flag ] ?? '' );
 		}
-		$attrs['ctaUrl']   = is_array( $settings['ctaUrl'] ?? null ) ? (string) ( $settings['ctaUrl']['url'] ?? '' ) : '';
+		$attrs['ctaUrl'] = is_array( $settings['ctaUrl'] ?? null ) ? (string) ( $settings['ctaUrl']['url'] ?? '' ) : '';
 		if ( is_array( $settings['items'] ?? null ) ) {
 			$attrs['items'] = array_map(
 				static fn ( $item ): array => array(

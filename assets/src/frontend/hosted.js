@@ -23,8 +23,8 @@ export function sendCommand( iframe, command, extra = {} ) {
 /**
  * Calls back for events of the iframe inside a frame (the iframe may be injected later).
  *
- * @param {Element}                           frame   `.vo-frame`.
- * @param {function(string, Object): void}    onEvent Receives the event name and the message.
+ * @param {Element}                        frame   `.vo-frame`.
+ * @param {function(string, Object): void} onEvent Receives the event name and the message.
  */
 export function watchHosted( frame, onEvent ) {
 	watchers.add( { frame, onEvent } );

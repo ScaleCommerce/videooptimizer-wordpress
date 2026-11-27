@@ -179,6 +179,56 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( 'vo-mini', $html );
 	}
 
+	public function test_chapters_render_the_player_directly_and_the_scene_row(): void {
+		$html = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID, 'scenes' => 3, 'player' => 'native' ) );
+
+		$this->assertStringContainsString( 'videooptimizer--video-chapters', $html );
+		$this->assertStringContainsString( '<video', $html, 'the player is shown directly' );
+		$this->assertStringNotContainsString( 'vo-facade', $html );
+		// 90 s: frames 0, 5, 9 at 8, 49, 81 s.
+		$this->assertSame( 3, substr_count( $html, 'class="vo-scene"' ) );
+		$this->assertStringContainsString( 'data-vo-seek="8"', $html );
+		$this->assertStringContainsString( 'data-vo-seek="49"', $html );
+		$this->assertStringContainsString( 'data-vo-seek="81"', $html );
+		$this->assertStringContainsString( 'aria-label="Scene 2 · 00:49"', $html );
+		$this->assertStringContainsString( 'src="https://api.videooptimizer.eu/api/v1/videos/' . self::UUID . '/thumbnails/5"', $html );
+		$this->assertStringContainsString( 'width="320" height="180" loading="lazy" decoding="async" alt=""', $html );
+		$this->assertStringContainsString( 'data-vo-embed-base="https://player.videooptimizer.eu/embed/' . self::UUID . '"', $html );
+	}
+
+	public function test_chapters_use_scene_titles_and_the_hosted_player(): void {
+		$html = $this->renderer->render(
+			'video-chapters',
+			array(
+				'uuid'        => self::UUID,
+				'scenes'      => 4,
+				'sceneTitles' => "Intro\nThe <b>demo</b>",
+				'player'      => 'hosted',
+			)
+		);
+
+		$this->assertStringContainsString( 'aria-label="Intro · 00:08"', $html );
+		$this->assertStringContainsString( 'aria-label="The demo · 00:32"', $html );
+		$this->assertStringContainsString( 'aria-label="Scene 3 · 00:57"', $html );
+		$this->assertStringContainsString( '<span class="vo-scene__title">Intro</span>', $html );
+		$this->assertStringContainsString( 'data-vo-autoload="https://player.videooptimizer.eu/embed/' . self::UUID . '"', $html );
+	}
+
+	public function test_chapters_without_a_known_duration_show_only_the_video(): void {
+		$this->embed['duration'] = null;
+		$html                    = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID ) );
+
+		$this->assertStringNotContainsString( 'vo-scene', $html );
+		$this->assertStringNotContainsString( 'data-vo-chapters', $html );
+		$this->assertStringContainsString( 'vo-frame', $html );
+	}
+
+	public function test_chapters_support_the_mini_player(): void {
+		$html = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID, 'miniPlayer' => true ) );
+
+		$this->assertStringContainsString( 'data-vo-mini', $html );
+	}
+
 	public function test_json_ld_uses_the_embed_upload_date_when_present(): void {
 		Functions\when( 'get_post_time' )->justReturn( '2020-01-01T00:00:00+00:00' );
 		$this->embed['uploadDate'] = '2026-05-04T10:00:00Z';

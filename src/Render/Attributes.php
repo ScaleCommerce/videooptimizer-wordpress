@@ -16,7 +16,7 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Attributes {
 
-	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid' );
+	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-chapters' );
 
 	/**
 	 * Display formats of the "every format from one video" option ('' = original ratio).
@@ -32,12 +32,13 @@ final class Attributes {
 		'background-hero' => 'direct',
 		'spotlight'       => 'lightbox',
 		'video-grid'      => 'lightbox',
+		'video-chapters'  => 'direct',
 	);
 
 	/**
 	 * Attribute schema: name => [type, default, allowed values?].
 	 *
-	 * @return array<string, array{0: string, 1: mixed, 2?: array<int, string>}>
+	 * @return array<string, array{0: string, 1: mixed, 2?: array<int, string|int>}>
 	 */
 	public static function schema(): array {
 		$tri = array( '', '1', '0' );
@@ -74,6 +75,9 @@ final class Attributes {
 			'textColor'     => array( 'color', '' ),
 			'columns'       => array( 'int', 3 ),
 			'items'         => array( 'items', array() ),
+			// video-chapters.
+			'scenes'        => array( 'num', 5, array( 3, 10 ) ),
+			'sceneTitles'   => array( 'lines', '' ),
 		);
 	}
 
@@ -93,17 +97,32 @@ final class Attributes {
 				'uuid'  => Embed::is_uuid( $value ) ? strtolower( (string) $value ) : '',
 				'text'  => is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '',
 				'html'  => is_scalar( $value ) ? wp_kses_post( (string) $value ) : '',
+				'lines' => is_scalar( $value ) ? implode( "\n", array_slice( array_map( 'sanitize_text_field', Scenes::titles( (string) $value ) ), 0, Scenes::FRAMES ) ) : '',
 				'url'   => self::safe_url( $value ),
 				'color' => self::safe_color( $value ),
 				'bool'  => self::to_bool( $value ),
 				'int'   => max( 1, min( 4, is_numeric( $value ) ? (int) $value : (int) $def[1] ) ),
-				'num'   => max( (int) $def[2][0], min( (int) $def[2][1], is_numeric( $value ) ? (int) round( (float) $value ) : (int) $def[1] ) ),
+				'num'   => self::number( $value, (int) $def[1], $def[2] ?? array() ),
 				'items' => self::items( $value ),
-				default => self::enum( $value, $def[2] ?? array(), $def[1] ),
+				default => self::enum( $value, array_map( 'strval', $def[2] ?? array() ), $def[1] ),
 			};
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Integer within [min, max] (rounded), or the default when the value is not numeric.
+	 *
+	 * @param mixed                  $value    Candidate.
+	 * @param int                    $fallback Default.
+	 * @param array<int, string|int> $range  [min, max].
+	 */
+	private static function number( mixed $value, int $fallback, array $range ): int {
+		$min = (int) ( $range[0] ?? 0 );
+		$max = (int) ( $range[1] ?? 100 );
+
+		return max( $min, min( $max, is_numeric( $value ) ? (int) round( (float) $value ) : $fallback ) );
 	}
 
 	/**

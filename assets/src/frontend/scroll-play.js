@@ -54,9 +54,9 @@ function observe( elements, callback ) {
 /**
  * @param {Document|Element} root
  * @param {Object}           deps
- * @param {Function}         deps.play         Attaches the source and plays a native video.
- * @param {Function}         deps.attachHls    Wires HLS without loading segments.
- * @param {Function}         deps.embedIframe  Creates a hosted player iframe.
+ * @param {Function}         deps.play          Attaches the source and plays a native video.
+ * @param {Function}         deps.attachHls     Wires HLS without loading segments.
+ * @param {Function}         deps.embedIframe   Creates a hosted player iframe.
  * @param {Function}         deps.reducedMotion Whether reduced motion is requested.
  */
 export function initScrollPlay(
@@ -108,7 +108,9 @@ export function initScrollPlay(
 
 	/* Hosted players */
 	const frames = Array.from(
-		root.querySelectorAll( '.vo-frame[data-vo-scroll-url]:not([data-vo-sp])' )
+		root.querySelectorAll(
+			'.vo-frame[data-vo-scroll-url]:not([data-vo-sp])'
+		)
 	);
 	frames.forEach( ( frame ) => {
 		frame.setAttribute( 'data-vo-sp', '' );
@@ -138,7 +140,11 @@ export function initScrollPlay(
 					iframe = embedIframe( url, poster ? poster.alt : '' );
 					frame.replaceChildren( iframe );
 				}
-			} else if ( ! blocked() && ! frame.voPlaying && ! frame.voUserPaused ) {
+			} else if (
+				! blocked() &&
+				! frame.voPlaying &&
+				! frame.voUserPaused
+			) {
 				sendCommand( iframe, 'play' );
 			}
 		} else if ( iframe && frame.voPlaying && ! miniTakesOver( frame ) ) {

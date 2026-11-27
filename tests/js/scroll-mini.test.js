@@ -6,7 +6,6 @@ const MP4 = 'https://cdn.example/encoded/u/h264/720p.mp4';
 const HLS = 'https://cdn.example/encoded/u/hls/master.m3u8';
 
 let observers;
-let media;
 
 class FakeIO {
 	constructor( callback, options ) {
@@ -23,7 +22,12 @@ class FakeIO {
 
 const flush = () => new Promise( ( resolve ) => setTimeout( resolve, 0 ) );
 
-/** Fires the observers that watch the element. */
+/**
+ * Fires the observers that watch the element.
+ *
+ * @param {Element} el    Observed element.
+ * @param {number}  ratio Intersection ratio.
+ */
 function intersect( el, ratio ) {
 	observers
 		.filter( ( io ) => io.targets.includes( el ) )
@@ -72,7 +76,6 @@ const scrollVideo = ( extra = '' ) =>
 
 beforeEach( () => {
 	observers = [];
-	media = {};
 	window.IntersectionObserver = FakeIO;
 	setViewport();
 	delete window.Hls;
@@ -85,7 +88,9 @@ describe( 'play while scrolling (native)', () => {
 	it( 'observes with a 50 % threshold, plays muted when half visible and pauses on leave', async () => {
 		load( scrollVideo() );
 		const video = document.querySelector( 'video' );
-		const io = observers.find( ( o ) => o.targets.includes( video ) && o.options.threshold );
+		const io = observers.find(
+			( o ) => o.targets.includes( video ) && o.options.threshold
+		);
 		expect( io.options.threshold ).toContain( 0.5 );
 
 		intersect( video, 0.3 );
@@ -155,7 +160,9 @@ describe( 'play while scrolling (native)', () => {
 	} );
 
 	it( 'leaves the pause to the mini player on wide screens', async () => {
-		load( `<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame">${ scrollVideo() }</div></div></div>` );
+		load(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame">${ scrollVideo() }</div></div></div>`
+		);
 		const video = document.querySelector( 'video' );
 		intersect( video, 1 );
 		await flush();
@@ -182,11 +189,15 @@ describe( 'play while scrolling (native)', () => {
 			destroy() {}
 		};
 		window.MediaSource = function MediaSource() {};
-		load( `<video class="vo-native" muted preload="none" data-vo-scroll-play data-hls="${ HLS }" src="${ MP4 }"></video>` );
+		load(
+			`<video class="vo-native" muted preload="none" data-vo-scroll-play data-hls="${ HLS }" src="${ MP4 }"></video>`
+		);
 		await flush();
 
 		// Wired shortly before it is visible, but segments are not requested until it plays.
-		expect( hls.every( ( h ) => h.options.autoStartLoad === false ) ).toBe( true );
+		expect( hls.every( ( h ) => h.options.autoStartLoad === false ) ).toBe(
+			true
+		);
 	} );
 } );
 
@@ -202,7 +213,9 @@ describe( 'play while scrolling (hosted)', () => {
 
 		intersect( frame, 0.7 );
 		const iframe = frame.querySelector( 'iframe' );
-		expect( iframe.src ).toBe( 'https://player.example/embed/u?autoplay=1&muted=1' );
+		expect( iframe.src ).toBe(
+			'https://player.example/embed/u?autoplay=1&muted=1'
+		);
 		iframe.contentWindow.postMessage = jest.fn();
 		window.dispatchEvent(
 			new MessageEvent( 'message', {
@@ -258,7 +271,9 @@ describe( 'play while scrolling (hosted)', () => {
 		const frame = document.querySelector( '.vo-frame' );
 		intersect( frame, 1 );
 
-		expect( frame.querySelector( 'iframe' ).src ).toBe( 'https://player.example/embed/u' );
+		expect( frame.querySelector( 'iframe' ).src ).toBe(
+			'https://player.example/embed/u'
+		);
 	} );
 } );
 

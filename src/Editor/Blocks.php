@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  */
 class Blocks {
 
-	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid' );
+	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-chapters' );
 
 	/**
 	 * Renderer.

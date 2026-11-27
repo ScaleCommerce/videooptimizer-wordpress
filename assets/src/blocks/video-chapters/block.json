@@ -1,0 +1,111 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "videooptimizer/video-chapters",
+	"version": "2.1.0",
+	"title": "VideoOptimizer Video with Chapters",
+	"category": "videooptimizer",
+	"description": "A video with a row of scene previews \u2014 a click starts the video at that scene.",
+	"keywords": [
+		"video",
+		"chapters",
+		"scenes",
+		"thumbnails",
+		"videooptimizer"
+	],
+	"textdomain": "videooptimizer",
+	"attributes": {
+		"uuid": {
+			"type": "string",
+			"default": ""
+		},
+		"title": {
+			"type": "string",
+			"default": ""
+		},
+		"player": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"hosted",
+				"native"
+			]
+		},
+		"autoplay": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"muted": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"loop": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"controls": {
+			"type": "string",
+			"default": "",
+			"enum": [
+				"",
+				"1",
+				"0"
+			]
+		},
+		"priority": {
+			"type": "boolean",
+			"default": false
+		},
+		"caption": {
+			"type": "string",
+			"default": ""
+		},
+		"miniPlayer": {
+			"type": "boolean",
+			"default": false
+		},
+		"scenes": {
+			"type": "number",
+			"default": 5
+		},
+		"sceneTitles": {
+			"type": "string",
+			"default": ""
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [
+			"left",
+			"center",
+			"right",
+			"wide",
+			"full"
+		],
+		"spacing": {
+			"margin": true
+		}
+	},
+	"example": {
+		"attributes": {}
+	},
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "videooptimizer-frontend"
+}

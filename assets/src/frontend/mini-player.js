@@ -17,10 +17,10 @@ export function initMiniPlayers( root ) {
 			mini.setAttribute( 'data-vo-wired', '' );
 			const box = mini.querySelector( '.vo-mini__box' );
 			const frame = mini.querySelector( '.vo-frame' );
-			const close = mini.querySelector( '.vo-mini__close' );
 			if ( ! box || ! frame ) {
 				return;
 			}
+			const close = mini.querySelector( '.vo-mini__close' );
 			const state = {
 				playing: false,
 				visible: true,
@@ -42,7 +42,8 @@ export function initMiniPlayers( root ) {
 				state.pinned = pinned;
 				if ( pinned ) {
 					// The placeholder keeps the height, so the page does not jump.
-					mini.style.height = box.getBoundingClientRect().height + 'px';
+					mini.style.height =
+						box.getBoundingClientRect().height + 'px';
 				} else {
 					mini.style.height = '';
 				}

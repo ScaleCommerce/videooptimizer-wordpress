@@ -254,7 +254,10 @@ export function FormatPanel( { attributes, setAttributes } ) {
 					<RangeControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
-						label={ __( 'Focal point, horizontal (%)', 'videooptimizer' ) }
+						label={ __(
+							'Focal point, horizontal (%)',
+							'videooptimizer'
+						) }
 						min={ 0 }
 						max={ 100 }
 						value={ focalX }
@@ -265,7 +268,10 @@ export function FormatPanel( { attributes, setAttributes } ) {
 					<RangeControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
-						label={ __( 'Focal point, vertical (%)', 'videooptimizer' ) }
+						label={ __(
+							'Focal point, vertical (%)',
+							'videooptimizer'
+						) }
 						min={ 0 }
 						max={ 100 }
 						value={ focalY }

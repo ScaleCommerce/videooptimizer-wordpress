@@ -14,6 +14,7 @@ import {
 import { sendCommand } from './hosted';
 import { initScrollPlay } from './scroll-play';
 import { initMiniPlayers } from './mini-player';
+import { initChapters } from './chapters';
 
 const config = window.videooptimizerFrontend || {};
 const i18n = config.i18n || {};
@@ -438,7 +439,8 @@ function getLightbox() {
 					frame.classList.contains( 'vo-frame--portrait' )
 			);
 			// Format option: size the box by the chosen ratio and crop the video like the page does.
-			const ratio = frame && Number( frame.getAttribute( 'data-vo-ratio' ) );
+			const ratio =
+				frame && Number( frame.getAttribute( 'data-vo-ratio' ) );
 			inner.classList.toggle( 'vo-lightbox__inner--cover', !! ratio );
 			if ( ratio ) {
 				inner.style.setProperty( '--vo-ratio', String( ratio ) );
@@ -915,6 +917,7 @@ export function init( root = document ) {
 	initAutoload( root );
 	initScrollPlay( root, { play, attachHls, embedIframe, reducedMotion } );
 	initMiniPlayers( root );
+	initChapters( root, { attachHls, embedIframe } );
 	initFacades( root );
 	initLightbox( root );
 	initBackgrounds( root );

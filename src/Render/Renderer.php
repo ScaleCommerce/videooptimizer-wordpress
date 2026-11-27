@@ -100,6 +100,7 @@ class Renderer {
 			'background-hero' => $this->layout_hero( $a, $content ),
 			'spotlight'       => $this->layout_spotlight( $a ),
 			'video-grid'      => $this->layout_grid( $a ),
+			'video-chapters'  => $this->layout_chapters( $a ),
 		};
 		if ( '' === $html ) {
 			return '';
@@ -317,6 +318,90 @@ class Renderer {
 		$html .= '<div class="vo-grid__items" style="--vo-grid-columns:' . (int) $a['columns'] . '">' . $tiles . '</div>';
 
 		return $html . '</div></section>';
+	}
+
+	/**
+	 * Video shown directly plus a row of scene previews; a click starts the video at that scene.
+	 *
+	 * @param array<string, mixed> $a Attributes.
+	 */
+	private function layout_chapters( array $a ): string {
+		$embed = $this->load_embed( $a['uuid'] );
+		if ( null === $embed ) {
+			return $this->missing_notice( $a['uuid'] );
+		}
+
+		// Scenes only work on a player that is on the page.
+		$a['presentation'] = 'direct';
+		$html              = $this->mini( $this->surface( $embed, $a, $a['title'], '(min-width: 1200px) 1200px, 100vw', $a['priority'] ), $embed, $a );
+		if ( '' !== $a['caption'] ) {
+			$html .= '<figcaption class="vo-caption">' . esc_html( $a['caption'] ) . '</figcaption>';
+		}
+
+		$list = $this->scene_list( $embed, $a );
+
+		return sprintf(
+			'<figure class="vo-video vo-chapters"%1$s>%2$s%3$s</figure>',
+			'' !== $list ? self::attrs(
+				array(
+					'data-vo-chapters'   => true,
+					'data-vo-embed-base' => $this->embed_url( $embed['uuid'], $a, false ),
+				)
+			) : '',
+			$html,
+			$list
+		);
+	}
+
+	/**
+	 * The row of scene buttons ('' when the duration is unknown).
+	 *
+	 * @param array<string, mixed> $embed Normalized embed.
+	 * @param array<string, mixed> $a     Attributes.
+	 */
+	private function scene_list( array $embed, array $a ): string {
+		$duration = (int) ( $embed['duration'] ?? 0 );
+		if ( $duration <= 0 ) {
+			return '';
+		}
+		$titles = Scenes::titles( (string) $a['sceneTitles'] );
+		$items  = '';
+		foreach ( Scenes::indices( (int) $a['scenes'] ) as $position => $frame ) {
+			$start = Scenes::start( $duration, $frame );
+			$clock = Scenes::clock( $start );
+			$title = $titles[ $position ] ?? '';
+			$name  = '' !== $title ? $title : sprintf(
+				/* translators: %d: scene number */
+				__( 'Scene %d', 'videooptimizer' ),
+				$position + 1
+			);
+			$items .= '<li class="vo-scenes__item"><button' . self::attrs(
+				array(
+					'type'         => 'button',
+					'class'        => 'vo-scene',
+					'data-vo-seek' => (string) $start,
+					'aria-label'   => sprintf(
+						/* translators: 1: scene name or number, 2: start time */
+						__( '%1$s · %2$s', 'videooptimizer' ),
+						$name,
+						$clock
+					),
+				)
+			) . '><img' . self::attrs(
+				array(
+					'class'    => 'vo-scene__img',
+					'src'      => Scenes::thumbnail_url( Settings::api_base_url(), $embed['uuid'], $frame ),
+					'width'    => 320,
+					'height'   => 180,
+					'loading'  => 'lazy',
+					'decoding' => 'async',
+				)
+			) . ' alt=""><span class="vo-scene__time">' . esc_html( $clock ) . '</span>'
+				. ( '' !== $title ? '<span class="vo-scene__title">' . esc_html( $title ) . '</span>' : '' )
+				. '</button></li>';
+		}
+
+		return '<ul class="vo-scenes" role="list" aria-label="' . esc_attr__( 'Scenes', 'videooptimizer' ) . '">' . $items . '</ul>';
 	}
 
 	/**
