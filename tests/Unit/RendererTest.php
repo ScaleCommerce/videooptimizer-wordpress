@@ -266,6 +266,48 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( '<track', $html );
 	}
 
+	public function test_priority_facade_preloads_the_responsive_poster(): void {
+		$this->embed['srcset'] = 'https://cdn.example/p480.jpg 480w, https://cdn.example/p1280.jpg 1280w';
+		$html                  = $this->renderer->render(
+			'video',
+			array(
+				'uuid'     => self::UUID,
+				'priority' => true,
+			)
+		);
+
+		$this->assertStringContainsString(
+			'<link rel="preload" as="image" href="https://cdn.example/poster.jpg" imagesrcset="https://cdn.example/p480.jpg 480w, https://cdn.example/p1280.jpg 1280w" imagesizes="(min-width: 1200px) 1200px, 100vw" fetchpriority="high">',
+			$html
+		);
+	}
+
+	public function test_poster_is_preloaded_once_per_video(): void {
+		$once = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'priority' => true ) ) . $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'priority' => true ) );
+
+		$this->assertSame( 1, substr_count( $once, 'rel="preload"' ) );
+	}
+
+	public function test_lazy_surfaces_do_not_preload_the_poster(): void {
+		$this->assertStringNotContainsString( 'rel="preload"', $this->renderer->render( 'video', array( 'uuid' => self::UUID ) ) );
+	}
+
+	public function test_priority_native_video_preloads_the_plain_poster(): void {
+		$this->assertStringContainsString( '<link rel="preload" as="image" href="https://cdn.example/poster.jpg" fetchpriority="high">', $this->native_with_theme( array() ) );
+	}
+
+	public function test_priority_hero_preloads_the_plain_poster(): void {
+		$hero = $this->renderer->render(
+			'background-hero',
+			array(
+				'uuid'     => self::UUID,
+				'priority' => true,
+			)
+		);
+
+		$this->assertStringContainsString( '<link rel="preload" as="image" href="https://cdn.example/poster.jpg" fetchpriority="high">', $hero );
+	}
+
 	public function test_hero_validates_colors_and_cta(): void {
 		$html = $this->renderer->render(
 			'background-hero',

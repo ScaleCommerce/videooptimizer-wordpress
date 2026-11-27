@@ -84,6 +84,7 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 - `videooptimizer_schema`
 - `videooptimizer_core_video_options`
 - `videooptimizer_enqueue_early`
+- `videooptimizer_preload_poster`
 
 **Action**: `videooptimizer_webhook`.
 

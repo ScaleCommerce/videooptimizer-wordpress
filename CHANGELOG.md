@@ -5,10 +5,12 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 ## [Unreleased]
 
 ### Upgrade
+- Videos with "Above the fold" print a `<link rel="preload" as="image">` for their poster next to the player; disable it with the `videooptimizer_preload_poster` filter ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
 - Native players with subtitles get `crossorigin="anonymous"` and `<track>` children; cached embed data without tracks refreshes within an hour (or run `wp videooptimizer flush`) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
 - Native `<video>` elements may now carry `preload` from the player theme (above the fold), `controlslist`, `disablepictureinpicture` and the class `vo-native--static`; check custom CSS or markup filters ([#15](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/15)).
 
 ### Added
+- Above-the-fold posters are preloaded with `fetchpriority="high"` (matching `srcset`/`sizes` for facades) ([#17](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/17)).
 - The native player renders the subtitle `tracks` of the embed as `<track>` elements (kind, srclang, label, default) ([#16](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/16)).
 
 ### Changed

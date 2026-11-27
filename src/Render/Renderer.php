@@ -55,6 +55,13 @@ class Renderer {
 	private array $schema_printed = array();
 
 	/**
+	 * Posters already preloaded on this page.
+	 *
+	 * @var array<string, true>
+	 */
+	private array $poster_preloaded = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @param EmbedRepository $embeds   Embed lookups.
@@ -197,7 +204,7 @@ class Renderer {
 
 		$video = '';
 		if ( null !== $embed ) {
-			$video = $this->background_video( $embed, $a['priority'] ) . $this->schema( $embed, $a['headline'] );
+			$video = $this->poster_preload( $embed, null, $a['priority'] ) . $this->background_video( $embed, $a['priority'] ) . $this->schema( $embed, $a['headline'] );
 		} elseif ( '' !== $a['uuid'] ) {
 			$video = $this->missing_notice( $a['uuid'] );
 		}
@@ -317,7 +324,8 @@ class Renderer {
 			$frame_attrs['style'] = implode( ';', $styles );
 		}
 
-		$poster = $this->poster_img( $embed, $sizes, $priority );
+		$poster  = $this->poster_img( $embed, $sizes, $priority );
+		$preload = $this->poster_preload( $embed, $click ? $sizes : null, $priority && ( $click || 'native' === $player ) );
 
 		if ( ! $click ) {
 			if ( 'native' === $player ) {
@@ -346,7 +354,7 @@ class Renderer {
 			}
 		}
 
-		return '<div' . self::attrs( $frame_attrs ) . '>' . $inner . '</div>' . $this->schema( $embed, $label );
+		return $preload . '<div' . self::attrs( $frame_attrs ) . '>' . $inner . '</div>' . $this->schema( $embed, $label );
 	}
 
 	/**
@@ -537,6 +545,43 @@ class Renderer {
 	}
 
 	/**
+	 * Preload hint for the poster of an above-the-fold video, once per page and video. Matches the
+	 * poster <img> (srcset and sizes) when given $sizes, otherwise the plain `poster` attribute.
+	 *
+	 * @param array<string, mixed> $embed    Normalized embed.
+	 * @param string|null          $sizes    Sizes attribute of the poster <img>; null for a <video poster>.
+	 * @param bool                 $priority Above the fold.
+	 */
+	private function poster_preload( array $embed, ?string $sizes, bool $priority ): string {
+		if ( ! $priority || null === $embed['poster'] || isset( $this->poster_preloaded[ $embed['uuid'] ] ) ) {
+			return '';
+		}
+
+		/**
+		 * Filters whether the poster of an above-the-fold video is preloaded.
+		 *
+		 * @param bool                 $preload Whether to print the preload link.
+		 * @param array<string, mixed> $embed   Normalized embed payload.
+		 */
+		if ( ! apply_filters( 'videooptimizer_preload_poster', true, $embed ) ) {
+			return '';
+		}
+		$this->poster_preloaded[ $embed['uuid'] ] = true;
+		$with_set                                 = null !== $sizes && null !== $embed['srcset'];
+
+		return '<link' . self::attrs(
+			array(
+				'rel'           => 'preload',
+				'as'            => 'image',
+				'href'          => $embed['poster'],
+				'imagesrcset'   => $with_set ? $embed['srcset'] : null,
+				'imagesizes'    => $with_set ? $sizes : null,
+				'fetchpriority' => 'high',
+			)
+		) . '>';
+	}
+
+	/**
 	 * Schema.org VideoObject JSON-LD, once per video per page.
 	 *
 	 * @param array<string, mixed> $embed Normalized embed.
@@ -627,7 +672,7 @@ class Renderer {
 				continue;
 			}
 			$value = (string) $value;
-			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'data-hls', 'data-mp4', 'data-vo-autoload' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
+			$out  .= ' ' . $name . '="' . ( in_array( $name, array( 'src', 'poster', 'href', 'data-hls', 'data-mp4', 'data-vo-autoload' ), true ) ? esc_url( $value ) : esc_attr( $value ) ) . '"';
 		}
 
 		return $out;
