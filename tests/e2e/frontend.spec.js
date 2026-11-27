@@ -145,3 +145,133 @@ test( 'WooCommerce: selecting a variation with a video jumps to it', async ( {
 		/videooptimizer-gallery__slide/
 	);
 } );
+
+test.describe( 'content elements page', () => {
+	const PAGE = WP + '/videooptimizer-content-elements/';
+
+	test( 'a scene starts the native video at that time and is marked', async ( {
+		page,
+	} ) => {
+		await page.goto( PAGE );
+		const chapters = page.locator( '.vo-chapters' ).first();
+		const scene = chapters.locator( '.vo-scene' ).nth( 2 );
+		const start = Number( await scene.getAttribute( 'data-vo-seek' ) );
+		await scene.scrollIntoViewIfNeeded();
+		await scene.click();
+
+		await expect( scene ).toHaveAttribute( 'aria-current', 'true' );
+		await expect
+			.poll( () =>
+				chapters.locator( 'video' ).evaluate( ( v ) => v.currentTime )
+			)
+			.toBeGreaterThanOrEqual( start - 1 );
+	} );
+
+	test( 'a hosted scene reloads the player with t and autoplay', async ( {
+		page,
+	} ) => {
+		await page.goto( PAGE );
+		const chapters = page
+			.locator( '.vo-chapters:has(.vo-frame[data-vo-player="hosted"])' )
+			.first();
+		await chapters.locator( '.vo-scene' ).nth( 1 ).scrollIntoViewIfNeeded();
+		await chapters.locator( '.vo-scene' ).nth( 1 ).click();
+
+		await expect( chapters.locator( 'iframe' ) ).toHaveAttribute(
+			'src',
+			/[?&]t=\d+/
+		);
+		await expect( chapters.locator( 'iframe' ) ).toHaveAttribute(
+			'src',
+			/autoplay=1/
+		);
+	} );
+
+	test( 'formats set the ratio of the frame', async ( { page } ) => {
+		await page.goto( PAGE );
+		const frame = page.locator( '.vo-frame--fit' ).first();
+		const box = await frame.boundingBox();
+		expect( box.height / box.width ).toBeCloseTo( 16 / 9, 1 );
+		await expect( frame ).toHaveClass( /vo-frame--narrow/ );
+	} );
+
+	test( 'play while scrolling starts muted at half visibility and pauses when it leaves', async ( {
+		page,
+	} ) => {
+		await page.goto( PAGE );
+		const video = page.locator( 'video[data-vo-scroll-play]' );
+		await video.scrollIntoViewIfNeeded();
+		await expect
+			.poll( () => video.evaluate( ( v ) => ! v.paused ) )
+			.toBe( true );
+		expect( await video.evaluate( ( v ) => v.muted ) ).toBe( true );
+
+		await page.evaluate( () => window.scrollTo( 0, 0 ) );
+		await expect
+			.poll( () => video.evaluate( ( v ) => v.paused ) )
+			.toBe( true );
+	} );
+
+	test( 'the mini player pins when the playing video scrolls away and closes', async ( {
+		page,
+	} ) => {
+		await page.setViewportSize( { width: 1280, height: 800 } );
+		await page.goto( PAGE );
+		const mini = page.locator( '.vo-mini' ).first();
+		const video = mini.locator( 'video' );
+		await mini.scrollIntoViewIfNeeded();
+		await page.waitForTimeout( 1500 ); // HLS is wired shortly before the video is visible.
+		await video.evaluate( ( v ) => {
+			v.muted = true;
+			return v.play().catch( () => v.play() );
+		} );
+		await page.mouse.wheel( 0, 1600 );
+
+		await expect( mini ).toHaveClass( /is-pinned/ );
+		const box = await mini.locator( '.vo-mini__box' ).boundingBox();
+		expect( box.width ).toBeCloseTo( 320, 0 );
+		await mini.locator( '.vo-mini__close' ).click();
+		await expect( mini ).not.toHaveClass( /is-pinned/ );
+		expect( await video.evaluate( ( v ) => v.paused ) ).toBe( true );
+	} );
+
+	test( 'a list card opens the video in a lightbox', async ( { page } ) => {
+		await page.goto( PAGE );
+		await page.locator( 'button.vo-card__link' ).first().click();
+		await expect( page.locator( 'dialog.vo-lightbox' ) ).toHaveAttribute(
+			'open',
+			''
+		);
+		await page.keyboard.press( 'Escape' );
+	} );
+
+	test( 'a list card links to the detail page, which shows that video', async ( {
+		page,
+	} ) => {
+		await page.goto( PAGE );
+		await page.locator( 'a.vo-card__link' ).first().click();
+
+		await expect( page ).toHaveURL( /vo_video=[0-9a-f-]{36}/ );
+		await expect( page.locator( '.vo-detail__title' ) ).toBeVisible();
+		await expect( page.locator( '.vo-detail iframe' ) ).toHaveCount( 1 );
+	} );
+
+	test( 'the detail page answers 404 for an unknown or invalid video', async ( {
+		page,
+	} ) => {
+		for ( const value of [
+			'nope',
+			'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+		] ) {
+			const response = await page.goto(
+				WP + '/videooptimizer-video-detail/?vo_video=' + value
+			);
+			expect( response.status() ).toBe( 404 );
+		}
+		const ok = await page.goto(
+			WP +
+				'/videooptimizer-video-detail/?vo_video=e7ab89b1-b74f-42fd-b2a9-53bfe1d492a8'
+		);
+		expect( ok.status() ).toBe( 200 );
+	} );
+} );
