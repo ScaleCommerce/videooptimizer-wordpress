@@ -596,9 +596,8 @@ describe( 'background hero pause button', () => {
 		const video = document.querySelector( 'video' );
 
 		expect( toggle().hidden ).toBe( false );
-		// Not playing until the video says so (autoplay can be blocked).
-		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'paused' );
-		video.dispatchEvent( new Event( 'play' ) );
+		// Playback was requested right away: "Pause" before any event arrives.
+		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'playing' );
 		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
 			'Pause background video'
 		);
@@ -616,6 +615,19 @@ describe( 'background hero pause button', () => {
 
 		expect( video.play ).toHaveBeenCalled();
 		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'playing' );
+	} );
+
+	it( 'falls back to "Play" when the browser blocks autoplay', async () => {
+		window.HTMLMediaElement.prototype.play = jest.fn( () =>
+			Promise.reject( new Error( 'NotAllowedError' ) )
+		);
+		loadFrontend( hero() );
+		await flush();
+
+		expect( toggle().getAttribute( 'data-state' ) ).toBe( 'paused' );
+		expect( toggle().getAttribute( 'aria-label' ) ).toBe(
+			'Play background video'
+		);
 	} );
 
 	it( 'follows the video: a pause event (e.g. blocked or system pause) shows "Play"', () => {

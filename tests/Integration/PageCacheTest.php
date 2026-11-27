@@ -22,6 +22,8 @@ final class PageCacheTest extends IntegrationTestCase {
 	public function set_up(): void {
 		parent::set_up();
 		$this->purges = array();
+		delete_transient( PageCache::LOCK );
+		wp_clear_scheduled_hook( 'videooptimizer_purge_all' );
 		add_action(
 			'videooptimizer_purge_video',
 			function ( $uuid, $ids, $all ) {
@@ -90,25 +92,14 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->assertFalse( $this->cache()->locate( self::UUID )['all'] );
 	}
 
-	public function test_linked_media_only_purges_the_posts_that_embed_the_attachment(): void {
+	public function test_a_linked_media_library_video_purges_the_whole_site(): void {
 		$attachment = self::factory()->attachment->create();
 		update_post_meta( $attachment, '_videooptimizer_uuid', self::UUID );
-		$other = $attachment + 10;
-
-		$block   = $this->post( '<!-- wp:video {"id":' . $attachment . '} --><figure></figure><!-- /wp:video -->' );
-		$block2  = $this->post( '<!-- wp:video {"id":' . $attachment . ',"src":"x"} /-->' );
-		$product = $this->post( 'Product' );
-		update_post_meta( $product, '_product_image_gallery', '3,' . $attachment . ',9' );
-		$builder = $this->post( 'Builder' );
-		update_post_meta( $builder, '_elementor_data', '[{"settings":{"video":{"url":"x","id":' . $attachment . '}}}]' );
-		$this->post( '<!-- wp:video {"id":' . $other . '} /-->' );
-		$noise = $this->post( 'Other gallery' );
-		update_post_meta( $noise, '_product_image_gallery', (string) ( $attachment * 10 ) . ',' . $other );
 
 		$found = $this->cache()->locate( self::UUID );
 
-		$this->assertEqualsCanonicalizing( array( $block, $block2, $product, $builder ), $found['ids'] );
-		$this->assertFalse( $found['all'] );
+		$this->assertTrue( $found['all'], 'core/video, [video], galleries and widgets reference the attachment, not the uuid' );
+		$this->assertSame( array(), $found['ids'] );
 	}
 
 	public function test_widgets_purge_the_whole_site(): void {
@@ -140,6 +131,23 @@ final class PageCacheTest extends IntegrationTestCase {
 		);
 
 		return $posts;
+	}
+
+	/**
+	 * Counts whole-site purges (LiteSpeed's action is the only unguarded one).
+	 *
+	 * @return \ArrayObject<int, string>
+	 */
+	private function site_purges(): \ArrayObject {
+		$calls = new \ArrayObject();
+		add_action(
+			'litespeed_purge',
+			static function ( $tag ) use ( $calls ) {
+				$calls[] = $tag;
+			}
+		);
+
+		return $calls;
 	}
 
 	public function test_a_changed_video_fires_the_purge_action_once_per_request(): void {
@@ -175,11 +183,17 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->assertEqualsCanonicalizing( array( $p1, $p2, $p3 ), $posts->getArrayCopy(), 'every post once' );
 	}
 
-	public function test_site_wide_purges_are_scheduled_once(): void {
+	public function test_site_wide_purges_run_at_once_then_share_one_follow_up(): void {
 		$this->post( '[videooptimizer uuid="' . self::UUID . '"]', 'publish', 'wp_template_part' );
-		$this->cache()->flush();
-		wp_clear_scheduled_hook( 'videooptimizer_purge_all' );
+		$this->cache()->flush(); // set_up()'s change already purged the site (shared content).
+		delete_transient( PageCache::LOCK );
+		$calls  = $this->site_purges();
 		$embeds = Plugin::instance()->embeds;
+
+		$embeds->forget( self::UUID );
+		$this->cache()->flush();
+		$this->assertSame( array( '*' ), $calls->getArrayCopy(), 'the first one runs immediately' );
+		$this->assertFalse( wp_next_scheduled( 'videooptimizer_purge_all' ) );
 
 		$embeds->forget( self::UUID );
 		$this->cache()->flush();
@@ -187,16 +201,41 @@ final class PageCacheTest extends IntegrationTestCase {
 		$embeds->forget( self::UUID );
 		$this->cache()->flush();
 
+		$this->assertCount( 1, $calls, 'within the minute nothing runs again' );
 		$this->assertNotFalse( $first );
 		$this->assertSame( $first, wp_next_scheduled( 'videooptimizer_purge_all' ) );
 		$this->assertCount( 1, _get_cron_array()[ $first ]['videooptimizer_purge_all'] );
-		$this->assertSame( array( self::UUID, array(), true ), $this->purges[ count( $this->purges ) - 1 ] );
+
+		do_action( 'videooptimizer_purge_all' ); // The follow-up.
+		$this->assertCount( 2, $calls );
+	}
+
+	public function test_a_changed_api_token_purges_the_whole_site(): void {
+		$this->cache()->flush();
+		$calls = $this->site_purges();
+
+		Plugin::instance()->settings->set_token( 'vp_new_token_value' );
+		$this->cache()->flush();
+
+		$this->assertSame( array( '*' ), $calls->getArrayCopy() );
+	}
+
+	public function test_saving_other_settings_does_not_purge(): void {
+		Plugin::instance()->settings->set_token( 'vp_same_token_value' );
+		$this->cache()->flush();
+		$calls = $this->site_purges();
+
+		Plugin::instance()->settings->set_token( 'vp_same_token_value' );
+		update_option( 'videooptimizer_settings', array_merge( (array) get_option( 'videooptimizer_settings' ), array( 'woo_tab_title' => 'Videos' ) ) );
+		$this->cache()->flush();
+
+		$this->assertCount( 0, $calls );
 	}
 
 	public function test_large_batches_skip_the_search_and_purge_the_whole_site(): void {
-		wp_clear_scheduled_hook( 'videooptimizer_purge_all' );
 		$this->cache()->flush();
 		$this->purges = array();
+		$calls        = $this->site_purges();
 		$embeds       = Plugin::instance()->embeds;
 		for ( $i = 0; $i <= PageCache::MAX_UUIDS; $i++ ) {
 			$embeds->forget( sprintf( '00000000-0000-4000-8000-%012d', $i ) );
@@ -208,20 +247,20 @@ final class PageCacheTest extends IntegrationTestCase {
 
 		$this->assertCount( PageCache::MAX_UUIDS + 1, $this->purges );
 		$this->assertTrue( $this->purges[0][2] );
-		$this->assertNotFalse( wp_next_scheduled( 'videooptimizer_purge_all' ) );
+		$this->assertCount( 1, $calls );
 		$this->assertLessThan( 10, $wpdb->num_queries - $before, 'no per-video search' );
 	}
 
-	public function test_unchanged_status_polls_and_unused_videos_do_not_purge_pages(): void {
+	public function test_unchanged_status_polls_do_not_purge(): void {
 		$attachment = self::factory()->attachment->create();
 		update_post_meta( $attachment, '_videooptimizer_uuid', self::UUID );
 		update_post_meta( $attachment, '_videooptimizer_status', 'processing' );
 		$this->cache()->flush();
+		delete_transient( PageCache::LOCK );
 		$this->purges = array();
-		$attachments  = Plugin::instance()->attachments;
-		$posts        = $this->purged_posts();
+		$calls        = $this->site_purges();
 
-		$attachments->apply_video(
+		Plugin::instance()->attachments->apply_video(
 			array(
 				'uuid'   => self::UUID,
 				'status' => 'processing',
@@ -230,16 +269,33 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->cache()->flush();
 		$this->assertSame( array(), $this->purges, 'nothing changed' );
 
-		$attachments->apply_video(
+		Plugin::instance()->attachments->apply_video(
 			array(
 				'uuid'   => self::UUID,
 				'status' => 'ready',
 			)
 		);
 		$this->cache()->flush();
+		$this->assertCount( 1, $calls, 'a linked video that became ready purges the site' );
+	}
+
+	public function test_a_video_no_post_uses_purges_nothing_when_it_becomes_ready(): void {
+		$this->cache()->flush();
+		$this->purges = array();
+		$posts        = $this->purged_posts();
+		$calls        = $this->site_purges();
+
+		Plugin::instance()->attachments->apply_video(
+			array(
+				'uuid'   => self::UUID,
+				'status' => 'ready',
+			)
+		);
+		$this->cache()->flush();
+
 		$this->assertSame( array( array( self::UUID, array(), false ) ), $this->purges );
-		$this->assertSame( array(), $posts->getArrayCopy(), 'no post uses it, so no page is purged' );
-		$this->assertFalse( wp_next_scheduled( 'videooptimizer_purge_all' ) );
+		$this->assertSame( array(), $posts->getArrayCopy() );
+		$this->assertCount( 0, $calls );
 	}
 
 	public function test_forget_without_change_does_not_queue(): void {

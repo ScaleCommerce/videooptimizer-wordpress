@@ -9,21 +9,25 @@ namespace ScaleCommerce\VideoOptimizer\Cache;
 
 use ScaleCommerce\VideoOptimizer\Media\Attachments;
 use ScaleCommerce\VideoOptimizer\Render\Embed;
+use ScaleCommerce\VideoOptimizer\Settings\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * When videos change (admin edit or webhook) the cached pages that show them are purged, once at
  * the end of the request for all changed videos together. Pages are found by searching post
- * content and page-builder meta for the uuid (and for the id of linked media library items), so no
- * index has to be maintained and existing content works without a backfill. Shared content
- * (template parts, reusable blocks, widgets), very popular videos and large batches purge the
- * whole site, as one scheduled purge per minute.
+ * content and page-builder meta for the uuid, so no index has to be maintained and existing content
+ * works without a backfill. When that cannot be precise the whole site is purged: shared content
+ * (template parts, reusable blocks, widgets), videos linked to a media library item (core/video,
+ * `[video]`, galleries and media widgets reference the attachment, not the uuid), very popular
+ * videos and large batches. Site-wide purges run at once, at most one per minute; further ones
+ * within that minute share one follow-up.
  */
 final class PageCache {
 
 	public const CHANGED   = 'videooptimizer_video_changed';
 	public const PURGE_ALL = 'videooptimizer_purge_all';
+	public const LOCK      = 'videooptimizer_purge_all_lock';
 
 	/**
 	 * More pages than this: purge the whole site.
@@ -55,6 +59,13 @@ final class PageCache {
 	private array $queue = array();
 
 	/**
+	 * A site-wide purge was requested (e.g. the API token changed).
+	 *
+	 * @var bool
+	 */
+	private bool $site = false;
+
+	/**
 	 * Attachment lookups.
 	 *
 	 * @var Attachments
@@ -78,7 +89,31 @@ final class PageCache {
 		// Before output is flushed (priority < 0), so page caches that purge by response header
 		// (LiteSpeed) can still send it with the current response.
 		add_action( 'shutdown', array( $this, 'flush' ), -1 );
-		add_action( self::PURGE_ALL, array( Integrations::class, 'purge_site' ) );
+		add_action( self::PURGE_ALL, array( $this, 'run_site_purge' ) );
+		// Pages cached while the token was missing or broken show no video: purge them once it changes.
+		add_action( 'add_option_' . Settings::OPTION, array( $this, 'queue_site' ) );
+		add_action( 'update_option_' . Settings::OPTION, array( $this, 'settings_updated' ), 10, 2 );
+	}
+
+	/**
+	 * Queues a site-wide purge for the end of the request.
+	 */
+	public function queue_site(): void {
+		$this->site = true;
+	}
+
+	/**
+	 * Purges the site when the API token changed.
+	 *
+	 * @param mixed $old Old settings.
+	 * @param mixed $value New settings.
+	 */
+	public function settings_updated( $old, $value ): void {
+		$before = is_array( $old ) ? ( $old['token'] ?? '' ) : '';
+		$after  = is_array( $value ) ? ( $value['token'] ?? '' ) : '';
+		if ( $before !== $after ) {
+			$this->queue_site();
+		}
 	}
 
 	/**
@@ -97,13 +132,15 @@ final class PageCache {
 	 */
 	public function flush(): void {
 		$uuids       = array_keys( $this->queue );
+		$site        = $this->site;
 		$this->queue = array();
-		if ( array() === $uuids || ( ! Integrations::detected() && ! has_action( 'videooptimizer_purge_video' ) ) ) {
+		$this->site  = false;
+		if ( ( array() === $uuids && ! $site ) || ( ! Integrations::detected() && ! has_action( 'videooptimizer_purge_video' ) ) ) {
 			return;
 		}
 
 		$ids = array();
-		$all = count( $uuids ) > self::MAX_UUIDS;
+		$all = $site || count( $uuids ) > self::MAX_UUIDS;
 		foreach ( $uuids as $uuid ) {
 			// Once the whole site is purged anyway, no further search is needed.
 			$found = $all ? array(
@@ -124,7 +161,7 @@ final class PageCache {
 		}
 
 		if ( $all ) {
-			$this->schedule_site_purge();
+			$this->request_site_purge();
 		} elseif ( array() !== $ids ) {
 			Integrations::purge( array_values( array_unique( $ids ) ), false );
 		}
@@ -166,10 +203,9 @@ final class PageCache {
 		// phpcs:enable
 
 		$post_ids = array_map( 'intval', array_merge( wp_list_pluck( $rows, 'ID' ), $meta ) );
-		$all      = null !== $widget || count( $rows ) > self::LIMIT || count( $meta ) > self::LIMIT;
-		foreach ( array_slice( $this->attachments->find_by_uuid( $uuid ), 0, 10 ) as $attachment_id ) {
-			$post_ids = array_merge( $post_ids, $this->posts_using_attachment( $attachment_id ) );
-		}
+		// A linked media library video is referenced by attachment id (core/video, [video], galleries,
+		// media widgets, thumbnails): not findable by uuid, so purge everything.
+		$all = null !== $widget || count( $rows ) > self::LIMIT || count( $meta ) > self::LIMIT || array() !== $this->attachments->find_by_uuid( $uuid );
 
 		/**
 		 * Filters the post types whose content appears on many pages (a match purges the whole site).
@@ -196,85 +232,55 @@ final class PageCache {
 	}
 
 	/**
-	 * Published posts that embed a media library item: core/video blocks (`"id":N`), Elementor
-	 * media controls and WooCommerce product galleries.
-	 *
-	 * @param int $attachment_id Attachment id.
-	 * @return array<int, int>
+	 * Purges the whole site now unless that already happened within the last minute; then exactly
+	 * one follow-up is scheduled, which covers every request in between.
 	 */
-	private function posts_using_attachment( int $attachment_id ): array {
-		global $wpdb;
-		$max = self::LIMIT + 1;
+	private function request_site_purge(): void {
+		if ( false === get_transient( self::LOCK ) ) {
+			$this->run_site_purge();
 
-		// phpcs:disable WordPress.DB.DirectDatabaseQuery,WordPress.DB.PreparedSQLPlaceholders.LikeWildcardsInQuery -- ad-hoc lookup on rare events, id is an integer.
-		$ids    = $wpdb->get_col(
-			$wpdb->prepare(
-				"SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type NOT IN ('revision','attachment') AND (post_content LIKE %s OR post_content LIKE %s) LIMIT %d",
-				'%' . $wpdb->esc_like( '"id":' . $attachment_id . ',' ) . '%',
-				'%' . $wpdb->esc_like( '"id":' . $attachment_id . '}' ) . '%',
-				$max
-			)
-		);
-		$values = (array) $wpdb->get_results(
-			$wpdb->prepare(
-				"SELECT post_id, meta_key, meta_value FROM {$wpdb->postmeta} WHERE meta_key IN ('_elementor_data','_product_image_gallery','_wc_video_gallery') AND meta_value LIKE %s LIMIT %d",
-				'%' . $wpdb->esc_like( (string) $attachment_id ) . '%',
-				$max
-			)
-		);
-		// phpcs:enable
-
-		$ids = array_map( 'intval', (array) $ids );
-		foreach ( $values as $row ) {
-			// LIKE matched the digits anywhere: require the whole number.
-			$pattern = '_elementor_data' === $row->meta_key ? '/"id":"?' . $attachment_id . '(?!\d)/' : '/(?<!\d)' . $attachment_id . '(?!\d)/';
-			if ( preg_match( $pattern, (string) $row->meta_value ) ) {
-				$ids[] = (int) $row->post_id;
-			}
+			return;
 		}
-
-		return $ids;
-	}
-
-	/**
-	 * Schedules one whole-site purge a minute from now unless one is already pending.
-	 */
-	private function schedule_site_purge(): void {
 		if ( ! wp_next_scheduled( self::PURGE_ALL ) ) {
 			wp_schedule_single_event( time() + MINUTE_IN_SECONDS, self::PURGE_ALL );
 		}
 	}
 
 	/**
-	 * Reports a video that could not be shown. Only processing videos and temporary failures
-	 * (transport error, rate limit, 5xx) keep the page out of page caches; a missing or invalid
-	 * video is stable and cacheable. During an API outage (every page is affected) the page is
-	 * cached for a short time only, so the cache keeps absorbing traffic.
+	 * Whole-site purge (also the scheduled follow-up). Starts the one-minute window.
 	 *
-	 * @param int  $status Failure status (0 = transport error).
-	 * @param bool $outage The API as a whole is unavailable.
+	 * With LiteSpeed Cache, a purge made during cron or after output is queued by that plugin and
+	 * goes out with the next response (checked in its Purge::_add()), so the follow-up works there too.
 	 */
-	public static function report_failure( int $status, bool $outage ): void {
-		if ( $outage ) {
-			self::mark_degraded( true );
-		} elseif ( $status >= 500 ) {
-			self::mark_degraded( false );
+	public function run_site_purge(): void {
+		set_transient( self::LOCK, 1, MINUTE_IN_SECONDS );
+		Integrations::purge_site();
+	}
+
+	/**
+	 * Reports a video that could not be shown. Everything but a stable "does not exist" (404) keeps
+	 * the page out of page caches: the failure may be fixed a minute later (processing, transport
+	 * error, rate limit, token or permission problems, 5xx), and a cached page would keep it.
+	 *
+	 * @param int $status Failure status (0 = transport error).
+	 */
+	public static function report_failure( int $status ): void {
+		if ( 404 !== $status ) {
+			self::mark_degraded();
 		}
 	}
 
 	/**
-	 * Flags the current page as degraded, for page caches that honor DONOTCACHEPAGE (or, for an
-	 * outage, a short LiteSpeed TTL). Front end only.
-	 *
-	 * @param bool $short_ttl Cache for a minute instead of not at all.
+	 * Flags the current page as not cacheable (DONOTCACHEPAGE). With LiteSpeed Cache a 60 s TTL is
+	 * sent as well, so it may cache the page briefly instead. Front end only.
 	 */
-	public static function mark_degraded( bool $short_ttl = false ): void {
+	public static function mark_degraded(): void {
 		if ( self::$degraded || is_admin() || ( defined( 'REST_REQUEST' ) && REST_REQUEST ) || wp_doing_ajax() ) {
 			return;
 		}
 
 		/**
-		 * Filters whether pages with a degraded video are kept out of (or cached only briefly by) page caches.
+		 * Filters whether pages with a degraded video are kept out of page caches.
 		 *
 		 * @param bool $uncacheable Default true.
 		 */
@@ -282,13 +288,11 @@ final class PageCache {
 			return;
 		}
 		self::$degraded = true;
-		if ( $short_ttl ) {
-			do_action( 'litespeed_control_set_ttl', MINUTE_IN_SECONDS ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
-
-			return;
-		}
 		if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 			define( 'DONOTCACHEPAGE', true ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound -- convention honored by page-cache plugins.
+		}
+		if ( defined( 'LSCWP_V' ) ) {
+			do_action( 'litespeed_control_set_ttl', MINUTE_IN_SECONDS ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
 		}
 	}
 

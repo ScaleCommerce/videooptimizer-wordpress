@@ -158,7 +158,7 @@ class Renderer {
 		if ( null === $embed ) {
 			$failure = $this->embeds->failure( $uuid );
 			if ( null !== $failure ) {
-				PageCache::report_failure( $failure['status'], $failure['outage'] );
+				PageCache::report_failure( $failure['status'] );
 			}
 		} elseif ( ! $embed['playable'] ) {
 			PageCache::mark_degraded();
@@ -450,7 +450,8 @@ class Renderer {
 		$controls       = self::resolve( $a['controls'], $theme_controls );
 		// interactive=false (pure design element) only applies to videos that start by themselves
 		// and drops the controls, which could not be used anyway.
-		$static   = $direct && $autoplay && isset( $theme['interactive'] ) && false === $theme['interactive'];
+		// An explicit block `controls` setting wins: then the video stays usable.
+		$static   = $direct && $autoplay && '1' !== (string) $a['controls'] && isset( $theme['interactive'] ) && false === $theme['interactive'];
 		$controls = $controls && ! $static;
 		// Native players never buffer segments before playback: the theme's `auto` is capped at `metadata`.
 		$preload = isset( $theme['preload'] ) && 'none' === $theme['preload'] ? 'none' : 'metadata';

@@ -523,6 +523,7 @@ function wireHeroToggle( video, start ) {
 	};
 	show( ! video.paused );
 	button.hidden = false;
+	video.voHeroShow = show; // start() shows "Pause" as soon as playback is requested.
 	video.addEventListener( 'play', () => show( true ) );
 	video.addEventListener( 'pause', () => show( false ) );
 	button.addEventListener( 'click', () => {
@@ -534,7 +535,7 @@ function wireHeroToggle( video, start ) {
 		}
 		video.voUserPaused = false;
 		if ( video.currentSrc || video.voHls ) {
-			video.play().catch( () => {} );
+			video.play().catch( () => show( false ) );
 		} else {
 			start( video );
 		}
@@ -550,6 +551,9 @@ function initBackgrounds( root ) {
 
 	const start = ( video ) => {
 		markPlayIntent( video );
+		if ( video.voHeroShow && ! video.voUserPaused ) {
+			video.voHeroShow( true );
+		}
 		const mp4 = video.getAttribute( 'data-mp4' );
 		const src = video.getAttribute( 'data-hls' );
 		const canNative = src && preferNativeHls( video );
@@ -561,7 +565,12 @@ function initBackgrounds( root ) {
 		// A pause by the visitor while this was loading must stick.
 		const resume = () => {
 			if ( ! video.voUserPaused ) {
-				video.play().catch( () => {} );
+				video.play().catch( () => {
+					// Autoplay blocked: offer "Play" instead of a pause button for a still video.
+					if ( video.voHeroShow ) {
+						video.voHeroShow( false );
+					}
+				} );
 			}
 		};
 		if ( ! src || canNative ) {

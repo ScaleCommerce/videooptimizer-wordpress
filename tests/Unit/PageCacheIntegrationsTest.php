@@ -27,8 +27,7 @@ final class PageCacheIntegrationsTest extends TestCase {
 		Functions\when( 'get_permalink' )->alias( static fn ( $id ) => 'https://example.test/?p=' . $id );
 		Functions\expect( 'rocket_clean_post' )->twice();
 		Functions\expect( 'w3tc_flush_post' )->twice();
-		Functions\expect( 'wpsc_delete_post_cache' )->twice();
-		Functions\expect( 'wp_cache_post_change' )->never();
+		Functions\expect( 'wp_cache_post_change' )->twice();
 		Functions\expect( 'sg_cachepress_purge_cache' )->twice();
 		Actions\expectDone( 'litespeed_purge_post' )->twice();
 		$GLOBALS['cloudflareHooks'] = new class() {
@@ -79,7 +78,7 @@ final class PageCacheIntegrationsTest extends TestCase {
 	public function test_the_cloudflare_hooks_object_without_the_methods_is_ignored(): void {
 		Functions\when( 'get_permalink' )->justReturn( '' );
 		Functions\when( 'get_current_blog_id' )->justReturn( 1 );
-		foreach ( array( 'rocket_clean_post', 'w3tc_flush_post', 'wpsc_delete_post_cache', 'sg_cachepress_purge_cache', 'rocket_clean_domain', 'w3tc_flush_posts', 'wp_cache_clear_cache' ) as $function ) {
+		foreach ( array( 'rocket_clean_post', 'w3tc_flush_post', 'wp_cache_post_change', 'sg_cachepress_purge_cache', 'rocket_clean_domain', 'w3tc_flush_posts', 'wp_cache_clear_cache' ) as $function ) {
 			Functions\when( $function )->justReturn( null );
 		}
 		$GLOBALS['cloudflareHooks'] = new \stdClass();
@@ -91,20 +90,38 @@ final class PageCacheIntegrationsTest extends TestCase {
 		$this->addToAssertionCount( 1 );
 	}
 
-	public function test_stable_failures_do_not_flag_the_page(): void {
+	public function test_a_deleted_video_is_stable_and_does_not_flag_the_page(): void {
 		PageCache::reset_degraded();
 
-		PageCache::report_failure( 404, false );
-		PageCache::report_failure( 400, false );
-		PageCache::report_failure( 403, false );
+		PageCache::report_failure( 404 );
 
 		$this->assertFalse( PageCache::is_degraded() );
 	}
 
-	public function test_temporary_failures_keep_the_page_out_of_page_caches(): void {
+	/**
+	 * Failures that may be fixed a minute later.
+	 *
+	 * @return array<string, array{0: int}>
+	 */
+	public static function temporary_failures(): array {
+		return array(
+			'transport'   => array( 0 ),
+			'unauthorized' => array( 401 ),
+			'forbidden'   => array( 403 ),
+			'precondition' => array( 428 ),
+			'rate limit'  => array( 429 ),
+			'server'      => array( 500 ),
+			'unavailable' => array( 503 ),
+		);
+	}
+
+	/**
+	 * @dataProvider temporary_failures
+	 */
+	public function test_every_other_failure_keeps_the_page_out_of_page_caches( int $status ): void {
 		PageCache::reset_degraded();
 
-		PageCache::report_failure( 500, false );
+		PageCache::report_failure( $status );
 
 		$this->assertTrue( PageCache::is_degraded() );
 		$this->assertTrue( defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE );
@@ -118,16 +135,6 @@ final class PageCacheIntegrationsTest extends TestCase {
 		$this->assertTrue( PageCache::is_degraded() );
 	}
 
-	public function test_an_outage_only_shortens_the_cache_time(): void {
-		PageCache::reset_degraded();
-		Actions\expectDone( 'litespeed_control_set_ttl' )->once()->with( 60 );
-
-		PageCache::report_failure( 503, true );
-		PageCache::report_failure( 0, true ); // Already flagged: no second call.
-
-		$this->assertTrue( PageCache::is_degraded() );
-	}
-
 	public function test_degraded_flag_can_be_disabled_by_filter(): void {
 		PageCache::reset_degraded();
 		Functions\when( 'apply_filters' )->alias( static fn ( $hook, $value ) => 'videooptimizer_cache_degraded_pages' === $hook ? false : $value );
@@ -135,5 +142,19 @@ final class PageCacheIntegrationsTest extends TestCase {
 		PageCache::mark_degraded();
 
 		$this->assertFalse( PageCache::is_degraded() );
+	}
+
+	// Last on purpose: defines the LiteSpeed constant for the rest of the process.
+	public function test_litespeed_also_gets_a_short_ttl(): void {
+		PageCache::reset_degraded();
+		if ( ! defined( 'LSCWP_V' ) ) {
+			define( 'LSCWP_V', '7' );
+		}
+		Actions\expectDone( 'litespeed_control_set_ttl' )->once()->with( 60 );
+
+		PageCache::mark_degraded();
+		PageCache::mark_degraded(); // Already flagged: not repeated.
+
+		$this->assertTrue( PageCache::is_degraded() );
 	}
 }

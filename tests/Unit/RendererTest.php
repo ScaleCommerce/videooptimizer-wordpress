@@ -203,6 +203,19 @@ final class RendererTest extends TestCase {
 		$this->assertStringNotContainsString( 'vo-native--static', $html );
 	}
 
+	public function test_explicit_controls_win_over_interactive_false(): void {
+		$html = $this->native_with_theme(
+			array(
+				'interactive' => false,
+				'autoplay'    => true,
+			),
+			array( 'controls' => '1' )
+		);
+
+		$this->assertStringContainsString( ' controls', $html );
+		$this->assertStringNotContainsString( 'vo-native--static', $html );
+	}
+
 	public function test_static_video_has_no_controls_even_when_the_theme_shows_them(): void {
 		$html = $this->native_with_theme(
 			array(
@@ -383,6 +396,19 @@ final class RendererTest extends TestCase {
 		);
 		$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
 		$this->assertTrue( PageCache::is_degraded(), 'temporary failure' );
+	}
+
+	public function test_token_and_rate_limit_failures_flag_the_page(): void {
+		foreach ( array( 401, 403, 429, 0 ) as $status ) {
+			PageCache::reset_degraded();
+			$this->embed   = null;
+			$this->failure = array(
+				'status' => $status,
+				'outage' => false,
+			);
+			$this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+			$this->assertTrue( PageCache::is_degraded(), (string) $status );
+		}
 	}
 
 	public function test_deleted_videos_and_empty_blocks_stay_cacheable(): void {

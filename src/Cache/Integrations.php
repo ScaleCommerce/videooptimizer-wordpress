@@ -19,7 +19,7 @@ final class Integrations {
 	/**
 	 * Purge functions that signal an active page-cache plugin.
 	 */
-	private const FUNCTIONS = array( 'rocket_clean_post', 'w3tc_flush_post', 'wp_cache_post_change', 'wpsc_delete_post_cache', 'sg_cachepress_purge_cache' );
+	private const FUNCTIONS = array( 'rocket_clean_post', 'w3tc_flush_post', 'wp_cache_post_change', 'sg_cachepress_purge_cache' );
 
 	/**
 	 * Whether a supported page-cache plugin is active.
@@ -55,10 +55,8 @@ final class Integrations {
 			if ( function_exists( 'w3tc_flush_post' ) ) {
 				w3tc_flush_post( $id );
 			}
-			if ( function_exists( 'wpsc_delete_post_cache' ) ) {
-				wpsc_delete_post_cache( $id ); // The light variant: only this post's cache files.
-			} elseif ( function_exists( 'wp_cache_post_change' ) ) {
-				wp_cache_post_change( $id );
+			if ( function_exists( 'wp_cache_post_change' ) ) {
+				wp_cache_post_change( $id ); // Also clears the home page and archives.
 			}
 			if ( function_exists( 'sg_cachepress_purge_cache' ) && '' !== $url ) {
 				sg_cachepress_purge_cache( $url );

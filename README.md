@@ -89,7 +89,7 @@ Requirements: PHP 8.1+ with sodium, WordPress 6.5+. WooCommerce 8.0+ and Element
 
 **Actions**: `videooptimizer_webhook`, `videooptimizer_purge_video`.
 
-**Page caches**: when videos change, the published posts that contain their uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos, or the id of a linked media library item in a core/video block, Elementor media control or product gallery) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer (SiteGround) and the Cloudflare plugin, once at the end of the request and in a single call. Videos in template parts, reusable blocks or widgets, on more than 100 pages, or more than 20 changed videos at once purge the whole site, scheduled once a minute at most. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN. Pages with a processing video or a temporary API failure are sent to page caches as uncacheable (`DONOTCACHEPAGE`); during an API outage LiteSpeed gets a 60 s TTL instead. Missing or deleted videos stay cacheable.
+**Page caches**: when videos change, the published posts that contain their uuid (blocks, shortcodes, Elementor data, WooCommerce product and variation videos) are purged in WP Rocket, W3 Total Cache, LiteSpeed Cache, WP Super Cache, Speed Optimizer (SiteGround) and the Cloudflare plugin, once at the end of the request and in a single call. The whole site is purged for videos in template parts, reusable blocks or widgets, videos linked to a media library item (core/video, `[video]`, galleries and media widgets reference the attachment, not the uuid), videos on more than 100 pages, more than 20 changed videos at once, and when the API token changes. A whole-site purge runs at once, at most one per minute; others within that minute share one follow-up (WP-Cron; with `DISABLE_WP_CRON` run it from a system cron). LiteSpeed Cache queues purges made during cron or after output and sends them with the next response. Nothing is searched if no page cache is active; hook `videooptimizer_purge_video( $uuid, $post_ids, $all )` to purge a custom cache or CDN. Pages with a processing video or any API failure except "not found" (temporary errors, rate limit, token or permission problems) are sent to page caches as uncacheable (`DONOTCACHEPAGE`, plus a 60 s TTL for LiteSpeed Cache); deleted videos stay cacheable.
 
 **WP-CLI**:
 - `wp videooptimizer status`
@@ -109,7 +109,7 @@ The theme of the organization/library/video (VideoOptimizer app) is applied to t
 | `autoplay`, `mutedStart` | autoplay (always muted) / muted start |
 | `loopButton` | `loop` |
 | `preload` | `none` stays `none`; `auto` and `metadata` become `metadata` for above-the-fold videos (native players never buffer segments before playback); deferred videos never preload. Only a prioritised background hero buffers eagerly |
-| `interactive: false` | `pointer-events: none`, no controls, only for videos that autoplay directly |
+| `interactive: false` | `pointer-events: none`, no controls (unless the block sets `controls` explicitly), only for videos that autoplay directly |
 | `fullscreenButton`, `playbackSpeed` | `controlslist="nofullscreen noplaybackrate"` |
 | `pictureInPicture` | `disablepictureinpicture` |
 | `accentColor` | `--vo-player-accent` (controls, focus ring) |
