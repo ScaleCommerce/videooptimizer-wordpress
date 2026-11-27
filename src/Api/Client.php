@@ -286,17 +286,17 @@ class Client {
 	 * @param string      $contents   File contents, bytes as uploaded (UTF-8, UTF-16 or Windows-1252).
 	 * @param string      $language   BCP 47 code from the organization's subtitle languages.
 	 * @param string|null $kind       subtitles|captions; null keeps the existing kind.
-	 * @param bool        $is_default Show this track automatically.
+	 * @param bool|null   $is_default Show this track automatically; null keeps the current setting.
 	 * @return array<string, mixed> {subtitle, skipped_cues}
 	 * @throws \Exception When no random boundary can be generated.
 	 */
-	public function upload_subtitle( string $uuid, string $filename, string $contents, string $language, ?string $kind = null, bool $is_default = false ): array {
+	public function upload_subtitle( string $uuid, string $filename, string $contents, string $language, ?string $kind = null, ?bool $is_default = null ): array {
 		$boundary = 'videooptimizer' . bin2hex( random_bytes( 12 ) );
 		$filename = preg_replace( '/[^A-Za-z0-9._ -]/', '_', basename( $filename ) );
-		$fields   = array(
-			'language'   => $language,
-			'is_default' => $is_default ? 'true' : 'false',
-		);
+		$fields   = array( 'language' => $language );
+		if ( null !== $is_default ) {
+			$fields['is_default'] = $is_default ? 'true' : 'false';
+		}
 		if ( null !== $kind ) {
 			$fields['kind'] = $kind;
 		}

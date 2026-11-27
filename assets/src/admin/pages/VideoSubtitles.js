@@ -29,7 +29,8 @@ export default function VideoSubtitles( { video } ) {
 	const [ languages, setLanguages ] = useState( null );
 	const [ language, setLanguage ] = useState( '' );
 	const [ kind, setKind ] = useState( '' );
-	const [ isDefault, setIsDefault ] = useState( false );
+	// null = not touched: the API keeps the current setting of an existing track.
+	const [ isDefault, setIsDefault ] = useState( null );
 	const [ busy, setBusy ] = useState( false );
 	const [ removing, setRemoving ] = useState( null );
 	const notify = useNotify();
@@ -200,7 +201,10 @@ export default function VideoSubtitles( { video } ) {
 							__next40pxDefaultSize
 							label={ __( 'Language', 'videooptimizer' ) }
 							value={ language }
-							onChange={ setLanguage }
+							onChange={ ( value ) => {
+								setLanguage( value );
+								setIsDefault( null );
+							} }
 							options={ [
 								{
 									label: __(
@@ -256,7 +260,10 @@ export default function VideoSubtitles( { video } ) {
 								'Show automatically when playback starts',
 								'videooptimizer'
 							) }
-							checked={ isDefault }
+							checked={
+								isDefault ??
+								!! ( existing && existing.is_default )
+							}
 							onChange={ setIsDefault }
 						/>
 						<FormFileUpload

@@ -90,6 +90,9 @@ class ApiException extends \RuntimeException {
 			/* translators: %s: upstream message */
 			return sprintf( __( 'The API token is missing a permission for this action (%s). Use an organization token.', 'videooptimizer' ), $message );
 		}
+		if ( 404 === $status && '' !== $message && false !== stripos( $message, 'subtitle' ) ) {
+			return $message;
+		}
 		if ( 404 === $status ) {
 			return __( 'The video or library no longer exists in VideoOptimizer.', 'videooptimizer' );
 		}

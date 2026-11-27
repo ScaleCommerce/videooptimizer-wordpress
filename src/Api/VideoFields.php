@@ -31,6 +31,9 @@ final class VideoFields {
 		$result = array();
 		$seen   = array();
 		foreach ( $tags as $tag ) {
+			if ( ! is_scalar( $tag ) ) {
+				throw new \InvalidArgumentException( __( 'A tag has 1 to 50 characters and must not contain a comma.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+			}
 			$name = trim( (string) preg_replace( '/[\x00-\x1F\x7F]/u', '', (string) $tag ) );
 			if ( '' === $name ) {
 				continue;
@@ -38,7 +41,7 @@ final class VideoFields {
 			if ( mb_strlen( $name ) > self::MAX_TAG_LEN || str_contains( $name, ',' ) ) {
 				throw new \InvalidArgumentException( __( 'A tag has 1 to 50 characters and must not contain a comma.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 			}
-			$needle = mb_strtolower( $name );
+			$needle = function_exists( 'mb_strtolower' ) ? mb_strtolower( $name ) : strtolower( $name );
 			if ( isset( $seen[ $needle ] ) ) {
 				continue;
 			}
@@ -71,13 +74,16 @@ final class VideoFields {
 				$result[ $key ] = null;
 				continue;
 			}
+			if ( ! is_scalar( $value ) ) {
+				throw new \InvalidArgumentException( __( 'A metadata value has at most 64 characters.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
+			}
 			$value = trim( (string) preg_replace( '/[\x00-\x1F\x7F]/u', '', (string) $value ) );
 			if ( mb_strlen( $value ) > self::MAX_VALUE_LEN ) {
 				throw new \InvalidArgumentException( __( 'A metadata value has at most 64 characters.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 			}
 			$result[ $key ] = '' === $value ? null : $value;
 		}
-		if ( count( $result ) > self::MAX_META_KEYS ) {
+		if ( count( array_filter( $result, static fn ( $value ): bool => null !== $value ) ) > self::MAX_META_KEYS ) {
 			throw new \InvalidArgumentException( __( 'A video can have at most 10 metadata keys.', 'videooptimizer' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.ExceptionNotEscaped -- returned as JSON by the REST API, never echoed as HTML.
 		}
 

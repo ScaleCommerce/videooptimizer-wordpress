@@ -454,6 +454,25 @@ final class ClientTest extends TestCase {
 		$this->assertStringEndsWith( '--' . $m[1] . "--\r\n", $body );
 	}
 
+	public function test_default_flag_is_only_sent_when_given(): void {
+		$this->client()->upload_subtitle( 'abc', 'a.vtt', 'WEBVTT', 'de' );
+		$this->assertStringNotContainsString( 'is_default', $this->requests[0][1]['body'] );
+
+		$this->client()->upload_subtitle( 'abc', 'a.vtt', 'WEBVTT', 'de', null, false );
+		$this->assertStringContainsString( 'name="is_default"' . "\r\n\r\n" . 'false', $this->requests[1][1]['body'] );
+	}
+
+	public function test_subtitle_not_found_keeps_the_api_message(): void {
+		$this->responses[] = $this->response( 404, array( 'message' => 'Subtitle not found for language de' ) );
+
+		try {
+			$this->client()->delete_subtitle( 'abc', 'de' );
+			$this->fail( 'Expected ApiException' );
+		} catch ( ApiException $e ) {
+			$this->assertSame( 'Subtitle not found for language de', $e->user_message() );
+		}
+	}
+
 	public function test_subtitle_filename_cannot_break_the_multipart_headers(): void {
 		$this->client()->upload_subtitle( 'abc', "a\"\r\nX: y.vtt", 'WEBVTT', 'de' );
 

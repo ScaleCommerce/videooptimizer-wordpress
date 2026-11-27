@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-11-27T21:48:14+00:00\n"
+"POT-Creation-Date: 2026-11-27T21:59:51+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: videooptimizer\n"
@@ -102,68 +102,70 @@ msgstr ""
 msgid "The API token is missing a permission for this action (%s). Use an organization token."
 msgstr ""
 
-#: src/Api/ApiException.php:94
+#: src/Api/ApiException.php:97
 msgid "The video or library no longer exists in VideoOptimizer."
 msgstr ""
 
-#: src/Api/ApiException.php:97
+#: src/Api/ApiException.php:100
 msgid "Videos still have subtitles in this language. Delete those subtitles first."
 msgstr ""
 
-#: src/Api/ApiException.php:100
+#: src/Api/ApiException.php:103
 msgid "The file is too large for VideoOptimizer."
 msgstr ""
 
-#: src/Api/ApiException.php:103
+#: src/Api/ApiException.php:106
 msgid "This file type is not supported."
 msgstr ""
 
-#: src/Api/ApiException.php:106
+#: src/Api/ApiException.php:109
 msgid "The re-encode limit has been reached (5 per hour). Please try again later."
 msgstr ""
 
-#: src/Api/ApiException.php:109
+#: src/Api/ApiException.php:112
 msgid "Too many requests to VideoOptimizer. Please wait a minute and try again."
 msgstr ""
 
-#: src/Api/ApiException.php:112
-#: assets/src/components/VideoBrowser.js:433
+#: src/Api/ApiException.php:115
+#: assets/src/components/VideoBrowser.js:457
 msgid "Link to a video file (e.g. https://…/video.mp4), not to a video page such as YouTube."
 msgstr ""
 
-#: src/Api/ApiException.php:115
+#: src/Api/ApiException.php:118
 msgid "This library is delivery-only (not media-managed) — uploads and poster changes are not possible here."
 msgstr ""
 
-#: src/Api/ApiException.php:118
+#: src/Api/ApiException.php:121
 msgid "The VideoOptimizer request failed."
 msgstr ""
 
-#: src/Api/VideoFields.php:39
+#: src/Api/VideoFields.php:35
+#: src/Api/VideoFields.php:42
 msgid "A tag has 1 to 50 characters and must not contain a comma."
 msgstr ""
 
-#: src/Api/VideoFields.php:49
+#: src/Api/VideoFields.php:52
 msgid "A video can have at most 20 tags."
 msgstr ""
 
-#: src/Api/VideoFields.php:68
+#: src/Api/VideoFields.php:71
 msgid "A metadata key has 1 to 40 characters of a-z, 0-9, _, . or - and starts with a letter or digit."
 msgstr ""
 
-#: src/Api/VideoFields.php:76
+#: src/Api/VideoFields.php:78
+#: src/Api/VideoFields.php:82
 msgid "A metadata value has at most 64 characters."
 msgstr ""
 
-#: src/Api/VideoFields.php:81
+#: src/Api/VideoFields.php:87
 msgid "A video can have at most 10 metadata keys."
 msgstr ""
 
-#: src/Api/VideoFields.php:96
+#: src/Api/VideoFields.php:102
 msgid "Please enter a valid language code such as de or en-US."
 msgstr ""
 
-#: src/Api/VideoFields.php:113
+#: src/Api/VideoFields.php:119
 msgid "The kind must be \"subtitles\" or \"captions\"."
 msgstr ""
 
@@ -299,7 +301,7 @@ msgid "Presentation"
 msgstr ""
 
 #: src/Editor/Elementor/Widget.php:225
-#: assets/src/admin/pages/VideoSubtitles.js:134
+#: assets/src/admin/pages/VideoSubtitles.js:135
 #: assets/src/blocks/shared/editor.js:107
 msgid "Default"
 msgstr ""
@@ -447,7 +449,7 @@ msgstr ""
 
 #: src/Media/MediaLibrary.php:285
 #: assets/src/components/ui.js:12
-#: assets/src/components/VideoBrowser.js:105
+#: assets/src/components/VideoBrowser.js:110
 #: assets/src/media/index.js:217
 msgid "Failed"
 msgstr ""
@@ -531,6 +533,7 @@ msgstr ""
 
 #: src/Rest/AdminController.php:811
 #: src/Rest/AdminController.php:815
+#: src/Rest/AdminController.php:830
 #: assets/src/components/subtitles.js:16
 msgid "Please choose a .vtt or .srt file (up to 2 MB)."
 msgstr ""
@@ -540,32 +543,32 @@ msgstr ""
 msgid "The subtitle file is larger than 2 MB."
 msgstr ""
 
-#: src/Rest/AdminController.php:901
+#: src/Rest/AdminController.php:906
 msgid "Invalid frame."
 msgstr ""
 
-#: src/Rest/AdminController.php:919
-#: assets/src/components/uploader.js:172
+#: src/Rest/AdminController.php:924
+#: assets/src/components/uploader.js:179
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr ""
 
-#: src/Rest/AdminController.php:949
+#: src/Rest/AdminController.php:954
 msgid "Invalid poster source."
 msgstr ""
 
-#: src/Rest/AdminController.php:1008
+#: src/Rest/AdminController.php:1013
 msgid "This video is no longer waiting for a decision."
 msgstr ""
 
-#: src/Rest/AdminController.php:1011
+#: src/Rest/AdminController.php:1016
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr ""
 
-#: src/Rest/AdminController.php:1043
+#: src/Rest/AdminController.php:1048
 msgid "Invalid video id."
 msgstr ""
 
-#: src/Rest/AdminController.php:1074
+#: src/Rest/AdminController.php:1079
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr ""
 
@@ -686,7 +689,7 @@ msgstr ""
 #: assets/src/admin/pages/Libraries.js:298
 #: assets/src/admin/pages/Libraries.js:392
 #: assets/src/components/ui.js:120
-#: assets/src/components/VideoBrowser.js:467
+#: assets/src/components/VideoBrowser.js:491
 msgid "Cancel"
 msgstr ""
 
@@ -756,7 +759,7 @@ msgid "Show videos"
 msgstr ""
 
 #: assets/src/admin/pages/Libraries.js:535
-#: assets/src/admin/pages/VideoSubtitles.js:181
+#: assets/src/admin/pages/VideoSubtitles.js:182
 msgid "Delete"
 msgstr ""
 
@@ -1115,7 +1118,7 @@ msgid "Language removed."
 msgstr ""
 
 #: assets/src/admin/pages/SubtitleLanguages.js:70
-#: assets/src/admin/pages/VideoSubtitles.js:292
+#: assets/src/admin/pages/VideoSubtitles.js:299
 msgid "Subtitle languages"
 msgstr ""
 
@@ -1324,142 +1327,142 @@ msgstr ""
 msgid "The video is removed from VideoOptimizer and the CDN. Pages that embed it will no longer show it. Media library files are not touched."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:12
+#: assets/src/admin/pages/Videos.js:13
 msgid "Welcome to VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:14
+#: assets/src/admin/pages/Videos.js:15
 msgid "Deliver your videos adaptively from a European CDN — fast on every device, without YouTube branding or tracking."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:21
+#: assets/src/admin/pages/Videos.js:22
 msgid "Create an organization API token in VideoOptimizer (Organization → API tokens)."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:34
+#: assets/src/admin/pages/Videos.js:35
 msgid "Paste it under Settings and click \"Save & test\"."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:40
+#: assets/src/admin/pages/Videos.js:41
 msgid "Upload videos here — or send existing ones from the media library — and add them with the VideoOptimizer blocks, the [videooptimizer] shortcode or the Elementor widget."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:48
+#: assets/src/admin/pages/Videos.js:49
 msgid "Connect VideoOptimizer"
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:52
+#: assets/src/admin/pages/Videos.js:53
 msgid "Please ask an administrator to connect VideoOptimizer."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:70
+#: assets/src/admin/pages/Videos.js:73
 msgid "Upload videos (drag & drop works too), then use them in blocks, the shortcode, Elementor or as WooCommerce product videos. Click a video for poster, options and embed code."
 msgstr ""
 
-#: assets/src/admin/pages/Videos.js:75
+#: assets/src/admin/pages/Videos.js:78
 msgid "Send existing media library videos"
 msgstr ""
 
 #. translators: %d: number of skipped cues
-#: assets/src/admin/pages/VideoSubtitles.js:75
+#: assets/src/admin/pages/VideoSubtitles.js:76
 #, js-format
 msgid "Subtitle saved; %d malformed cue was skipped."
 msgid_plural "Subtitle saved; %d malformed cues were skipped."
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:83
+#: assets/src/admin/pages/VideoSubtitles.js:84
 msgid "Subtitle saved."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:106
+#: assets/src/admin/pages/VideoSubtitles.js:107
 msgid "Subtitle deleted."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:117
-#: assets/src/admin/pages/VideoSubtitles.js:131
-#: assets/src/admin/pages/VideoSubtitles.js:241
+#: assets/src/admin/pages/VideoSubtitles.js:118
+#: assets/src/admin/pages/VideoSubtitles.js:132
+#: assets/src/admin/pages/VideoSubtitles.js:245
 msgid "Subtitles"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:130
+#: assets/src/admin/pages/VideoSubtitles.js:131
 msgid "Captions"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:143
+#: assets/src/admin/pages/VideoSubtitles.js:144
 msgid "Taken over automatically from a subtitle track inside the video file."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:148
+#: assets/src/admin/pages/VideoSubtitles.js:149
 msgid "From video file"
 msgstr ""
 
 #. translators: %d: number of subtitle cues
-#: assets/src/admin/pages/VideoSubtitles.js:157
+#: assets/src/admin/pages/VideoSubtitles.js:158
 #, js-format
 msgid "%d cue"
 msgid_plural "%d cues"
 msgstr[0] ""
 msgstr[1] ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:172
+#: assets/src/admin/pages/VideoSubtitles.js:173
 msgid "Download"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:189
+#: assets/src/admin/pages/VideoSubtitles.js:190
 msgid "No subtitles yet. Upload a .vtt or .srt file per language; the player offers them in its menu."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:201
+#: assets/src/admin/pages/VideoSubtitles.js:202
 msgid "Language"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:206
+#: assets/src/admin/pages/VideoSubtitles.js:210
 msgid "Choose a language"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:219
+#: assets/src/admin/pages/VideoSubtitles.js:223
 msgid "This language already has a subtitle; uploading replaces it."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:229
+#: assets/src/admin/pages/VideoSubtitles.js:233
 msgid "Type"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:234
+#: assets/src/admin/pages/VideoSubtitles.js:238
 msgid "Keep or default (subtitles)"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:245
+#: assets/src/admin/pages/VideoSubtitles.js:249
 msgid "Captions (for deaf and hard-of-hearing viewers)"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:255
+#: assets/src/admin/pages/VideoSubtitles.js:259
 msgid "Show automatically when playback starts"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:275
+#: assets/src/admin/pages/VideoSubtitles.js:282
 msgid "Upload subtitle file"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:287
+#: assets/src/admin/pages/VideoSubtitles.js:294
 msgid "Add the languages you need first."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:299
+#: assets/src/admin/pages/VideoSubtitles.js:306
 msgid "Ask an administrator to add subtitle languages first."
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:309
+#: assets/src/admin/pages/VideoSubtitles.js:316
 msgid "Delete this subtitle?"
 msgstr ""
 
-#: assets/src/admin/pages/VideoSubtitles.js:310
+#: assets/src/admin/pages/VideoSubtitles.js:317
 msgid "Delete subtitle"
 msgstr ""
 
 #. translators: %s: language name
-#: assets/src/admin/pages/VideoSubtitles.js:318
+#: assets/src/admin/pages/VideoSubtitles.js:325
 #, js-format
 msgid "The %s subtitle is removed from the video and the CDN."
 msgstr ""
@@ -1671,7 +1674,7 @@ msgstr ""
 msgid "The request failed."
 msgstr ""
 
-#: assets/src/components/api.js:207
+#: assets/src/components/api.js:209
 msgid "Untitled video"
 msgstr ""
 
@@ -1680,7 +1683,7 @@ msgid "The video file could not be read from the media library."
 msgstr ""
 
 #: assets/src/components/ui.js:11
-#: assets/src/components/VideoBrowser.js:100
+#: assets/src/components/VideoBrowser.js:105
 msgid "Ready"
 msgstr ""
 
@@ -1699,95 +1702,101 @@ msgid "Network error while uploading. Please check your connection."
 msgstr ""
 
 #: assets/src/components/uploader.js:59
-#: assets/src/components/uploader.js:114
+#: assets/src/components/uploader.js:116
+#: assets/src/components/uploader.js:152
+#: assets/src/components/uploader.js:258
 msgid "Upload canceled."
 msgstr ""
 
-#: assets/src/components/uploader.js:88
+#: assets/src/components/uploader.js:90
 msgid "Please choose a video file."
 msgstr ""
 
-#: assets/src/components/uploader.js:137
+#: assets/src/components/uploader.js:139
 msgid "The storage did not return an ETag (CORS must expose the ETag header). Please contact VideoOptimizer support."
 msgstr ""
 
-#: assets/src/components/uploader.js:206
+#: assets/src/components/uploader.js:213
 msgid "The poster image could not be processed."
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:97
+#: assets/src/components/VideoBrowser.js:99
+msgid "Finishing upload…"
+msgstr ""
+
+#: assets/src/components/VideoBrowser.js:102
 msgid "Uploaded – processing…"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:103
+#: assets/src/components/VideoBrowser.js:108
 msgid "Canceled"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:338
+#: assets/src/components/VideoBrowser.js:359
 msgid "Library"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:344
+#: assets/src/components/VideoBrowser.js:368
 msgid "All libraries"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:357
+#: assets/src/components/VideoBrowser.js:381
 msgid "Tag"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:363
+#: assets/src/components/VideoBrowser.js:387
 msgid "All tags"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:377
+#: assets/src/components/VideoBrowser.js:401
 msgid "Search videos"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:381
+#: assets/src/components/VideoBrowser.js:405
 msgid "Ready only"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:398
+#: assets/src/components/VideoBrowser.js:422
 msgid "Upload"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:407
+#: assets/src/components/VideoBrowser.js:431
 msgid "Import URL"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:419
+#: assets/src/components/VideoBrowser.js:443
 msgid "Public https:// URL of a video file"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:423
+#: assets/src/components/VideoBrowser.js:447
 msgid "Link to the video file itself, not to a video page such as YouTube."
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:449
+#: assets/src/components/VideoBrowser.js:473
 msgid "Import"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:494
+#: assets/src/components/VideoBrowser.js:518
 msgid "No videos match your filter."
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:498
+#: assets/src/components/VideoBrowser.js:522
 msgid "No videos yet. Upload your first video or drop a file here."
 msgstr ""
 
 #. translators: 1: shown videos, 2: loaded videos
-#: assets/src/components/VideoBrowser.js:520
+#: assets/src/components/VideoBrowser.js:544
 #, js-format
 msgid "%1$d of %2$d loaded videos"
 msgstr ""
 
 #. translators: 1: shown videos, 2: total videos
-#: assets/src/components/VideoBrowser.js:529
+#: assets/src/components/VideoBrowser.js:553
 #, js-format
 msgid "%1$d of %2$d videos"
 msgstr ""
 
-#: assets/src/components/VideoBrowser.js:544
+#: assets/src/components/VideoBrowser.js:568
 msgid "Load more"
 msgstr ""
 

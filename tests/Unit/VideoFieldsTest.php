@@ -69,6 +69,25 @@ final class VideoFieldsTest extends TestCase {
 		}
 	}
 
+	public function test_removals_do_not_count_towards_the_ten_key_limit(): void {
+		$metadata = array_combine( array_map( static fn ( $i ) => 'k' . $i, range( 1, 10 ) ), array_fill( 0, 10, 'v' ) );
+		$metadata['gone1'] = null;
+		$metadata['gone2'] = '';
+
+		$this->assertCount( 12, VideoFields::metadata( $metadata ) );
+	}
+
+	public function test_non_scalar_values_are_rejected(): void {
+		foreach ( array( fn () => VideoFields::tags( array( array( 'x' ) ) ), fn () => VideoFields::metadata( array( 'k' => array( 'x' ) ) ) ) as $call ) {
+			try {
+				$call();
+				$this->fail( 'Expected an exception.' );
+			} catch ( \InvalidArgumentException $e ) {
+				$this->assertNotSame( '', $e->getMessage() );
+			}
+		}
+	}
+
 	public function test_metadata_strips_control_characters(): void {
 		$this->assertSame( array( 'k' => 'ab' ), VideoFields::metadata( array( 'k' => "a\x00b\n" ) ) );
 	}

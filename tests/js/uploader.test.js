@@ -171,6 +171,39 @@ describe( 'uploadVideo', () => {
 		expect( progress[ progress.length - 1 ] ).toBe( 1 );
 	} );
 
+	it( 'does not complete when canceled after the last part', async () => {
+		fakeXhr();
+		apiFetch.mockImplementation( () => Promise.resolve( init ) );
+		const signal = createSignal();
+
+		await expect(
+			uploadVideo(
+				new window.File( [ 'abcd' ], 'a.mp4', { type: 'video/mp4' } ),
+				{
+					libraryId: 'lib',
+					signal,
+					onProgress: ( p ) => p >= 1 && signal.abort(),
+				}
+			)
+		).rejects.toThrow( 'canceled' );
+		expect( calls().join( '\n' ) ).not.toContain( 'upload/complete' );
+	} );
+
+	it( 'reports when the complete call starts, after which cancel is too late', async () => {
+		fakeXhr();
+		apiFetch.mockImplementation( ( { path } ) =>
+			Promise.resolve( path.endsWith( '/upload/initiate' ) ? init : {} )
+		);
+		const onCompleting = jest.fn();
+
+		await uploadVideo(
+			new window.File( [ 'abcd' ], 'a.mp4', { type: 'video/mp4' } ),
+			{ libraryId: 'lib', onCompleting }
+		);
+
+		expect( onCompleting ).toHaveBeenCalledTimes( 1 );
+	} );
+
 	it( 'stops without completing when canceled', async () => {
 		fakeXhr();
 		apiFetch.mockImplementation( () => Promise.resolve( init ) );
@@ -191,6 +224,14 @@ describe( 'uploadVideo', () => {
 } );
 
 describe( 'pollVideo', () => {
+	it( 'rejects when aborted instead of hanging', async () => {
+		apiFetch.mockResolvedValue( { uuid: UUID, status: 'processing' } );
+		const signal = { aborted: false };
+		const promise = pollVideo( UUID, { interval: 1, signal } );
+		signal.aborted = true;
+		await expect( promise ).rejects.toThrow( 'canceled' );
+	} );
+
 	it( 'resolves with the failed video so the API error can be shown', async () => {
 		apiFetch.mockResolvedValue( {
 			uuid: UUID,

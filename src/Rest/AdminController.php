@@ -825,7 +825,12 @@ class AdminController {
 			return new \WP_Error( 'videooptimizer_invalid', $e->getMessage(), array( 'status' => 400 ) );
 		}
 
-		$contents = (string) file_get_contents( (string) ( $file['tmp_name'] ?? '' ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reads PHP's own upload temp file.
+		$tmp = (string) ( $file['tmp_name'] ?? '' );
+		if ( ! self::is_upload_file( $tmp ) ) {
+			return new \WP_Error( 'videooptimizer_invalid', __( 'Please choose a .vtt or .srt file (up to 2 MB).', 'videooptimizer' ), array( 'status' => 400 ) );
+		}
+
+		$contents = (string) file_get_contents( $tmp ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- reads PHP's own upload temp file.
 		$uuid     = (string) $request['uuid'];
 		$result   = $this->client->upload_subtitle(
 			$uuid,
@@ -833,7 +838,7 @@ class AdminController {
 			$contents,
 			$language,
 			$kind,
-			(bool) filter_var( $request->get_param( 'is_default' ), FILTER_VALIDATE_BOOLEAN )
+			null === $request->get_param( 'is_default' ) || '' === $request->get_param( 'is_default' ) ? null : (bool) filter_var( $request->get_param( 'is_default' ), FILTER_VALIDATE_BOOLEAN )
 		);
 		// The player tracks come from the cached embed data.
 		$this->embeds->forget( $uuid );
@@ -1075,6 +1080,25 @@ class AdminController {
 		}
 
 		return $sender->send_by_url( $id );
+	}
+
+	/**
+	 * Whether a path is a file PHP received as an upload (or, for internal REST calls, a file in the
+	 * system temp directory), never an arbitrary server path.
+	 *
+	 * @param string $path Temp file path.
+	 */
+	private static function is_upload_file( string $path ): bool {
+		if ( '' === $path ) {
+			return false;
+		}
+		if ( is_uploaded_file( $path ) ) {
+			return true;
+		}
+		$real = realpath( $path );
+		$temp = realpath( sys_get_temp_dir() );
+
+		return false !== $real && false !== $temp && str_starts_with( $real, rtrim( $temp, '/\\' ) . DIRECTORY_SEPARATOR );
 	}
 
 	/**

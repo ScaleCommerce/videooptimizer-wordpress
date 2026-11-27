@@ -72,7 +72,7 @@ export const api = {
 	uploadSubtitle: (
 		uuid,
 		file,
-		{ language, kind = '', isDefault = false }
+		{ language, kind = '', isDefault = null }
 	) => {
 		const form = new window.FormData();
 		form.append( 'file', file, file.name );
@@ -80,7 +80,9 @@ export const api = {
 		if ( kind ) {
 			form.append( 'kind', kind );
 		}
-		form.append( 'is_default', isDefault ? 'true' : 'false' );
+		if ( typeof isDefault === 'boolean' ) {
+			form.append( 'is_default', isDefault ? 'true' : 'false' );
+		}
 		return request( '/videos/' + enc( uuid ) + '/subtitles', {
 			method: 'POST',
 			body: form,

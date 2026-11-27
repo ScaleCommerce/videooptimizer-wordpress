@@ -1,5 +1,6 @@
 import { __ } from '@wordpress/i18n';
 import { Button, Card, CardBody } from '@wordpress/components';
+import { useState } from '@wordpress/element';
 import VideoBrowser from '../../components/VideoBrowser';
 import Savings from './Savings';
 
@@ -61,6 +62,8 @@ function Onboarding() {
 }
 
 export default function VideosPage( { library = '' } ) {
+	// The savings follow the library chosen in the browser's dropdown.
+	const [ activeLibrary, setActiveLibrary ] = useState( library );
 	if ( ! config.configured ) {
 		return <Onboarding />;
 	}
@@ -78,10 +81,11 @@ export default function VideosPage( { library = '' } ) {
 					) }
 				</a>
 			</p>
-			<Savings library={ library } />
+			<Savings library={ activeLibrary } />
 			<VideoBrowser
 				key={ library }
 				initialLibrary={ library }
+				onLibraryChange={ setActiveLibrary }
 				onSelect={ ( video ) => {
 					window.location.hash = '#/video/' + video.uuid;
 				} }

@@ -18,12 +18,14 @@
 
 	&--processing,
 	&--uploading,
+	&--completing,
 	&--pending {
 		background: #fcf9e8;
 		color: #8a6100;
 	}
 
-	&--failed {
+	&--failed,
+	&--canceled {
 		background: #fcf0f1;
 		color: #b32d2e;
 	}

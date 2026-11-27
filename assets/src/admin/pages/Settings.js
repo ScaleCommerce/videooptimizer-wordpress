@@ -666,7 +666,7 @@ export default function SettingsPage() {
 				</Button>
 			</div>
 
-			{ config.configured ? <SubtitleLanguages /> : null }
+			{ settings.token_configured ? <SubtitleLanguages /> : null }
 
 			<Webhook settings={ settings } onChange={ setSettings } />
 

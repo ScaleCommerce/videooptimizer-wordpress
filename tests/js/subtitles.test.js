@@ -101,7 +101,18 @@ describe( 'subtitle api calls', () => {
 		} );
 		const body = apiFetch.mock.calls[ 0 ][ 0 ].body;
 		expect( body.has( 'kind' ) ).toBe( false );
-		expect( body.get( 'is_default' ) ).toBe( 'false' );
+		expect( body.has( 'is_default' ) ).toBe( false );
+	} );
+
+	it( 'sends the default flag only when set explicitly', async () => {
+		const f = new window.File( [ 'x' ], 'a.vtt' );
+		await api.uploadSubtitle( UUID, f, {
+			language: 'de',
+			isDefault: false,
+		} );
+		expect( apiFetch.mock.calls[ 0 ][ 0 ].body.get( 'is_default' ) ).toBe(
+			'false'
+		);
 	} );
 
 	it( 'lists, downloads and deletes by language', async () => {

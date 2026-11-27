@@ -74,7 +74,7 @@ final class AdminControllerSubtitlesTest extends TestCase {
 				$this->test->calls[] = array( 'list_subtitles', array( $uuid ) );
 				return array( array( 'language' => 'de' ) );
 			}
-			public function upload_subtitle( string $uuid, string $filename, string $contents, string $language, ?string $kind = null, bool $is_default = false ): array {
+			public function upload_subtitle( string $uuid, string $filename, string $contents, string $language, ?string $kind = null, ?bool $is_default = null ): array {
 				$this->test->calls[] = array( 'upload_subtitle', array( $uuid, $filename, $contents, $language, $kind, $is_default ) );
 				return array( 'skipped_cues' => 0 );
 			}
@@ -167,7 +167,27 @@ final class AdminControllerSubtitlesTest extends TestCase {
 	public function test_upload_defaults_kind_and_default_flag(): void {
 		$this->call( 'upload_subtitle', array(), array( 'language' => 'de' ), $this->upload( 'de.srt', '1' ) );
 
-		$this->assertSame( array( null, false ), array_slice( $this->calls[0][1], 4 ) );
+		$this->assertSame( array( null, null ), array_slice( $this->calls[0][1], 4 ) );
+	}
+
+	public function test_an_explicit_false_default_flag_is_forwarded(): void {
+		$this->call( 'upload_subtitle', array(), array( 'language' => 'de', 'is_default' => 'false' ), $this->upload( 'de.srt', '1' ) );
+
+		$this->assertFalse( $this->calls[0][1][5] );
+	}
+
+	public function test_refuses_files_that_are_not_php_uploads_or_temp_files(): void {
+		$files = array(
+			'file' => array(
+				'name'     => 'de.vtt',
+				'tmp_name' => '/etc/hosts',
+				'size'     => 10,
+				'error'    => UPLOAD_ERR_OK,
+			),
+		);
+
+		$this->assertInstanceOf( \WP_Error::class, $this->call( 'upload_subtitle', array(), array( 'language' => 'de' ), $files ) );
+		$this->assertSame( array(), $this->calls );
 	}
 
 	public function test_rejects_wrong_extension_missing_or_oversized_files(): void {

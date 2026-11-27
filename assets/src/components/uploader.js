@@ -64,13 +64,14 @@ function putBlob( url, blob, onProgress, signal, type ) {
 /**
  * Uploads a video file.
  *
- * @param {File|Blob} file               File (a Blob needs options.filename).
+ * @param {File|Blob} file                 File (a Blob needs options.filename).
  * @param {Object}    options
- * @param {string}    options.libraryId  Target library.
- * @param {string}    options.title      Optional title.
- * @param {string}    options.filename   File name for Blobs.
- * @param {Function}  options.onProgress Called with 0..1.
- * @param {Object}    options.signal     Cancelation holder from createSignal().
+ * @param {string}    options.libraryId    Target library.
+ * @param {string}    options.title        Optional title.
+ * @param {string}    options.filename     File name for Blobs.
+ * @param {Function}  options.onProgress   Called with 0..1.
+ * @param {Function}  options.onCompleting Called when the upload is complete and can no longer be canceled.
+ * @param {Object}    options.signal       Cancelation holder from createSignal().
  * @return {Promise<{uuid: string}>} The new video.
  */
 export async function uploadVideo( file, options ) {
@@ -78,6 +79,7 @@ export async function uploadVideo( file, options ) {
 		libraryId,
 		title,
 		onProgress = () => {},
+		onCompleting = () => {},
 		signal = createSignal(),
 	} = options;
 	const filename = options.filename || file.name || 'video.mp4';
@@ -145,6 +147,11 @@ export async function uploadVideo( file, options ) {
 		etags.push( { partNumber: part.partNumber, etag } );
 	}
 
+	// A cancel that landed after the last part must not create the video.
+	if ( signal.aborted ) {
+		throw new Error( __( 'Upload canceled.', 'videooptimizer' ) );
+	}
+	onCompleting();
 	await api.completeUpload( {
 		libraryId,
 		uuid: init.uuid,
@@ -247,6 +254,9 @@ export function pollVideo( uuid, options = {} ) {
 		let attempts = 0;
 		const tick = () => {
 			if ( signal.aborted ) {
+				reject(
+					new Error( __( 'Upload canceled.', 'videooptimizer' ) )
+				);
 				return;
 			}
 			attempts++;

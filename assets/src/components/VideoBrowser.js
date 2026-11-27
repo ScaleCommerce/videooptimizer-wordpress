@@ -92,7 +92,12 @@ export function NotConfigured( { error } ) {
 	);
 }
 
+const POLL_BATCH = 12;
+
 function uploadLabel( upload ) {
+	if ( upload.status === 'completing' ) {
+		return __( 'Finishing upload…', 'videooptimizer' );
+	}
 	if ( upload.status === 'processing' ) {
 		return __( 'Uploaded – processing…', 'videooptimizer' );
 	}
@@ -109,6 +114,7 @@ export default function VideoBrowser( {
 	onSelect,
 	selected = '',
 	initialLibrary = '',
+	onLibraryChange = () => {},
 } ) {
 	const { libraries, error: libError } = useLibraries();
 	const [ libraryId, setLibraryId ] = useState( initialLibrary );
@@ -223,21 +229,34 @@ export default function VideoBrowser( {
 	// Follow videos that are still processing (uploaded elsewhere or just now), on any loaded page.
 	const processingIds = ( videos || [] )
 		.filter( ( v ) => v.status === 'processing' )
-		.slice( 0, 12 )
 		.map( ( v ) => v.uuid )
 		.join( ',' );
+	const pollOffset = useRef( 0 );
 	useEffect( () => {
 		if ( ! processingIds ) {
 			return undefined;
 		}
 		const timer = setInterval( () => {
-			processingIds.split( ',' ).forEach( ( uuid ) =>
+			// At most 12 lookups per tick; the rest follow on the next ticks.
+			const all = processingIds.split( ',' );
+			const start = pollOffset.current % all.length;
+			pollOffset.current = start + POLL_BATCH;
+			all.slice( start, start + POLL_BATCH ).forEach( ( uuid ) =>
 				api.video( uuid ).then(
 					( video ) =>
 						setVideos( ( list ) =>
 							replaceVideo( list || [], video )
 						),
-					() => {}
+					( e ) => {
+						// Deleted elsewhere: stop following it.
+						if ( e.status === 404 ) {
+							setVideos( ( list ) =>
+								( list || [] ).filter(
+									( v ) => v.uuid !== uuid
+								)
+							);
+						}
+					}
 				)
 			);
 		}, 10000 );
@@ -279,6 +298,8 @@ export default function VideoBrowser( {
 				libraryId: uploadTarget,
 				signal,
 				onProgress: ( progress ) => updateUpload( id, { progress } ),
+				onCompleting: () =>
+					updateUpload( id, { status: 'completing' } ),
 			} )
 				.then( ( { uuid } ) => {
 					updateUpload( id, { status: 'processing', uuid } );
@@ -338,7 +359,10 @@ export default function VideoBrowser( {
 					label={ __( 'Library', 'videooptimizer' ) }
 					hideLabelFromVision
 					value={ libraryId }
-					onChange={ setLibraryId }
+					onChange={ ( value ) => {
+						setLibraryId( value );
+						onLibraryChange( value );
+					} }
 					options={ [
 						{
 							label: __( 'All libraries', 'videooptimizer' ),
