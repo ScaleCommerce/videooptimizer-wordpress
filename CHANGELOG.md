@@ -4,6 +4,8 @@ All notable changes to this package. Format: [Keep a Changelog](https://keepacha
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-27
+
 ### Upgrade
 - Subtitles, tags, metadata and subtitle languages are written with the API token you already use: it needs `video:edit` (subtitles, tags, metadata) and `library:edit` (subtitle languages); without them the editor sees the API's message ([#8](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/8), [#9](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/9)).
 

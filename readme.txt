@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 0.1.3
+Stable tag: 2.0.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -83,6 +83,14 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 2.0.0 =
+* Subtitles per video (upload, download, delete) and organization subtitle languages.
+* Tags and metadata in the video detail, tag filter in the video browser.
+* Savings on the Videos page.
+* Video browser loads 60 videos per page; uploads can be cancelled; add-on encodings show as locked.
+* Embeds fail fast for 60 seconds after API outages.
+* API token needs `video:edit` and `library:edit` for the new editing features.
 
 = 0.1.3 =
 * Background heroes and scroll-autoload players keep playing after the MP4 fallback.

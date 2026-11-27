@@ -1,6 +1,6 @@
 {
 	"name": "videooptimizer-wordpress",
-	"version": "0.1.3",
+	"version": "2.0.0",
 	"private": true,
 	"description": "VideoOptimizer for WordPress & WooCommerce — build tooling.",
 	"license": "MIT",
