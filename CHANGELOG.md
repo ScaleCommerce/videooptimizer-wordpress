@@ -2,6 +2,11 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [2.2.1] - 2026-11-28
+
+### Fixed
+- The 2.2.0 release build stopped in static analysis (PHPStan memory limit), so GitHub has no 2.2.0 release ZIP; 2.2.1 is the same code with the ZIP.
+
 ## [2.2.0] - 2026-11-28
 
 ### Upgrade
