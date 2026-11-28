@@ -100,6 +100,33 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->assertFalse( get_transient( $key ) );
 	}
 
+	public function test_the_detail_library_is_read_like_the_renderer_does_even_through_reusable_blocks_and_templates(): void {
+		$lib      = '3293aeb1-64b7-42a8-b2f7-c5355dcdd58d';
+		$reusable = self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_block',
+				'post_status'  => 'publish',
+				'post_content' => '<!-- wp:videooptimizer/video-detail {"libraryId":"' . strtoupper( $lib ) . '"} /-->',
+			)
+		);
+		$page     = get_post( $this->post( '<!-- wp:block {"ref":' . $reusable . '} /-->', 'publish', 'page' ) );
+
+		$this->assertTrue( \ScaleCommerce\VideoOptimizer\Render\DetailPage::has_detail( $page ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $page ), 'normalized like the element' );
+
+		$shortcode = get_post( $this->post( "[videooptimizer layout='video-detail' library='" . $lib . "']" ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $shortcode ), 'the `library` alias counts' );
+
+		$template = $this->post( 'Template', 'publish', 'elementor_library' );
+		update_post_meta( $template, '_elementor_data', wp_json_encode( array( array( 'elType' => 'widget', 'widgetType' => 'videooptimizer', 'settings' => array( 'layout' => 'video-detail', 'libraryId' => $lib ), 'elements' => array() ) ) ) );
+		$host = $this->post( 'Host' );
+		update_post_meta( $host, '_elementor_data', wp_json_encode( array( array( 'elType' => 'widget', 'widgetType' => 'template', 'settings' => array( 'template_id' => $template ), 'elements' => array() ) ) ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( get_post( $host ) ), 'Elementor template widgets are followed' );
+
+		$plain = get_post( $this->post( '<!-- wp:videooptimizer/video-detail /-->' ) );
+		$this->assertSame( '', \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $plain ) );
+	}
+
 	public function test_variation_videos_purge_the_parent_product(): void {
 		$parent    = $this->post( 'Product', 'publish', 'post' );
 		$variation = self::factory()->post->create(

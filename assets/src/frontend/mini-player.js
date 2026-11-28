@@ -11,7 +11,11 @@
  * count when their iframe has the focus (the visitor clicked into it) while they report play or
  * volumechange. Not used: userActivation, touch, "plays with sound".
  */
-import { consumeExpected, expectEvent } from './playback-fallback';
+import {
+	clearExpected,
+	consumeExpected,
+	expectEvent,
+} from './playback-fallback';
 import { sendCommand, watchHosted } from './hosted';
 
 const MIN_WIDTH = '(min-width: 600px)';
@@ -138,8 +142,20 @@ export function initMiniPlayers( root ) {
 			const video = frame.querySelector( 'video' );
 			if ( video ) {
 				if ( video.autoplay ) {
-					// The browser's autoplay at load is not the visitor.
+					// The browser's autoplay at load is not the visitor. When the browser blocked it
+					// the video is still paused once it could play: the mark must not swallow the
+					// visitor's own play.
 					expectEvent( video, 'play', AUTOPLAY_GRACE );
+					video.addEventListener(
+						'canplay',
+						() =>
+							window.setTimeout( () => {
+								if ( video.paused ) {
+									clearExpected( video, 'play' );
+								}
+							}, 500 ),
+						{ once: true }
+					);
 				}
 				let lastTime = 0;
 				video.addEventListener( 'timeupdate', () => {

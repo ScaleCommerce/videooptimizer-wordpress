@@ -129,8 +129,8 @@ final class Plugin {
 		$this->client        = new Client( fn (): ?string => $this->settings->token(), Settings::api_base_url() );
 		$this->embeds        = new EmbedRepository( $this->client );
 		$this->assets        = new Assets();
-		$this->lists         = new VideoLists( $this->client );
 		$this->ownership     = new Ownership( $this->client, fn (): string => substr( md5( (string) $this->settings->token() ), 0, 10 ) );
+		$this->lists         = new VideoLists( $this->client, $this->ownership );
 		$this->detail        = new DetailPage( $this->embeds, $this->ownership );
 		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets, $this->lists, $this->detail );
 		$this->attachments   = new Attachments( $this->client, $this->embeds );

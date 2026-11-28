@@ -101,6 +101,33 @@ final class VideoListDetailTest extends TestCase {
 			self::A => $this->embed( self::A, 'Demo Film' ),
 		);
 		$this->transients = array();
+		// A minimal block parser: flat `<!-- wp:name {json} /-->` / opening comments are enough here.
+		Functions\when( 'parse_blocks' )->alias(
+			static function ( string $content ): array {
+				preg_match_all( '/<!--\s+wp:([a-z0-9\/-]+)(?:\s+(\{.*?\}))?\s+\/?-->/s', $content, $m, PREG_SET_ORDER );
+				$blocks = array();
+				foreach ( $m as $row ) {
+					$blocks[] = array(
+						'blockName'   => $row[1],
+						'attrs'       => isset( $row[2] ) ? (array) json_decode( $row[2], true ) : array(),
+						'innerBlocks' => array(),
+					);
+				}
+				return $blocks;
+			}
+		);
+		Functions\when( 'get_post' )->justReturn( null );
+		Functions\when( 'shortcode_parse_atts' )->alias(
+			static function ( $text ) {
+				preg_match_all( '/(\w+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|(\S+))/', (string) $text, $m, PREG_SET_ORDER );
+				$out = array();
+				foreach ( $m as $row ) {
+					$out[ $row[1] ] = $row[2] . ( $row[3] ?? '' ) . ( $row[4] ?? '' );
+				}
+				return $out;
+			}
+		);
+		Functions\when( 'get_post_meta' )->justReturn( '' );
 		$this->page   = array(
 			'items' => array(
 				array(
@@ -306,6 +333,15 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertStringContainsString( 'The videos are temporarily unavailable.', $html );
 	}
 
+	public function test_a_rate_limited_list_is_temporary_and_flags_the_page(): void {
+		$this->page         = null;
+		$this->list_failure = 429;
+		$html               = $this->renderer->render( 'video-list', array() );
+
+		$this->assertTrue( PageCache::is_degraded(), 'never a cacheable page' );
+		$this->assertStringContainsString( 'temporarily unavailable', $html );
+	}
+
 	public function test_a_missing_list_is_an_editor_hint_only(): void {
 		$this->page = null;
 		$this->assertSame( '', $this->renderer->render( 'video-list', array() ) );
@@ -498,7 +534,6 @@ final class VideoListDetailTest extends TestCase {
 		$post->post_content = $content;
 		Functions\when( 'get_queried_object' )->justReturn( $post );
 		Functions\when( 'get_post_meta' )->justReturn( '' );
-		Functions\when( 'shortcode_parse_atts' )->justReturn( array() );
 
 		return $post;
 	}
@@ -543,16 +578,6 @@ final class VideoListDetailTest extends TestCase {
 	}
 
 	public function test_the_library_of_an_element_is_read_from_every_editor(): void {
-		Functions\when( 'shortcode_parse_atts' )->alias(
-			static function ( $text ) {
-				preg_match_all( '/(\w+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|(\S+))/', (string) $text, $m, PREG_SET_ORDER );
-				$out = array();
-				foreach ( $m as $row ) {
-					$out[ $row[1] ] = $row[2] . ( $row[3] ?? '' ) . ( $row[4] ?? '' );
-				}
-				return $out;
-			}
-		);
 		$make = function ( string $content, string $meta = '' ): \WP_Post {
 			$post               = new \WP_Post();
 			$post->ID           = 1;
@@ -571,6 +596,27 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertSame( '', DetailPage::library_of( $make( '<!-- wp:videooptimizer/video-detail /-->' ) ) );
 	}
 
+	public function test_temporary_detail_pages_are_not_indexed(): void {
+		$this->detail_post();
+		$_GET['vo_video'] = self::A;
+		$this->assertSame( array( 'max-image-preview' => 'large' ), $this->detail->core_robots( array( 'max-image-preview' => 'large' ) ), 'a shown video stays indexable' );
+
+		// Outage: temporary.
+		$this->transients       = array();
+		$this->owned[ self::A ] = new ApiException( 'down', 503 );
+		$this->detail           = new DetailPage( $this->repo, new Ownership( $this->ownershipClient() ) );
+		$this->assertTrue( $this->detail->core_robots( array() )['noindex'] );
+		$this->assertSame( 'noindex', $this->detail->seo_robots( array( 'index' => 'index', 'follow' => 'follow' ) )['index'] );
+		$this->assertSame( 'follow', $this->detail->seo_robots( array( 'index' => 'index', 'follow' => 'follow' ) )['follow'] );
+
+		// Not ready yet: temporary too.
+		$this->owned[ self::A ]  = self::LIB;
+		$this->embeds[ self::A ] = Embed::normalize( self::A, array( 'title' => 'Processing' ) );
+		$this->transients        = array();
+		$this->detail            = new DetailPage( $this->repo, new Ownership( $this->ownershipClient() ) );
+		$this->assertTrue( $this->detail->core_robots( array() )['noindex'] );
+	}
+
 	public function test_seo_plugin_filters_get_the_video_values(): void {
 		$this->detail_post();
 		$_GET['vo_video'] = self::A;
@@ -583,7 +629,7 @@ final class VideoListDetailTest extends TestCase {
 		Functions\when( 'add_action' )->justReturn( true );
 		$this->detail->register_hooks();
 
-		foreach ( array( 'wpseo_title', 'wpseo_metadesc', 'wpseo_canonical', 'wpseo_opengraph_title', 'wpseo_opengraph_desc', 'wpseo_opengraph_url', 'rank_math/frontend/title', 'rank_math/frontend/description', 'rank_math/frontend/canonical', 'rank_math/opengraph/facebook/og_title', 'rank_math/opengraph/facebook/og_description', 'rank_math/opengraph/facebook/og_url' ) as $hook ) {
+		foreach ( array( 'wpseo_title', 'wpseo_metadesc', 'wpseo_canonical', 'wpseo_opengraph_title', 'wpseo_opengraph_desc', 'wpseo_opengraph_url', 'rank_math/frontend/title', 'rank_math/frontend/description', 'rank_math/frontend/canonical', 'rank_math/opengraph/facebook/og_title', 'rank_math/opengraph/facebook/og_description', 'rank_math/opengraph/facebook/og_url', 'wp_robots', 'wpseo_robots_array', 'rank_math/frontend/robots' ) as $hook ) {
 			$this->assertContains( $hook, $added, $hook );
 		}
 		$this->assertSame( 'Demo Film', $this->detail->seo_title( 'Plugin title' ) );

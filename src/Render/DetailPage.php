@@ -75,6 +75,11 @@ class DetailPage {
 		add_filter( 'rank_math/frontend/description', array( $this, 'seo_description' ) );
 		add_filter( 'rank_math/opengraph/facebook/og_description', array( $this, 'seo_description' ) );
 		add_filter( 'rank_math/frontend/canonical', array( $this, 'seo_canonical' ) );
+
+		// Temporary pages ("temporarily unavailable", not ready yet) must not be indexed.
+		add_filter( 'wp_robots', array( $this, 'core_robots' ) );
+		add_filter( 'wpseo_robots_array', array( $this, 'seo_robots' ) );
+		add_filter( 'rank_math/frontend/robots', array( $this, 'seo_robots' ) );
 		add_filter( 'rank_math/opengraph/facebook/og_url', array( $this, 'seo_canonical' ) );
 	}
 
@@ -86,62 +91,125 @@ class DetailPage {
 	}
 
 	/**
-	 * Whether a post contains the detail element (block, shortcode in any quoting, or Elementor widget).
+	 * Whether a post shows the detail element (block, shortcode in any quoting, Elementor widget, or
+	 * one of those inside a reusable block / Elementor template).
 	 *
 	 * @param \WP_Post $post Post.
 	 */
 	public static function has_detail( \WP_Post $post ): bool {
-		$content = (string) $post->post_content;
-		if ( str_contains( $content, 'wp:videooptimizer/video-detail' ) || 1 === preg_match( '/layout\s*=\s*["\']?video-detail/i', $content ) ) {
-			return true;
-		}
-
-		return str_contains( (string) get_post_meta( $post->ID, '_elementor_data', true ), '"video-detail"' );
+		return null !== self::find_element( (string) $post->post_content, (int) $post->ID, 0 );
 	}
 
 	/**
-	 * Library the first detail element of a post is restricted to ('' = any library).
+	 * Library the first detail element of a post is restricted to ('' = any library). The element's
+	 * attributes go through the same normalization the renderer applies, and reusable blocks and
+	 * Elementor templates are followed, so title/meta/canonical and the element agree.
 	 *
 	 * @param \WP_Post $post Post.
 	 */
 	public static function library_of( \WP_Post $post ): string {
-		$content = (string) $post->post_content;
-		$found   = '';
-		if ( preg_match( '/<!--\s+wp:videooptimizer\/video-detail\s+(\{.*?\})\s+\/?-->/s', $content, $m ) ) {
-			$attrs = json_decode( $m[1], true );
-			$found = is_array( $attrs ) && Embed::is_uuid( $attrs['libraryId'] ?? null ) ? strtolower( (string) $attrs['libraryId'] ) : '';
-		} elseif ( preg_match( '/\[videooptimizer\b[^\]]*layout\s*=\s*["\']?video-detail[^\]]*\]/i', $content, $m ) ) {
-			$atts  = shortcode_parse_atts( trim( (string) preg_replace( '/^\[videooptimizer|\]$/i', '', $m[0] ) ) );
-			$lib   = $atts['library'] ?? $atts['libraryid'] ?? $atts['library_id'] ?? '';
-			$found = Embed::is_uuid( $lib ) ? strtolower( (string) $lib ) : '';
-		} elseif ( str_contains( (string) get_post_meta( $post->ID, '_elementor_data', true ), '"video-detail"' ) ) {
-			$found = self::elementor_library( json_decode( (string) get_post_meta( $post->ID, '_elementor_data', true ), true ) );
-		}
+		$raw = self::find_element( (string) $post->post_content, (int) $post->ID, 0 );
 
-		return $found;
+		return null === $raw ? '' : (string) Attributes::normalize( $raw )['libraryId'];
 	}
 
 	/**
-	 * Library of the first detail widget in Elementor data.
+	 * Raw attributes of the first detail element in content, a post's Elementor data or whatever
+	 * they embed (reusable blocks, Elementor templates; depth limited).
+	 *
+	 * @param string $content Post content.
+	 * @param int    $post_id Post id (for its Elementor data; 0 = none).
+	 * @param int    $depth   Nesting depth.
+	 * @return array<string, mixed>|null
+	 */
+	private static function find_element( string $content, int $post_id, int $depth ): ?array {
+		if ( $depth > 4 ) {
+			return null;
+		}
+		if ( '' !== $content ) {
+			$found = self::find_in_blocks( parse_blocks( $content ), $depth );
+			if ( null !== $found ) {
+				return $found;
+			}
+			if ( preg_match( '/\[videooptimizer\b[^\]]*layout\s*=\s*["\']?video-detail[^\]]*\]/i', $content, $m ) ) {
+				$atts = shortcode_parse_atts( trim( (string) preg_replace( '/^\[videooptimizer|\]$/i', '', $m[0] ) ) );
+
+				return (array) $atts;
+			}
+		}
+		if ( $post_id > 0 ) {
+			$data = (string) get_post_meta( $post_id, '_elementor_data', true );
+			if ( '' !== $data ) {
+				return self::find_in_elementor( json_decode( $data, true ), $depth );
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Detail block in parsed blocks, following reusable blocks.
+	 *
+	 * @param mixed $blocks Parsed blocks.
+	 * @param int   $depth  Nesting depth.
+	 * @return array<string, mixed>|null
+	 */
+	private static function find_in_blocks( mixed $blocks, int $depth ): ?array {
+		foreach ( is_array( $blocks ) ? $blocks : array() as $block ) {
+			if ( ! is_array( $block ) ) {
+				continue;
+			}
+			$attrs = is_array( $block['attrs'] ?? null ) ? $block['attrs'] : array();
+			if ( 'videooptimizer/video-detail' === ( $block['blockName'] ?? '' ) ) {
+				return $attrs;
+			}
+			if ( 'core/block' === ( $block['blockName'] ?? '' ) && isset( $attrs['ref'] ) ) {
+				$ref = get_post( (int) $attrs['ref'] );
+				if ( $ref instanceof \WP_Post && 'publish' === $ref->post_status ) {
+					$found = self::find_element( (string) $ref->post_content, 0, $depth + 1 );
+					if ( null !== $found ) {
+						return $found;
+					}
+				}
+			}
+			$found = self::find_in_blocks( $block['innerBlocks'] ?? null, $depth );
+			if ( null !== $found ) {
+				return $found;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Detail widget in Elementor data, following template widgets.
 	 *
 	 * @param mixed $nodes Decoded `_elementor_data`.
+	 * @param int   $depth Nesting depth.
+	 * @return array<string, mixed>|null
 	 */
-	private static function elementor_library( mixed $nodes ): string {
+	private static function find_in_elementor( mixed $nodes, int $depth ): ?array {
 		foreach ( is_array( $nodes ) ? $nodes : array() as $node ) {
 			if ( ! is_array( $node ) ) {
 				continue;
 			}
 			$settings = is_array( $node['settings'] ?? null ) ? $node['settings'] : array();
 			if ( 'videooptimizer' === ( $node['widgetType'] ?? '' ) && 'video-detail' === ( $settings['layout'] ?? '' ) ) {
-				return Embed::is_uuid( $settings['libraryId'] ?? null ) ? strtolower( (string) $settings['libraryId'] ) : '';
+				return $settings;
 			}
-			$inner = self::elementor_library( $node['elements'] ?? null );
-			if ( '' !== $inner ) {
-				return $inner;
+			if ( 'template' === ( $node['widgetType'] ?? '' ) && isset( $settings['template_id'] ) ) {
+				$found = self::find_element( '', (int) $settings['template_id'], $depth + 1 );
+				if ( null !== $found ) {
+					return $found;
+				}
+			}
+			$found = self::find_in_elementor( $node['elements'] ?? null, $depth );
+			if ( null !== $found ) {
+				return $found;
 			}
 		}
 
-		return '';
+		return null;
 	}
 
 	/**
@@ -210,6 +278,43 @@ class DetailPage {
 		$request = $this->requested();
 
 		return null !== $request && Ownership::FOUND === $request['state'] ? $request['embed'] : null;
+	}
+
+	/**
+	 * Whether the page shows a temporary state of its video (unavailable, rate limited, not ready).
+	 */
+	private function temporary(): bool {
+		$request = $this->requested();
+
+		return null !== $request && Ownership::UNAVAILABLE === $request['state'];
+	}
+
+	/**
+	 * Core robots meta: noindex for temporary pages.
+	 *
+	 * @param array<string, mixed> $robots Directives.
+	 * @return array<string, mixed>
+	 */
+	public function core_robots( array $robots ): array {
+		if ( $this->temporary() ) {
+			$robots['noindex'] = true;
+		}
+
+		return $robots;
+	}
+
+	/**
+	 * Yoast SEO / Rank Math robots array: noindex for temporary pages.
+	 *
+	 * @param mixed $robots Directives.
+	 * @return mixed
+	 */
+	public function seo_robots( $robots ) {
+		if ( is_array( $robots ) && $this->temporary() ) {
+			$robots['index'] = 'noindex';
+		}
+
+		return $robots;
 	}
 
 	/**

@@ -12,7 +12,7 @@ defined( 'ABSPATH' ) || exit;
 /**
  * A visitor can make the site ask the API about any uuid or cursor by editing the URL. New
  * (uncached) lookups of that kind share one budget of MAX_PER_MINUTE a minute for the whole site;
- * beyond it they are answered "not found" without calling the API.
+ * beyond it callers answer "temporarily unavailable" (never a cacheable 404) without calling the API.
  */
 final class LookupLimit {
 

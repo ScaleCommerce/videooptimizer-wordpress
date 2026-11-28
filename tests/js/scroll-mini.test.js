@@ -409,6 +409,35 @@ describe( 'floating mini player', () => {
 		expect( el.classList ).toContain( 'is-pinned' );
 	} );
 
+	it( 'counts a visitor tap on a native video without controls', async () => {
+		const { el, video } = setup(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><video class="vo-native" data-vo-tap preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`
+		);
+
+		video.click(); // The visitor taps the video: the plugin calls play() for them.
+		await flush();
+		await flush();
+		intersect( el, 0 );
+
+		expect( el.classList ).toContain( 'is-pinned' );
+	} );
+
+	it( 'drops the autoplay expectation when the browser blocked autoplay', async () => {
+		jest.useFakeTimers();
+		const { el, video } = setup(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><video class="vo-native" autoplay preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`
+		);
+		// Autoplay blocked: the video can play but stays paused.
+		video.dispatchEvent( new Event( 'canplay' ) );
+		jest.advanceTimersByTime( 600 );
+		jest.useRealTimers();
+
+		video.play(); // The visitor presses play within the grace period.
+		intersect( el, 0 );
+
+		expect( el.classList ).toContain( 'is-pinned' );
+	} );
+
 	it( 'counts a visitor interaction with an autoplaying video: unmute takes over', async () => {
 		const { el, video } = setup(
 			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><video class="vo-native" muted autoplay data-vo-scroll-play preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`

@@ -107,6 +107,7 @@ final class VideoListsTest extends TestCase {
 		$this->assertSame(
 			array(
 				'uuid'     => self::A,
+				'library'  => '',
 				'title'    => 'Clip',
 				'poster'   => 'https://poster.example/a.jpg',
 				'duration' => 61,
@@ -252,8 +253,46 @@ final class VideoListsTest extends TestCase {
 		$this->transients[ \ScaleCommerce\VideoOptimizer\Render\LookupLimit::KEY ] = 30;
 		$this->calls                                                                  = array();
 		$this->assertNull( $lists->page( '', '', 'another', 12 ) );
-		$this->assertSame( 404, $lists->failure() );
+		$this->assertSame( 429, $lists->failure(), 'temporary, so the page stays out of page caches' );
 		$this->assertSame( array(), $this->calls, 'over budget: no API call' );
+	}
+
+	public function test_listed_videos_seed_the_ownership_cache(): void {
+		$this->result['items'][0]['library_id'] = self::LIB;
+		$this->result['next_cursor']            = null;
+		$ownership                              = new \ScaleCommerce\VideoOptimizer\Render\Ownership( $this->lists_client(), static fn () => 'fp' );
+		$lists                                  = new VideoLists( $this->lists_client(), $ownership );
+		$lists->page( self::LIB, '', null, 12 );
+
+		$this->assertSame(
+			array(
+				'state'   => 'found',
+				'library' => self::LIB,
+			),
+			$this->transients[ 'videooptimizer_own_fp_' . self::A ]
+		);
+		$this->assertArrayNotHasKey( 'videooptimizer_own_fp_' . self::B, $this->transients, 'only ready videos' );
+		$this->assertSame( 'found', $ownership->check( self::A, self::LIB ), 'the detail page needs no lookup' );
+	}
+
+	/**
+	 * The fake client of this test.
+	 */
+	private function lists_client(): Client {
+		$test = $this;
+
+		return new class( static fn () => 'tok', 'https://api.videooptimizer.eu/api/v1', $test ) extends Client {
+			public function __construct( callable $t, string $b, private $test ) {
+				parent::__construct( $t, $b );
+			}
+			public function list_videos_page( ?string $library_id = null, ?string $cursor = null, int $limit = 100, array $filters = array() ): array {
+				$this->test->calls[] = array( $library_id, $cursor, $limit, $filters );
+				return $this->test->result;
+			}
+			public function get_video( string $uuid ): array {
+				throw new ApiException( 'must not be called', 500 );
+			}
+		};
 	}
 
 	public function test_cursor_validation(): void {

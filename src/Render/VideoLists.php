@@ -42,12 +42,21 @@ class VideoLists {
 	private ?int $failure = null;
 
 	/**
+	 * Ownership cache seeded from list results (null: not seeded).
+	 *
+	 * @var Ownership|null
+	 */
+	private ?Ownership $ownership;
+
+	/**
 	 * Constructor.
 	 *
-	 * @param Client $client API client.
+	 * @param Client         $client    API client.
+	 * @param Ownership|null $ownership Ownership cache to seed with the listed videos.
 	 */
-	public function __construct( Client $client ) {
-		$this->client = $client;
+	public function __construct( Client $client, ?Ownership $ownership = null ) {
+		$this->client    = $client;
+		$this->ownership = $ownership;
 	}
 
 	/**
@@ -114,7 +123,8 @@ class VideoLists {
 		}
 		// A cursor comes from the query string: new ones share the site-wide lookup budget.
 		if ( null !== $cursor && ! LookupLimit::reserve() ) {
-			$this->failure = 404;
+			// Temporary (429), not a 404: the page must stay out of page caches.
+			$this->failure = 429;
 
 			return null;
 		}
@@ -142,7 +152,13 @@ class VideoLists {
 
 				return null;
 			}
-			$items   = array_merge( $items, self::cards( $page['items'] ) );
+			$cards = self::cards( $page['items'] );
+			// Listed with the token, so these videos belong to the organization: a card's detail
+			// page then needs no lookup (and no share of the lookup budget).
+			foreach ( $cards as $card ) {
+				$this->ownership?->seed( $card['uuid'], $card['library'] );
+			}
+			$items   = array_merge( $items, $cards );
 			$missing = $limit - count( $items );
 			$from    = self::is_cursor( $page['next_cursor'] ) ? $page['next_cursor'] : null;
 			$next    = $from;
@@ -177,6 +193,7 @@ class VideoLists {
 			[ $width, $height ] = Embed::parse_resolution( $video['resolution'] ?? null );
 			$cards[]            = array(
 				'uuid'     => strtolower( (string) $uuid ),
+				'library'  => is_string( $video['library_id'] ?? null ) ? strtolower( $video['library_id'] ) : '',
 				'title'    => Embed::clean_title( $video['title'] ?? null ),
 				'poster'   => is_string( $poster ) && preg_match( '~^https?://~i', $poster ) ? $poster : null,
 				'duration' => is_numeric( $video['duration'] ?? null ) ? (int) round( (float) $video['duration'] ) : null,

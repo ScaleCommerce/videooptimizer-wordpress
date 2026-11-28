@@ -70,6 +70,28 @@ class Ownership {
 	}
 
 	/**
+	 * Records that a video belongs to the organization (it came out of a token-authenticated list).
+	 *
+	 * @param string $uuid    Video uuid.
+	 * @param string $library Library uuid ('' when unknown: then library checks look it up).
+	 */
+	public function seed( string $uuid, string $library ): void {
+		if ( ! Embed::is_uuid( $uuid ) || '' === $library ) {
+			return;
+		}
+		$uuid                = strtolower( $uuid );
+		$this->memo[ $uuid ] = array( self::FOUND, strtolower( $library ) );
+		set_transient(
+			$this->key( $uuid ),
+			array(
+				'state'   => self::FOUND,
+				'library' => strtolower( $library ),
+			),
+			self::TTL_FOUND
+		);
+	}
+
+	/**
 	 * Drops the cached verification of a video.
 	 *
 	 * @param string $uuid Video uuid.
