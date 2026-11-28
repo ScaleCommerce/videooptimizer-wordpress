@@ -39,9 +39,10 @@ msgid "https://scale.sc"
 msgstr "https://scale.sc"
 
 #: src/Admin/AdminPage.php:68
-#: src/Editor/Elementor/Widget.php:150
+#: src/Editor/Elementor/Widget.php:153
 #: assets/src/admin/index.js:71
 #: assets/src/blocks/video-grid/index.js:37
+#: assets/src/blocks/video-list/index.js:32
 msgid "Videos"
 msgstr "Videos"
 
@@ -126,36 +127,38 @@ msgid "The VideoOptimizer request failed."
 msgstr "Die Anfrage an VideoOptimizer ist fehlgeschlagen."
 
 #: src/Editor/Elementor/Widget.php:102
-#: assets/src/blocks/shared/editor.js:35
+#: assets/src/blocks/shared/editor.js:38
 msgid "Default (VideoOptimizer player settings)"
 msgstr "Standard (Player-Einstellungen aus VideoOptimizer)"
 
 #: src/Editor/Elementor/Widget.php:103
-#: assets/src/blocks/shared/editor.js:41
+#: assets/src/blocks/shared/editor.js:44
 msgid "On"
 msgstr "An"
 
 #: src/Editor/Elementor/Widget.php:104
-#: assets/src/blocks/shared/editor.js:42
+#: assets/src/blocks/shared/editor.js:45
 msgid "Off"
 msgstr "Aus"
 
 #: src/Editor/Elementor/Widget.php:107
 #: src/Editor/Elementor/Widget.php:115
-#: src/Editor/Elementor/Widget.php:126
-#: src/Editor/Elementor/Widget.php:136
-#: src/Render/Renderer.php:332
-#: src/Render/Renderer.php:654
+#: src/Editor/Elementor/Widget.php:129
+#: src/Editor/Elementor/Widget.php:139
+#: src/Render/Renderer.php:436
+#: src/Render/Renderer.php:536
+#: src/Render/Renderer.php:667
+#: src/Render/Renderer.php:1028
 #: src/Woo/WooCommerce.php:330
 #: assets/src/admin/pages/Settings.js:638
-#: assets/src/blocks/media-split/index.js:113
-#: assets/src/blocks/shared/editor.js:185
+#: assets/src/blocks/media-split/index.js:119
+#: assets/src/blocks/shared/editor.js:386
 msgid "Video"
 msgstr "Video"
 
 #: src/Editor/Elementor/Widget.php:111
 #: assets/src/blocks/background-hero/index.js:73
-#: assets/src/blocks/media-split/index.js:72
+#: assets/src/blocks/media-split/index.js:73
 msgid "Layout"
 msgstr "Layout"
 
@@ -175,196 +178,203 @@ msgstr "Spotlight"
 msgid "Video grid"
 msgstr "Video-Raster"
 
-#: src/Editor/Elementor/Widget.php:143
+#: src/Editor/Elementor/Widget.php:146
 #: assets/src/blocks/video-grid/index.js:67
 msgid "Label"
 msgstr "Beschriftung"
 
-#: src/Editor/Elementor/Widget.php:160
+#: src/Editor/Elementor/Widget.php:163
 #: assets/src/blocks/video-grid/index.js:151
+#: assets/src/blocks/video-list/index.js:99
 msgid "Columns"
 msgstr "Spalten"
 
-#: src/Editor/Elementor/Widget.php:173
-#: src/Editor/Elementor/Widget.php:179
+#: src/Editor/Elementor/Widget.php:226
+#: src/Editor/Elementor/Widget.php:232
 #: assets/src/blocks/background-hero/index.js:144
 #: assets/src/blocks/spotlight/index.js:34
-#: assets/src/blocks/video/index.js:53
+#: assets/src/blocks/video-chapters/index.js:91
+#: assets/src/blocks/video-detail/index.js:70
+#: assets/src/blocks/video/index.js:54
 msgid "Text"
 msgstr "Text"
 
-#: src/Editor/Elementor/Widget.php:176
+#: src/Editor/Elementor/Widget.php:229
 #: assets/src/blocks/spotlight/index.js:35
 msgid "Eyebrow"
 msgstr "Dachzeile"
 
-#: src/Editor/Elementor/Widget.php:177
+#: src/Editor/Elementor/Widget.php:230
 #: assets/src/blocks/background-hero/index.js:138
-#: assets/src/blocks/media-split/index.js:24
+#: assets/src/blocks/media-split/index.js:25
 #: assets/src/blocks/spotlight/index.js:36
 #: assets/src/blocks/video-grid/index.js:134
+#: assets/src/blocks/video-list/index.js:82
 msgid "Headline"
 msgstr "Überschrift"
 
-#: src/Editor/Elementor/Widget.php:178
+#: src/Editor/Elementor/Widget.php:231
 msgid "Subline"
 msgstr "Unterzeile"
 
-#: src/Editor/Elementor/Widget.php:180
+#: src/Editor/Elementor/Widget.php:233
 #: assets/src/blocks/video-grid/index.js:142
+#: assets/src/blocks/video-list/index.js:90
 msgid "Intro"
 msgstr "Einleitung"
 
-#: src/Editor/Elementor/Widget.php:181
+#: src/Editor/Elementor/Widget.php:234
 #: assets/src/blocks/spotlight/index.js:37
-#: assets/src/blocks/video/index.js:70
+#: assets/src/blocks/video-chapters/index.js:108
+#: assets/src/blocks/video-detail/index.js:76
+#: assets/src/blocks/video/index.js:71
 msgid "Caption"
 msgstr "Bildunterschrift"
 
-#: src/Editor/Elementor/Widget.php:182
+#: src/Editor/Elementor/Widget.php:235
 msgid "Button text"
 msgstr "Button-Text"
 
-#: src/Editor/Elementor/Widget.php:197
+#: src/Editor/Elementor/Widget.php:250
 msgid "Button link"
 msgstr "Button-Link"
 
-#: src/Editor/Elementor/Widget.php:204
-#: src/Editor/Elementor/Widget.php:208
-#: assets/src/blocks/shared/editor.js:63
-#: assets/src/blocks/shared/editor.js:69
+#: src/Editor/Elementor/Widget.php:330
+#: src/Editor/Elementor/Widget.php:334
+#: assets/src/blocks/shared/editor.js:70
+#: assets/src/blocks/shared/editor.js:76
 msgid "Player"
 msgstr "Player"
 
-#: src/Editor/Elementor/Widget.php:212
-#: assets/src/blocks/shared/editor.js:74
+#: src/Editor/Elementor/Widget.php:338
+#: assets/src/blocks/shared/editor.js:81
 msgid "Default (plugin settings)"
 msgstr "Standard (Plugin-Einstellungen)"
 
-#: src/Editor/Elementor/Widget.php:213
-#: assets/src/blocks/shared/editor.js:81
+#: src/Editor/Elementor/Widget.php:339
+#: assets/src/blocks/shared/editor.js:88
 msgid "VideoOptimizer player (iframe)"
 msgstr "VideoOptimizer-Player (iframe)"
 
-#: src/Editor/Elementor/Widget.php:214
-#: assets/src/blocks/shared/editor.js:88
+#: src/Editor/Elementor/Widget.php:340
+#: assets/src/blocks/shared/editor.js:95
 msgid "Native HTML5 player"
 msgstr "Nativer HTML5-Player"
 
-#: src/Editor/Elementor/Widget.php:221
-#: assets/src/blocks/shared/editor.js:101
+#: src/Editor/Elementor/Widget.php:347
+#: assets/src/blocks/shared/editor.js:108
 msgid "Presentation"
 msgstr "Darstellung"
 
-#: src/Editor/Elementor/Widget.php:225
+#: src/Editor/Elementor/Widget.php:351
 #: assets/src/admin/pages/VideoSubtitles.js:135
-#: assets/src/blocks/shared/editor.js:107
+#: assets/src/blocks/shared/editor.js:114
 msgid "Default"
 msgstr "Standard"
 
-#: src/Editor/Elementor/Widget.php:226
-#: assets/src/blocks/shared/editor.js:109
+#: src/Editor/Elementor/Widget.php:352
+#: assets/src/blocks/shared/editor.js:116
 msgid "Poster, plays in place"
 msgstr "Poster, spielt an Ort und Stelle"
 
-#: src/Editor/Elementor/Widget.php:227
+#: src/Editor/Elementor/Widget.php:353
 #: assets/src/admin/pages/Settings.js:458
-#: assets/src/blocks/shared/editor.js:116
+#: assets/src/blocks/shared/editor.js:123
 msgid "Poster, plays in a lightbox"
 msgstr "Poster, spielt in einer Lightbox"
 
-#: src/Editor/Elementor/Widget.php:228
+#: src/Editor/Elementor/Widget.php:354
 #: assets/src/admin/pages/Settings.js:465
-#: assets/src/blocks/shared/editor.js:123
+#: assets/src/blocks/shared/editor.js:130
 msgid "Player directly"
 msgstr "Player direkt"
 
-#: src/Editor/Elementor/Widget.php:235
+#: src/Editor/Elementor/Widget.php:361
 #: assets/src/admin/pages/VideoDetail.js:566
-#: assets/src/blocks/shared/editor.js:136
+#: assets/src/blocks/shared/editor.js:143
 msgid "Autoplay (muted)"
 msgstr "Autoplay (stumm)"
 
-#: src/Editor/Elementor/Widget.php:236
-#: assets/src/blocks/shared/editor.js:148
+#: src/Editor/Elementor/Widget.php:362
+#: assets/src/blocks/shared/editor.js:155
 msgid "Muted"
 msgstr "Stumm"
 
-#: src/Editor/Elementor/Widget.php:237
+#: src/Editor/Elementor/Widget.php:363
 #: assets/src/admin/pages/VideoDetail.js:576
-#: assets/src/blocks/shared/editor.js:156
+#: assets/src/blocks/shared/editor.js:163
 msgid "Loop"
 msgstr "Endlosschleife"
 
-#: src/Editor/Elementor/Widget.php:238
-#: assets/src/blocks/shared/editor.js:164
+#: src/Editor/Elementor/Widget.php:364
+#: assets/src/blocks/shared/editor.js:171
 msgid "Controls"
 msgstr "Bedienelemente"
 
-#: src/Editor/Elementor/Widget.php:255
+#: src/Editor/Elementor/Widget.php:381
 msgid "Above the fold (load immediately)"
 msgstr "Im sichtbaren Bereich (sofort laden)"
 
-#: src/Editor/Elementor/Widget.php:263
-#: assets/src/blocks/media-split/index.js:76
+#: src/Editor/Elementor/Widget.php:409
+#: assets/src/blocks/media-split/index.js:77
 msgid "Video position"
 msgstr "Position des Videos"
 
-#: src/Editor/Elementor/Widget.php:267
-#: assets/src/blocks/media-split/index.js:83
+#: src/Editor/Elementor/Widget.php:413
+#: assets/src/blocks/media-split/index.js:84
 msgid "Left"
 msgstr "Links"
 
-#: src/Editor/Elementor/Widget.php:268
-#: assets/src/blocks/media-split/index.js:87
+#: src/Editor/Elementor/Widget.php:414
+#: assets/src/blocks/media-split/index.js:88
 msgid "Right"
 msgstr "Rechts"
 
-#: src/Editor/Elementor/Widget.php:276
+#: src/Editor/Elementor/Widget.php:422
 #: assets/src/blocks/background-hero/index.js:77
 msgid "Height"
 msgstr "Höhe"
 
-#: src/Editor/Elementor/Widget.php:280
+#: src/Editor/Elementor/Widget.php:426
 #: assets/src/blocks/background-hero/index.js:84
 msgid "Full screen"
 msgstr "Bildschirmfüllend"
 
-#: src/Editor/Elementor/Widget.php:281
+#: src/Editor/Elementor/Widget.php:427
 #: assets/src/blocks/background-hero/index.js:88
 msgid "Large"
 msgstr "Groß"
 
-#: src/Editor/Elementor/Widget.php:282
+#: src/Editor/Elementor/Widget.php:428
 #: assets/src/blocks/background-hero/index.js:92
 msgid "Medium"
 msgstr "Mittel"
 
-#: src/Editor/Elementor/Widget.php:290
+#: src/Editor/Elementor/Widget.php:436
 #: assets/src/blocks/background-hero/index.js:100
 msgid "Overlay"
 msgstr "Overlay"
 
-#: src/Editor/Elementor/Widget.php:294
+#: src/Editor/Elementor/Widget.php:440
 #: assets/src/blocks/background-hero/index.js:107
 msgid "Gradient"
 msgstr "Verlauf"
 
-#: src/Editor/Elementor/Widget.php:295
+#: src/Editor/Elementor/Widget.php:441
 #: assets/src/blocks/background-hero/index.js:111
 msgid "Dark"
 msgstr "Dunkel"
 
-#: src/Editor/Elementor/Widget.php:296
+#: src/Editor/Elementor/Widget.php:442
 #: assets/src/blocks/background-hero/index.js:115
 msgid "None"
 msgstr "Keins"
 
-#: src/Editor/Elementor/Widget.php:304
+#: src/Editor/Elementor/Widget.php:450
 msgid "Headline color"
 msgstr "Farbe der Überschrift"
 
-#: src/Editor/Elementor/Widget.php:312
+#: src/Editor/Elementor/Widget.php:458
 msgid "Text color"
 msgstr "Textfarbe"
 
@@ -431,17 +441,18 @@ msgid "Play video"
 msgstr "Video abspielen"
 
 #. translators: %s: video title
-#: src/Render/Renderer.php:372
+#: src/Render/Renderer.php:466
+#: src/Render/Renderer.php:732
 #, php-format
 msgid "Play video: %s"
 msgstr "Video abspielen: %s"
 
-#: src/Render/Renderer.php:697
+#: src/Render/Renderer.php:1071
 msgid "No video selected yet."
 msgstr "Noch kein Video ausgewählt."
 
 #. translators: %s: video uuid
-#: src/Render/Renderer.php:699
+#: src/Render/Renderer.php:1073
 #, php-format
 msgid "The video %s could not be loaded (deleted, or VideoOptimizer is unreachable). Only editors see this notice."
 msgstr "Das Video %s konnte nicht geladen werden (gelöscht oder VideoOptimizer nicht erreichbar). Dieser Hinweis ist nur für Redakteure sichtbar."
@@ -458,41 +469,41 @@ msgstr "Das sieht nicht nach einem VideoOptimizer-API-Token (vp_…) aus."
 msgid "Please enter a name."
 msgstr "Bitte geben Sie einen Namen ein."
 
-#: src/Rest/AdminController.php:626
+#: src/Rest/AdminController.php:629
 msgid "Please enter a public https:// URL."
 msgstr "Bitte geben Sie eine öffentliche https://-URL ein."
 
-#: src/Rest/AdminController.php:645
-#: src/Rest/AdminController.php:671
+#: src/Rest/AdminController.php:648
+#: src/Rest/AdminController.php:674
 msgid "Invalid upload request."
 msgstr "Ungültige Upload-Anfrage."
 
-#: src/Rest/AdminController.php:906
+#: src/Rest/AdminController.php:909
 msgid "Invalid frame."
 msgstr "Ungültiges Standbild."
 
-#: src/Rest/AdminController.php:924
+#: src/Rest/AdminController.php:927
 #: assets/src/components/uploader.js:179
 msgid "Please choose a JPEG, PNG or WebP image."
 msgstr "Bitte wählen Sie ein JPEG-, PNG- oder WebP-Bild."
 
-#: src/Rest/AdminController.php:954
+#: src/Rest/AdminController.php:957
 msgid "Invalid poster source."
 msgstr "Ungültige Poster-Quelle."
 
-#: src/Rest/AdminController.php:1013
+#: src/Rest/AdminController.php:1016
 msgid "This video is no longer waiting for a decision."
 msgstr "Für dieses Video steht keine Entscheidung mehr aus."
 
-#: src/Rest/AdminController.php:1016
+#: src/Rest/AdminController.php:1019
 msgid "You are not allowed to delete videos in VideoOptimizer."
 msgstr "Sie dürfen keine Videos in VideoOptimizer löschen."
 
-#: src/Rest/AdminController.php:1048
+#: src/Rest/AdminController.php:1051
 msgid "Invalid video id."
 msgstr "Ungültige Video-ID."
 
-#: src/Rest/AdminController.php:1079
+#: src/Rest/AdminController.php:1082
 msgid "This site is not publicly reachable, so the file is uploaded from your browser instead."
 msgstr "Diese Website ist nicht öffentlich erreichbar, daher wird die Datei stattdessen aus Ihrem Browser hochgeladen."
 
@@ -1173,7 +1184,8 @@ msgid "Background video"
 msgstr "Hintergrundvideo"
 
 #: assets/src/blocks/background-hero/index.js:122
-#: assets/src/blocks/shared/editor.js:171
+#: assets/src/blocks/shared/editor.js:206
+#: assets/src/blocks/video-list/index.js:109
 msgid "Above the fold"
 msgstr "Im sichtbaren Bereich"
 
@@ -1193,45 +1205,45 @@ msgstr "Das Hintergrundvideo läuft auf der Website"
 msgid "Short, muted clips without important audio work best."
 msgstr "Am besten eignen sich kurze, stumme Clips ohne wichtigen Ton."
 
-#: assets/src/blocks/media-split/index.js:28
+#: assets/src/blocks/media-split/index.js:29
 msgid "Tell your story…"
 msgstr "Erzählen Sie Ihre Geschichte …"
 
-#: assets/src/blocks/media-split/index.js:36
+#: assets/src/blocks/media-split/index.js:37
 msgid "Button"
 msgstr "Button"
 
-#: assets/src/blocks/media-split/index.js:59
+#: assets/src/blocks/media-split/index.js:60
 msgid "Switch video side"
 msgstr "Videoseite wechseln"
 
-#: assets/src/blocks/shared/editor.js:92
+#: assets/src/blocks/shared/editor.js:99
 msgid "The VideoOptimizer player uses the design configured in your VideoOptimizer account. The native player is part of your page and styled by the browser."
 msgstr "Der VideoOptimizer-Player nutzt das Design aus Ihrem VideoOptimizer-Konto. Der native Player ist Teil Ihrer Seite und wird vom Browser gestaltet."
 
-#: assets/src/blocks/shared/editor.js:127
+#: assets/src/blocks/shared/editor.js:134
 msgid "\"Poster\" loads no video data until visitors click play — the fastest option."
 msgstr "„Poster“ lädt keine Videodaten, bis Besucher auf Play klicken – die schnellste Option."
 
-#: assets/src/blocks/shared/editor.js:140
+#: assets/src/blocks/shared/editor.js:147
 msgid "Only for \"Player directly\": starts muted once the video is visible. Browsers never autoplay with sound."
 msgstr "Nur bei „Player direkt“: startet stumm, sobald das Video sichtbar ist. Browser spielen nie automatisch mit Ton ab."
 
-#: assets/src/blocks/shared/editor.js:172
+#: assets/src/blocks/shared/editor.js:207
 msgid "Loads the poster with high priority and the player immediately. Use only for the first visible video of a page."
 msgstr "Lädt das Poster mit hoher Priorität und den Player sofort. Nur für das erste sichtbare Video einer Seite verwenden."
 
-#: assets/src/blocks/shared/editor.js:206
+#: assets/src/blocks/shared/editor.js:407
 #: assets/src/components/VideoBrowser.js:78
 msgid "VideoOptimizer is not connected yet."
 msgstr "VideoOptimizer ist noch nicht verbunden."
 
-#: assets/src/blocks/shared/editor.js:212
+#: assets/src/blocks/shared/editor.js:413
 #: assets/src/components/VideoBrowser.js:83
 msgid "Enter your API token"
 msgstr "API-Token eingeben"
 
-#: assets/src/blocks/shared/editor.js:215
+#: assets/src/blocks/shared/editor.js:416
 msgid "Please ask an administrator to connect it."
 msgstr "Bitte bitten Sie einen Administrator, es zu verbinden."
 
@@ -1266,6 +1278,7 @@ msgid "Add video"
 msgstr "Video hinzufügen"
 
 #: assets/src/blocks/video-grid/index.js:128
+#: assets/src/blocks/video-list/index.js:76
 msgid "Text & layout"
 msgstr "Text & Layout"
 
@@ -1281,24 +1294,28 @@ msgstr "Fügen Sie einige Videos hinzu – Besucher öffnen sie in einer Lightbo
 msgid "Add a video to the grid"
 msgstr "Video zum Raster hinzufügen"
 
-#: assets/src/blocks/video/index.js:29
+#: assets/src/blocks/video/index.js:30
 msgid "VideoOptimizer Video"
 msgstr "VideoOptimizer Video"
 
-#: assets/src/blocks/video/index.js:30
+#: assets/src/blocks/video/index.js:31
 msgid "Choose a video from VideoOptimizer or upload a new one."
 msgstr "Wählen Sie ein Video aus VideoOptimizer oder laden Sie ein neues hoch."
 
-#: assets/src/blocks/video/index.js:44
+#: assets/src/blocks/video-chapters/index.js:53
+#: assets/src/blocks/video-detail/index.js:48
+#: assets/src/blocks/video/index.js:45
 #: assets/src/components/VideoSelectControl.js:86
 msgid "Replace"
 msgstr "Ersetzen"
 
-#: assets/src/blocks/video/index.js:59
+#: assets/src/blocks/video-chapters/index.js:97
+#: assets/src/blocks/video/index.js:60
 msgid "Accessible title"
 msgstr "Barrierefreier Titel"
 
-#: assets/src/blocks/video/index.js:60
+#: assets/src/blocks/video-chapters/index.js:98
+#: assets/src/blocks/video/index.js:61
 msgid "Used for screen readers and search engines. Defaults to the video title."
 msgstr "Für Screenreader und Suchmaschinen. Standardmäßig der Videotitel."
 
@@ -1352,10 +1369,15 @@ msgstr "Der Speicher hat kein ETag zurückgegeben (CORS muss den ETag-Header fre
 msgid "Uploaded – processing…"
 msgstr "Hochgeladen – wird verarbeitet …"
 
+#: src/Editor/Elementor/Widget.php:186
+#: assets/src/blocks/shared/editor.js:318
+#: assets/src/blocks/video-detail/index.js:57
 #: assets/src/components/VideoBrowser.js:359
 msgid "Library"
 msgstr "Bibliothek"
 
+#: src/Editor/Elementor/Widget.php:189
+#: assets/src/blocks/shared/editor.js:324
 #: assets/src/components/VideoBrowser.js:368
 msgid "All libraries"
 msgstr "Alle Bibliotheken"
@@ -1558,7 +1580,10 @@ msgstr "schleife"
 #: assets/src/blocks/background-hero/block.json
 #: assets/src/blocks/media-split/block.json
 #: assets/src/blocks/spotlight/block.json
+#: assets/src/blocks/video-chapters/block.json
+#: assets/src/blocks/video-detail/block.json
 #: assets/src/blocks/video-grid/block.json
+#: assets/src/blocks/video-list/block.json
 #: assets/src/blocks/video/block.json
 msgctxt "block keyword"
 msgid "videooptimizer"
@@ -1576,7 +1601,10 @@ msgstr "Video neben Text und Button – ideal für Features und Produktgeschicht
 
 #: assets/src/blocks/media-split/block.json
 #: assets/src/blocks/spotlight/block.json
+#: assets/src/blocks/video-chapters/block.json
+#: assets/src/blocks/video-detail/block.json
 #: assets/src/blocks/video-grid/block.json
+#: assets/src/blocks/video-list/block.json
 #: assets/src/blocks/video/block.json
 msgctxt "block keyword"
 msgid "video"
@@ -1664,6 +1692,7 @@ msgctxt "block description"
 msgid "A fast, adaptive video from VideoOptimizer — as poster with play button, lightbox or player."
 msgstr "Ein schnelles, adaptives Video aus VideoOptimizer – als Poster mit Play-Button, Lightbox oder Player."
 
+#: assets/src/blocks/video-detail/block.json
 #: assets/src/blocks/video/block.json
 msgctxt "block keyword"
 msgid "player"
@@ -1712,10 +1741,6 @@ msgstr "Das Limit für erneutes Encodieren ist erreicht (5 pro Stunde). Bitte ve
 #: src/Rest/AdminController.php:431
 msgid "Please keep at least one codec and one resolution."
 msgstr "Bitte behalten Sie mindestens einen Codec und eine Auflösung bei."
-
-#: assets/src/admin/pages/Libraries.js:46
-msgid "Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads until the existing videos are re-encoded."
-msgstr "Qualität nutzt eine höhere Bitrate: etwa das 2,5- bis 3-Fache an Dateigröße und CDN-Traffic gegenüber Performance. Eine geänderte Qualität gilt zunächst nur für neue Uploads, bis die vorhandenen Videos neu encodiert werden."
 
 #: assets/src/admin/pages/Libraries.js:243
 #: assets/src/admin/pages/Libraries.js:288
@@ -1778,7 +1803,7 @@ msgstr "Ein Metadaten-Wert hat höchstens 64 Zeichen."
 msgid "A video can have at most 10 metadata keys."
 msgstr "Ein Video kann höchstens 10 Metadaten-Schlüssel haben."
 
-#: src/Rest/AdminController.php:556
+#: src/Rest/AdminController.php:559
 msgid "Filter by at most 5 metadata keys."
 msgstr "Filtern Sie nach höchstens 5 Metadaten-Schlüsseln."
 
@@ -1786,8 +1811,10 @@ msgstr "Filtern Sie nach höchstens 5 Metadaten-Schlüsseln."
 msgid "Tags saved."
 msgstr "Tags gespeichert."
 
+#: src/Editor/Elementor/Widget.php:196
 #: assets/src/admin/pages/VideoTagsMetadata.js:60
 #: assets/src/admin/pages/VideoTagsMetadata.js:66
+#: assets/src/blocks/video-list/index.js:42
 msgid "Tags"
 msgstr "Tags"
 
@@ -1865,14 +1892,14 @@ msgstr "Bitte geben Sie einen gültigen Sprachcode wie de oder en-US ein."
 msgid "The kind must be \"subtitles\" or \"captions\"."
 msgstr "Die Art muss „subtitles“ oder „captions“ sein."
 
-#: src/Rest/AdminController.php:811
-#: src/Rest/AdminController.php:815
-#: src/Rest/AdminController.php:830
+#: src/Rest/AdminController.php:814
+#: src/Rest/AdminController.php:818
+#: src/Rest/AdminController.php:833
 #: assets/src/components/subtitles.js:16
 msgid "Please choose a .vtt or .srt file (up to 2 MB)."
 msgstr "Bitte wählen Sie eine .vtt- oder .srt-Datei (bis 2 MB)."
 
-#: src/Rest/AdminController.php:818
+#: src/Rest/AdminController.php:821
 #: assets/src/components/subtitles.js:22
 msgid "The subtitle file is larger than 2 MB."
 msgstr "Die Untertiteldatei ist größer als 2 MB."
@@ -2036,11 +2063,11 @@ msgstr "Untertitel löschen"
 msgid "The %s subtitle is removed from the video and the CDN."
 msgstr "Der Untertitel „%s“ wird vom Video und vom CDN entfernt."
 
-#: src/Rest/AdminController.php:504
+#: src/Rest/AdminController.php:507
 msgid "Dates must look like 2026-11-27."
 msgstr "Datumsangaben müssen wie 2026-11-27 aussehen."
 
-#: src/Rest/AdminController.php:511
+#: src/Rest/AdminController.php:514
 msgid "Invalid library or video id."
 msgstr "Ungültige Bibliotheks- oder Video-ID."
 
@@ -2084,10 +2111,297 @@ msgstr "Upload wird abgeschlossen…"
 msgid "Creating…"
 msgstr "Wird angelegt…"
 
-#: src/Render/Renderer.php:555
+#: src/Render/Renderer.php:929
 msgid "Pause background video"
 msgstr "Hintergrundvideo pausieren"
 
-#: src/Render/Renderer.php:563
+#: src/Render/Renderer.php:937
 msgid "Play background video"
 msgstr "Hintergrundvideo abspielen"
+
+#: src/Editor/Elementor/Widget.php:120
+msgid "Video with chapters"
+msgstr "Video mit Kapiteln"
+
+#: src/Editor/Elementor/Widget.php:121
+#: src/Editor/Elementor/Widget.php:179
+msgid "Video list"
+msgstr "Videoliste"
+
+#: src/Editor/Elementor/Widget.php:122
+msgid "Video detail"
+msgstr "Videodetail"
+
+#: assets/src/blocks/shared/editor.js:334
+msgid "Lists the videos of this library that are ready to play."
+msgstr "Listet die abspielbereiten Videos dieser Bibliothek auf."
+
+#: src/Editor/Elementor/Widget.php:198
+#: assets/src/blocks/video-list/index.js:43
+msgid "Optional: only videos with all of these tags, separated by commas."
+msgstr "Optional: nur Videos mit allen diesen Tags, durch Kommas getrennt."
+
+#: src/Editor/Elementor/Widget.php:205
+#: assets/src/blocks/video-list/index.js:55
+msgid "Videos per page"
+msgstr "Videos pro Seite"
+
+#: src/Editor/Elementor/Widget.php:216
+#: assets/src/blocks/video-list/index.js:64
+msgid "Detail page"
+msgstr "Detailseite"
+
+#: src/Editor/Elementor/Widget.php:219
+#: assets/src/blocks/shared/editor.js:371
+msgid "None (open in a lightbox)"
+msgstr "Keine (in einer Lightbox öffnen)"
+
+#: src/Editor/Elementor/Widget.php:220
+msgid "The page with a \"Video detail\" element; a card opens it with the video in the URL. Without one, cards open the video in a lightbox."
+msgstr "Die Seite mit einem „Videodetail“-Element; eine Karte öffnet sie mit dem Video in der URL. Ohne Angabe öffnen die Karten das Video in einer Lightbox."
+
+#: src/Editor/Elementor/Widget.php:260
+#: src/Editor/Elementor/Widget.php:267
+#: assets/src/blocks/shared/editor.js:229
+#: assets/src/blocks/shared/editor.js:235
+msgid "Format"
+msgstr "Format"
+
+#: src/Editor/Elementor/Widget.php:271
+#: assets/src/blocks/shared/editor.js:240
+msgid "Original (video ratio)"
+msgstr "Original (Seitenverhältnis des Videos)"
+
+#: src/Editor/Elementor/Widget.php:278
+#: assets/src/blocks/shared/editor.js:249
+msgid "Shows the same video in another ratio; the video fills the area and is cropped."
+msgstr "Zeigt dasselbe Video in einem anderen Seitenverhältnis; das Video füllt die Fläche und wird zugeschnitten."
+
+#: src/Editor/Elementor/Widget.php:283
+#: assets/src/blocks/shared/editor.js:259
+msgid "Focal point, horizontal (%)"
+msgstr "Bildmittelpunkt, horizontal (%)"
+
+#: src/Editor/Elementor/Widget.php:284
+#: assets/src/blocks/shared/editor.js:273
+msgid "Focal point, vertical (%)"
+msgstr "Bildmittelpunkt, vertikal (%)"
+
+#: src/Editor/Elementor/Widget.php:296
+#: assets/src/blocks/shared/editor.js:283
+msgid "Which part stays visible when the video is cropped. Not supported by the VideoOptimizer player (iframe): it always crops from the centre."
+msgstr "Welcher Teil beim Zuschnitt sichtbar bleibt. Der VideoOptimizer-Player (iframe) unterstützt das nicht: Er schneidet immer von der Mitte aus zu."
+
+#: src/Editor/Elementor/Widget.php:305
+#: src/Render/Renderer.php:626
+#: assets/src/blocks/video-chapters/index.js:61
+msgid "Scenes"
+msgstr "Szenen"
+
+#: src/Editor/Elementor/Widget.php:312
+#: assets/src/blocks/video-chapters/index.js:65
+msgid "Number of scenes"
+msgstr "Anzahl der Szenen"
+
+#: src/Editor/Elementor/Widget.php:317
+#: assets/src/blocks/video-chapters/index.js:72
+msgid "The scenes are the preview frames VideoOptimizer creates for every video, evenly spread over its length."
+msgstr "Die Szenen sind die Vorschaubilder, die VideoOptimizer für jedes Video erzeugt, gleichmäßig über die Länge verteilt."
+
+#: src/Editor/Elementor/Widget.php:323
+#: assets/src/blocks/video-chapters/index.js:79
+msgid "Scene titles"
+msgstr "Szenentitel"
+
+#: src/Editor/Elementor/Widget.php:325
+#: assets/src/blocks/video-chapters/index.js:80
+msgid "Optional, one per line in the order of the scenes. Without a title a scene is called \"Scene 1\", \"Scene 2\" …"
+msgstr "Optional, einer pro Zeile in der Reihenfolge der Szenen. Ohne Titel heißt eine Szene „Szene 1“, „Szene 2“ …"
+
+#: src/Editor/Elementor/Widget.php:389
+#: assets/src/blocks/shared/editor.js:179
+msgid "Play while scrolling"
+msgstr "Beim Scrollen abspielen"
+
+#: src/Editor/Elementor/Widget.php:390
+#: assets/src/blocks/shared/editor.js:180
+msgid "Only for \"Player directly\": starts muted when the video is half visible and pauses when it leaves. Not for visitors who prefer reduced motion or save data."
+msgstr "Nur für „Player direkt“: startet stumm, sobald das Video zur Hälfte sichtbar ist, und pausiert, wenn es den Bildschirm verlässt. Nicht für Besucher, die reduzierte Bewegung oder Datensparen eingestellt haben."
+
+#: src/Editor/Elementor/Widget.php:399
+#: assets/src/blocks/shared/editor.js:193
+msgid "Floating mini player"
+msgstr "Mitlaufender Mini-Player"
+
+#: src/Editor/Elementor/Widget.php:400
+#: assets/src/blocks/shared/editor.js:194
+msgid "Only for \"Player directly\": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it."
+msgstr "Nur für „Player direkt“: Nach dem Start läuft das Video als kleiner Player unten rechts weiter, wenn es aus dem Bild scrollt (ab 600 px Breite). Besucher können ihn schließen."
+
+#: src/Render/Renderer.php:243
+msgid "Close mini player"
+msgstr "Mini-Player schließen"
+
+#: src/Render/Renderer.php:402
+msgid "The videos are temporarily unavailable."
+msgstr "Die Videos sind vorübergehend nicht verfügbar."
+
+#: src/Render/Renderer.php:416
+msgid "There are no videos yet."
+msgstr "Es gibt noch keine Videos."
+
+#: src/Render/Renderer.php:481
+msgid "Video pages"
+msgstr "Videoseiten"
+
+#: src/Render/Renderer.php:483
+msgid "First page"
+msgstr "Erste Seite"
+
+#: src/Render/Renderer.php:486
+msgid "Next page"
+msgstr "Nächste Seite"
+
+#: src/Render/Renderer.php:505
+msgid "The video list could not be loaded. Check the API token and the library. Only editors see this notice."
+msgstr "Die Videoliste konnte nicht geladen werden. Prüfen Sie API-Token und Bibliothek. Nur Redakteure sehen diesen Hinweis."
+
+#: src/Render/Renderer.php:524
+msgid "This video could not be found."
+msgstr "Dieses Video wurde nicht gefunden."
+
+#. translators: %d: scene number
+#: src/Render/Renderer.php:596
+#, php-format
+msgid "Scene %d"
+msgstr "Szene %d"
+
+#. translators: 1: scene name or number, 2: start time
+#: src/Render/Renderer.php:606
+#, php-format
+msgid "%1$s · %2$s"
+msgstr "%1$s · %2$s"
+
+#: src/Rest/AdminController.php:464
+msgid "The \"force\" option must be true or false."
+msgstr "Die Option „force“ muss true oder false sein."
+
+#: assets/src/admin/pages/Libraries.js:46
+msgid "Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads. Existing videos keep their old quality until you re-encode the library with \"Re-encode all qualities\"."
+msgstr "Qualität nutzt eine höhere Bitrate: etwa das 2,5- bis 3-Fache an Dateigröße und CDN-Traffic von Performance. Eine geänderte Qualität gilt nur für neue Uploads. Bestehende Videos behalten ihre alte Qualität, bis Sie die Bibliothek mit „Alle Qualitäten neu encodieren“ neu encodieren."
+
+#: assets/src/blocks/video-chapters/index.js:35
+msgid "VideoOptimizer Video with Chapters"
+msgstr "VideoOptimizer Video mit Kapiteln"
+
+#: assets/src/blocks/video-chapters/index.js:39
+msgid "Choose a video: its preview frames become scenes that start the video at that point."
+msgstr "Wählen Sie ein Video: Seine Vorschaubilder werden zu Szenen, die das Video an dieser Stelle starten."
+
+#: assets/src/blocks/video-detail/index.js:30
+msgid "VideoOptimizer Video Detail"
+msgstr "VideoOptimizer Videodetail"
+
+#: assets/src/blocks/video-detail/index.js:34
+msgid "Shows the video named in the page URL (?vo_video=…), for example from a VideoOptimizer Video List. Choose the video to show when the URL names none."
+msgstr "Zeigt das Video aus der Seiten-URL (?vo_video=…), zum Beispiel aus einer VideoOptimizer Videoliste. Wählen Sie das Video, das erscheint, wenn die URL keines nennt."
+
+#: assets/src/blocks/video-detail/index.js:53
+msgid "Default video"
+msgstr "Standardvideo"
+
+#: assets/src/blocks/video-list/index.js:65
+msgid "The page with a \"VideoOptimizer Video Detail\" block; a card opens it with the video in the URL. Without one, cards open the video in a lightbox."
+msgstr "Die Seite mit einem „VideoOptimizer Videodetail“-Block; eine Karte öffnet sie mit dem Video in der URL. Ohne Angabe öffnen die Karten das Video in einer Lightbox."
+
+#: assets/src/blocks/video-list/index.js:110
+msgid "Loads the poster of the first card with high priority."
+msgstr "Lädt das Poster der ersten Karte mit hoher Priorität."
+
+#: assets/src/blocks/video-chapters/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video with Chapters"
+msgstr "VideoOptimizer Video mit Kapiteln"
+
+#: assets/src/blocks/video-chapters/block.json
+msgctxt "block description"
+msgid "A video with a row of scene previews — a click starts the video at that scene."
+msgstr "Ein Video mit einer Reihe von Szenenvorschauen – ein Klick startet das Video an dieser Szene."
+
+#: assets/src/blocks/video-chapters/block.json
+msgctxt "block keyword"
+msgid "chapters"
+msgstr "Kapitel"
+
+#: assets/src/blocks/video-chapters/block.json
+msgctxt "block keyword"
+msgid "scenes"
+msgstr "Szenen"
+
+#: assets/src/blocks/video-chapters/block.json
+msgctxt "block keyword"
+msgid "thumbnails"
+msgstr "Vorschaubilder"
+
+#: assets/src/blocks/video-detail/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video Detail"
+msgstr "VideoOptimizer Videodetail"
+
+#: assets/src/blocks/video-detail/block.json
+msgctxt "block description"
+msgid "Shows the video named in the URL (?vo_video=…) with its title and player — the target of a video list."
+msgstr "Zeigt das Video aus der URL (?vo_video=…) mit Titel und Player – das Ziel einer Videoliste."
+
+#: assets/src/blocks/video-detail/block.json
+msgctxt "block keyword"
+msgid "detail"
+msgstr "Detail"
+
+#: assets/src/blocks/video-detail/block.json
+msgctxt "block keyword"
+msgid "single"
+msgstr "einzeln"
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block title"
+msgid "VideoOptimizer Video List"
+msgstr "VideoOptimizer Videoliste"
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block description"
+msgid "Cards of the videos of a library, paged — each card opens a detail page or a lightbox."
+msgstr "Karten der Videos einer Bibliothek, seitenweise – jede Karte öffnet eine Detailseite oder eine Lightbox."
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block keyword"
+msgid "list"
+msgstr "Liste"
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block keyword"
+msgid "library"
+msgstr "Bibliothek"
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block keyword"
+msgid "cards"
+msgstr "Karten"
+
+#: assets/src/blocks/video-list/block.json
+msgctxt "block keyword"
+msgid "archive"
+msgstr "Archiv"
+
+#: src/Editor/Elementor/Widget.php:190
+msgid "Lists the videos of this library that are ready to play. For a video detail element: only videos of this library can be shown."
+msgstr "Listet die abspielbereiten Videos dieser Bibliothek auf. Bei einem Videodetail-Element: Nur Videos dieser Bibliothek können angezeigt werden."
+
+#: src/Render/Renderer.php:521
+#: src/Render/Renderer.php:533
+msgid "This video is temporarily unavailable."
+msgstr "Dieses Video ist vorübergehend nicht verfügbar."
+
+#: assets/src/blocks/video-detail/index.js:59
+msgid "Optional: only videos of this library can be shown, also when the URL names another video."
+msgstr "Optional: Nur Videos dieser Bibliothek können angezeigt werden, auch wenn die URL ein anderes Video nennt."

@@ -10,12 +10,24 @@
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
 		private string $message;
-		public function __construct( string $code = '', string $message = '' ) {
+		private mixed $data;
+		public function __construct( string $code = '', string $message = '', mixed $data = '' ) {
 			$this->message = $message;
+			$this->data    = $data;
+		}
+		public function get_error_data(): mixed {
+			return $this->data;
 		}
 		public function get_error_message(): string {
 			return $this->message;
 		}
+	}
+}
+
+if ( ! class_exists( 'WP_Post' ) ) {
+	class WP_Post {
+		public int $ID = 0;
+		public string $post_content = '';
 	}
 }
 

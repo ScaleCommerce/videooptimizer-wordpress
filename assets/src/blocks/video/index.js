@@ -9,6 +9,7 @@ import { PanelBody, TextControl, ToolbarButton } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import metadata from './block.json';
 import {
+	FormatPanel,
 	PlayerPanel,
 	VideoPanel,
 	VideoPlaceholder,
@@ -72,7 +73,13 @@ function Edit( { attributes, setAttributes } ) {
 						onChange={ ( caption ) => setAttributes( { caption } ) }
 					/>
 				</PanelBody>
+				<FormatPanel
+					attributes={ attributes }
+					setAttributes={ setAttributes }
+				/>
 				<PlayerPanel
+					scrollPlay
+					miniPlayer
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 				/>

@@ -94,6 +94,17 @@ final class AdminControllerLibraryTest extends TestCase {
 		$this->assertSame( array( 'aaa', 'bbb' ), $this->forgotten );
 	}
 
+	public function test_reprocess_rejects_a_non_boolean_force(): void {
+		foreach ( array( 'true', 1, 'yes', null ) as $value ) {
+			$result = $this->call( $this->controller(), 'reprocess_library', array( 'force' => $value ) );
+
+			$this->assertInstanceOf( \WP_Error::class, $result );
+			$this->assertSame( 400, $result->get_error_data()['status'] );
+		}
+		$this->assertSame( array(), $this->calls );
+		$this->assertSame( array( 'queued' => 2 ), $this->call( $this->controller(), 'reprocess_library', array( 'force' => false ) ) );
+	}
+
 	public function test_ladder_change_forgets_embeds_but_rename_does_not(): void {
 		$this->call( $this->controller(), 'update_library', array( 'resolutions' => '720p,1080p' ) );
 		$this->assertSame( array( 'aaa', 'bbb' ), $this->forgotten );

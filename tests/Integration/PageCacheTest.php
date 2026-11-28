@@ -63,6 +63,70 @@ final class PageCacheTest extends IntegrationTestCase {
 		$this->assertFalse( $found['all'] );
 	}
 
+	public function test_pages_with_a_video_list_or_detail_are_purged_for_any_video(): void {
+		$list      = $this->post( '<!-- wp:videooptimizer/video-list {"libraryId":"3293aeb1-64b7-42a8-b2f7-c5355dcdd58d"} /-->' );
+		$shortcode = $this->post( '[videooptimizer layout="video-list" library="3293aeb1-64b7-42a8-b2f7-c5355dcdd58d"]' );
+		$elementor = $this->post( 'Builder page' );
+		update_post_meta( $elementor, '_elementor_data', '[{"settings":{"layout":"video-list"}}]' );
+		$single_quoted = $this->post( "[videooptimizer layout='video-list']" );
+		$unquoted      = $this->post( '[videooptimizer layout=video-list]' );
+		$detail        = $this->post( '<!-- wp:videooptimizer/video-detail /-->' );
+		$detail_code   = $this->post( "[videooptimizer layout='video-detail']" );
+		$this->post( 'Unrelated page' );
+		$this->post( '<!-- wp:videooptimizer/video-list /-->', 'draft' );
+
+		$found = $this->cache()->locate( self::UUID );
+
+		$this->assertEqualsCanonicalizing( array( $list, $shortcode, $elementor, $single_quoted, $unquoted, $detail, $detail_code ), $found['ids'] );
+		$this->assertEqualsCanonicalizing( array( $detail, $detail_code ), $found['details'], 'detail pages are known for their ?vo_video= variants' );
+		$this->assertFalse( $found['all'] );
+	}
+
+	public function test_a_video_change_invalidates_cached_list_pages(): void {
+		$generation = (int) get_option( \ScaleCommerce\VideoOptimizer\Render\VideoLists::GENERATION_KEY, 0 );
+
+		do_action( PageCache::CHANGED, self::UUID );
+		Plugin::instance()->embeds->forget( self::UUID );
+
+		$this->assertGreaterThan( $generation, (int) get_option( \ScaleCommerce\VideoOptimizer\Render\VideoLists::GENERATION_KEY, 0 ) );
+	}
+
+	public function test_a_video_change_drops_its_ownership_verification(): void {
+		$key = 'videooptimizer_own_' . substr( md5( (string) Plugin::instance()->settings->token() ), 0, 10 ) . '_' . self::UUID;
+		set_transient( $key, array( 'state' => 'found', 'library' => '' ), HOUR_IN_SECONDS );
+
+		Plugin::instance()->embeds->forget( self::UUID );
+
+		$this->assertFalse( get_transient( $key ) );
+	}
+
+	public function test_the_detail_library_is_read_like_the_renderer_does_even_through_reusable_blocks_and_templates(): void {
+		$lib      = '3293aeb1-64b7-42a8-b2f7-c5355dcdd58d';
+		$reusable = self::factory()->post->create(
+			array(
+				'post_type'    => 'wp_block',
+				'post_status'  => 'publish',
+				'post_content' => '<!-- wp:videooptimizer/video-detail {"libraryId":"' . strtoupper( $lib ) . '"} /-->',
+			)
+		);
+		$page     = get_post( $this->post( '<!-- wp:block {"ref":' . $reusable . '} /-->', 'publish', 'page' ) );
+
+		$this->assertTrue( \ScaleCommerce\VideoOptimizer\Render\DetailPage::has_detail( $page ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $page ), 'normalized like the element' );
+
+		$shortcode = get_post( $this->post( "[videooptimizer layout='video-detail' library='" . $lib . "']" ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $shortcode ), 'the `library` alias counts' );
+
+		$template = $this->post( 'Template', 'publish', 'elementor_library' );
+		update_post_meta( $template, '_elementor_data', wp_json_encode( array( array( 'elType' => 'widget', 'widgetType' => 'videooptimizer', 'settings' => array( 'layout' => 'video-detail', 'libraryId' => $lib ), 'elements' => array() ) ) ) );
+		$host = $this->post( 'Host' );
+		update_post_meta( $host, '_elementor_data', wp_json_encode( array( array( 'elType' => 'widget', 'widgetType' => 'template', 'settings' => array( 'template_id' => $template ), 'elements' => array() ) ) ) );
+		$this->assertSame( $lib, \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( get_post( $host ) ), 'Elementor template widgets are followed' );
+
+		$plain = get_post( $this->post( '<!-- wp:videooptimizer/video-detail /-->' ) );
+		$this->assertSame( '', \ScaleCommerce\VideoOptimizer\Render\DetailPage::library_of( $plain ) );
+	}
+
 	public function test_variation_videos_purge_the_parent_product(): void {
 		$parent    = $this->post( 'Product', 'publish', 'post' );
 		$variation = self::factory()->post->create(

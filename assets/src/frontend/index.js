@@ -5,12 +5,18 @@
  */
 import './frontend.css';
 import {
+	clearExpected,
+	expectEvent,
 	fallbackToMp4,
 	markPlayIntent,
 	pauseBySystem,
 	trackPlayIntent,
 	wantsPlayback,
 } from './playback-fallback';
+import { sendCommand } from './hosted';
+import { initScrollPlay } from './scroll-play';
+import { initMiniPlayers } from './mini-player';
+import { initChapters } from './chapters';
 
 const config = window.videooptimizerFrontend || {};
 const i18n = config.i18n || {};
@@ -140,11 +146,24 @@ function attachHls( video, { startLoad = true } = {} ) {
 	return video.voReady;
 }
 
-function play( video ) {
+/**
+ * Starts a video: attaches HLS first, then plays.
+ *
+ * @param {HTMLVideoElement} video
+ * @param {boolean}          own   False when a visitor's tap/click starts it (then the play event
+ *                                 is not marked as the plugin's own).
+ * @return {Promise} Resolves when play() settled.
+ */
+function play( video, own = true ) {
 	markPlayIntent( video );
 	return attachHls( video ).then( () => {
+		if ( own ) {
+			expectEvent( video, 'play' ); // The plugin starts it (not a visitor).
+		}
 		const result = video.play();
-		return result && result.catch ? result.catch( () => {} ) : result;
+		return result && result.catch
+			? result.catch( () => clearExpected( video, 'play' ) )
+			: result;
 	} );
 }
 
@@ -183,12 +202,7 @@ function embedIframe( url, title ) {
 }
 
 function pauseIframe( iframe ) {
-	try {
-		iframe.contentWindow.postMessage(
-			{ type: 'videooptimizer:command', command: 'pause' },
-			'*'
-		);
-	} catch ( e ) {}
+	sendCommand( iframe, 'pause' );
 }
 
 /**
@@ -212,7 +226,7 @@ function initNativePlayers( root ) {
 		video.setAttribute( 'data-vo-wired', '' );
 		if ( video.hasAttribute( 'data-vo-tap' ) ) {
 			video.addEventListener( 'click', () =>
-				video.paused ? play( video ) : video.pause()
+				video.paused ? play( video, false ) : video.pause()
 			);
 		}
 	} );
@@ -223,6 +237,7 @@ function initNativePlayers( root ) {
 	eager.forEach( ( video ) => {
 		if ( reducedMotion() ) {
 			video.removeAttribute( 'autoplay' );
+			clearExpected( video, 'play' );
 			video.pause();
 		}
 		attachHls( video );
@@ -427,16 +442,34 @@ function getLightbox() {
 
 	lightbox = {
 		open( trigger ) {
+			// A floating mini player must not keep playing behind the lightbox (double audio).
+			document.dispatchEvent( new CustomEvent( 'vo:lightbox-open' ) );
 			state.lastFocus = box.ownerDocument.activeElement || trigger;
 			state.holder = null;
 			const frame = trigger.closest( '.vo-frame' );
 			// Keep the real aspect ratio (portrait videos stay tall, not letterboxed).
-			const ratio = frame && frame.style.aspectRatio;
-			inner.style.aspectRatio = ratio || '';
+			const aspect = frame && frame.style.aspectRatio;
+			inner.style.aspectRatio = aspect || '';
 			inner.classList.toggle(
 				'vo-lightbox__inner--portrait',
-				!! frame && frame.classList.contains( 'vo-frame--portrait' )
+				!! frame &&
+					! frame.hasAttribute( 'data-vo-ratio' ) &&
+					frame.classList.contains( 'vo-frame--portrait' )
 			);
+			// Format option: size the box by the chosen ratio and crop the video like the page does.
+			const ratio =
+				frame && Number( frame.getAttribute( 'data-vo-ratio' ) );
+			inner.classList.toggle( 'vo-lightbox__inner--cover', !! ratio );
+			if ( ratio ) {
+				inner.style.setProperty( '--vo-ratio', String( ratio ) );
+				inner.style.setProperty(
+					'--vo-focus',
+					frame.style.getPropertyValue( '--vo-focus' )
+				);
+			} else {
+				inner.style.removeProperty( '--vo-ratio' );
+				inner.style.removeProperty( '--vo-focus' );
+			}
 			if (
 				frame &&
 				frame.style.getPropertyValue( '--vo-player-accent' )
@@ -900,6 +933,9 @@ export function init( root = document ) {
 	document.documentElement.classList.add( 'vo-js' );
 	initNativePlayers( root );
 	initAutoload( root );
+	initScrollPlay( root, { play, attachHls, embedIframe, reducedMotion } );
+	initMiniPlayers( root );
+	initChapters( root, { attachHls, embedIframe } );
 	initFacades( root );
 	initLightbox( root );
 	initBackgrounds( root );

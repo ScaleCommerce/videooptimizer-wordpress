@@ -44,7 +44,7 @@ const qualityOptions = () => [
 
 const QUALITY_HELP = () =>
 	__(
-		'Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads until the existing videos are re-encoded.',
+		'Quality uses a higher bitrate: roughly 2.5–3× the file size and CDN traffic of Performance. A changed quality only affects new uploads. Existing videos keep their old quality until you re-encode the library with "Re-encode all qualities".',
 		'videooptimizer'
 	);
 

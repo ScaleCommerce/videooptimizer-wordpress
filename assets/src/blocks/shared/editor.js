@@ -5,12 +5,15 @@ import { __ } from '@wordpress/i18n';
 import {
 	PanelBody,
 	Placeholder,
+	RangeControl,
 	SelectControl,
 	ToggleControl,
 	Disabled,
 	Spinner,
 } from '@wordpress/components';
 import { useEffect, useState } from '@wordpress/element';
+import { useSelect } from '@wordpress/data';
+import { store as coreStore } from '@wordpress/core-data';
 import ServerSideRender from '@wordpress/server-side-render';
 import VideoSelectControl from '../../components/VideoSelectControl';
 import { api } from '../../components/api';
@@ -49,12 +52,16 @@ const TRI = [
  * @param {Object}  props.attributes
  * @param {Object}  props.setAttributes
  * @param {boolean} props.presentation  Show the presentation select.
+ * @param {boolean} props.scrollPlay    Offer "Play while scrolling".
+ * @param {boolean} props.miniPlayer    Offer the floating mini player.
  * @param {boolean} props.initialOpen   Panel initially open.
  */
 export function PlayerPanel( {
 	attributes,
 	setAttributes,
 	presentation = true,
+	scrollPlay = false,
+	miniPlayer = false,
 	initialOpen = true,
 } ) {
 	const { player, autoplay, muted, loop, controls, priority } = attributes;
@@ -166,6 +173,34 @@ export function PlayerPanel( {
 				onChange={ ( value ) => setAttributes( { controls: value } ) }
 				options={ TRI }
 			/>
+			{ scrollPlay ? (
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __( 'Play while scrolling', 'videooptimizer' ) }
+					help={ __(
+						'Only for "Player directly": starts muted when the video is half visible and pauses when it leaves. Not for visitors who prefer reduced motion or save data.',
+						'videooptimizer'
+					) }
+					checked={ !! attributes.scrollPlay }
+					onChange={ ( value ) =>
+						setAttributes( { scrollPlay: value } )
+					}
+				/>
+			) : null }
+			{ miniPlayer ? (
+				<ToggleControl
+					__nextHasNoMarginBottom
+					label={ __( 'Floating mini player', 'videooptimizer' ) }
+					help={ __(
+						'Only for "Player directly": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it.',
+						'videooptimizer'
+					) }
+					checked={ !! attributes.miniPlayer }
+					onChange={ ( value ) =>
+						setAttributes( { miniPlayer: value } )
+					}
+				/>
+			) : null }
 			<ToggleControl
 				__nextHasNoMarginBottom
 				label={ __( 'Above the fold', 'videooptimizer' ) }
@@ -177,6 +212,172 @@ export function PlayerPanel( {
 				onChange={ ( value ) => setAttributes( { priority: value } ) }
 			/>
 		</PanelBody>
+	);
+}
+
+/**
+ * "Every format from one video": display ratio plus focal point.
+ *
+ * @param {Object} props
+ * @param {Object} props.attributes
+ * @param {Object} props.setAttributes
+ */
+export function FormatPanel( { attributes, setAttributes } ) {
+	const { format, focalX, focalY } = attributes;
+	return (
+		<PanelBody
+			title={ __( 'Format', 'videooptimizer' ) }
+			initialOpen={ !! format }
+		>
+			<SelectControl
+				__nextHasNoMarginBottom
+				__next40pxDefaultSize
+				label={ __( 'Format', 'videooptimizer' ) }
+				value={ format }
+				onChange={ ( value ) => setAttributes( { format: value } ) }
+				options={ [
+					{
+						label: __( 'Original (video ratio)', 'videooptimizer' ),
+						value: '',
+					},
+					{ label: '16:9', value: '16:9' },
+					{ label: '9:16', value: '9:16' },
+					{ label: '1:1', value: '1:1' },
+					{ label: '4:5', value: '4:5' },
+					{ label: '21:9', value: '21:9' },
+				] }
+				help={ __(
+					'Shows the same video in another ratio; the video fills the area and is cropped.',
+					'videooptimizer'
+				) }
+			/>
+			{ format ? (
+				<>
+					<RangeControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __(
+							'Focal point, horizontal (%)',
+							'videooptimizer'
+						) }
+						min={ 0 }
+						max={ 100 }
+						value={ focalX }
+						onChange={ ( value ) =>
+							setAttributes( { focalX: value ?? 50 } )
+						}
+					/>
+					<RangeControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __(
+							'Focal point, vertical (%)',
+							'videooptimizer'
+						) }
+						min={ 0 }
+						max={ 100 }
+						value={ focalY }
+						onChange={ ( value ) =>
+							setAttributes( { focalY: value ?? 50 } )
+						}
+						help={ __(
+							'Which part stays visible when the video is cropped. Not supported by the VideoOptimizer player (iframe): it always crops from the centre.',
+							'videooptimizer'
+						) }
+					/>
+				</>
+			) : null }
+		</PanelBody>
+	);
+}
+
+/**
+ * Library of a video list (every library of the account when empty).
+ *
+ * @param {Object}   props
+ * @param {string}   props.value    Library uuid.
+ * @param {Function} props.onChange Receives the uuid.
+ * @param {string}   props.help     Optional help text.
+ */
+export function LibrarySelect( { value, onChange, help } ) {
+	const [ libraries, setLibraries ] = useState( null );
+	useEffect( () => {
+		let current = true;
+		api.libraries().then(
+			( list ) => current && setLibraries( list ),
+			() => current && setLibraries( [] )
+		);
+		return () => {
+			current = false;
+		};
+	}, [] );
+	return (
+		<SelectControl
+			__nextHasNoMarginBottom
+			__next40pxDefaultSize
+			label={ __( 'Library', 'videooptimizer' ) }
+			value={ value }
+			onChange={ onChange }
+			disabled={ libraries === null }
+			options={ [
+				{
+					label: __( 'All libraries', 'videooptimizer' ),
+					value: '',
+				},
+				...( libraries || [] ).map( ( library ) => ( {
+					label: library.name,
+					value: library.id,
+				} ) ),
+			] }
+			help={
+				help ||
+				__(
+					'Lists the videos of this library that are ready to play.',
+					'videooptimizer'
+				)
+			}
+		/>
+	);
+}
+
+/**
+ * Page picker (published pages).
+ *
+ * @param {Object}   props
+ * @param {number}   props.value    Page id (0 = none).
+ * @param {Function} props.onChange Receives the id.
+ * @param {string}   props.label    Field label.
+ * @param {string}   props.help     Field help.
+ */
+export function PageSelect( { value, onChange, label, help } ) {
+	const pages = useSelect( ( select ) =>
+		select( coreStore ).getEntityRecords( 'postType', 'page', {
+			per_page: 100,
+			status: 'publish',
+			orderby: 'title',
+			order: 'asc',
+		} )
+	);
+	return (
+		<SelectControl
+			__nextHasNoMarginBottom
+			__next40pxDefaultSize
+			label={ label }
+			value={ String( value || 0 ) }
+			onChange={ ( id ) => onChange( Number( id ) ) }
+			disabled={ pages === null }
+			options={ [
+				{
+					label: __( 'None (open in a lightbox)', 'videooptimizer' ),
+					value: '0',
+				},
+				...( pages || [] ).map( ( page ) => ( {
+					label: page.title?.rendered || `#${ page.id }`,
+					value: String( page.id ),
+				} ) ),
+			] }
+			help={ help }
+		/>
 	);
 }
 

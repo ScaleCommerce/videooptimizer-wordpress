@@ -117,6 +117,9 @@ class Widget extends \Elementor\Widget_Base {
 					'background-hero' => __( 'Background hero', 'videooptimizer' ),
 					'spotlight'       => __( 'Spotlight', 'videooptimizer' ),
 					'video-grid'      => __( 'Video grid', 'videooptimizer' ),
+					'video-chapters'  => __( 'Video with chapters', 'videooptimizer' ),
+					'video-list'      => __( 'Video list', 'videooptimizer' ),
+					'video-detail'    => __( 'Video detail', 'videooptimizer' ),
 				),
 			)
 		);
@@ -125,7 +128,7 @@ class Widget extends \Elementor\Widget_Base {
 			array(
 				'label'     => __( 'Video', 'videooptimizer' ),
 				'type'      => VideoControl::TYPE,
-				'condition' => array( 'layout!' => 'video-grid' ),
+				'condition' => array( 'layout!' => array( 'video-grid', 'video-list' ) ),
 			)
 		);
 
@@ -165,7 +168,57 @@ class Widget extends \Elementor\Widget_Base {
 					'3' => '3',
 					'4' => '4',
 				),
-				'condition' => array( 'layout' => 'video-grid' ),
+				'condition' => array( 'layout' => array( 'video-grid', 'video-list' ) ),
+			)
+		);
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_list',
+			array(
+				'label'     => __( 'Video list', 'videooptimizer' ),
+				'condition' => array( 'layout' => array( 'video-list', 'video-detail' ) ),
+			)
+		);
+		$this->add_control(
+			'libraryId',
+			array(
+				'label'       => __( 'Library', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '',
+				'options'     => array( '' => __( 'All libraries', 'videooptimizer' ) ) + $this->library_options(),
+				'description' => __( 'Lists the videos of this library that are ready to play. For a video detail element: only videos of this library can be shown.', 'videooptimizer' ),
+			)
+		);
+		$this->add_control(
+			'tag',
+			array(
+				'label'       => __( 'Tags', 'videooptimizer' ),
+				'type'        => Controls_Manager::TEXT,
+				'description' => __( 'Optional: only videos with all of these tags, separated by commas.', 'videooptimizer' ),
+				'condition'   => array( 'layout' => 'video-list' ),
+			)
+		);
+		$this->add_control(
+			'perPage',
+			array(
+				'label'     => __( 'Videos per page', 'videooptimizer' ),
+				'type'      => Controls_Manager::NUMBER,
+				'min'       => 1,
+				'max'       => 48,
+				'default'   => 12,
+				'condition' => array( 'layout' => 'video-list' ),
+			)
+		);
+		$this->add_control(
+			'detailPage',
+			array(
+				'label'       => __( 'Detail page', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '0',
+				'options'     => array( '0' => __( 'None (open in a lightbox)', 'videooptimizer' ) ) + $this->page_options(),
+				'description' => __( 'The page with a "Video detail" element; a card opens it with the video in the URL. Without one, cards open the video in a lightbox.', 'videooptimizer' ),
+				'condition'   => array( 'layout' => 'video-list' ),
 			)
 		);
 		$this->end_controls_section();
@@ -174,11 +227,11 @@ class Widget extends \Elementor\Widget_Base {
 		foreach (
 			array(
 				'eyebrow'  => array( __( 'Eyebrow', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight' ) ),
-				'headline' => array( __( 'Headline', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight', 'video-grid' ) ),
+				'headline' => array( __( 'Headline', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-list' ) ),
 				'subline'  => array( __( 'Subline', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'background-hero' ) ),
 				'text'     => array( __( 'Text', 'videooptimizer' ), Controls_Manager::WYSIWYG, array( 'media-split' ) ),
-				'intro'    => array( __( 'Intro', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'video-grid' ) ),
-				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight' ) ),
+				'intro'    => array( __( 'Intro', 'videooptimizer' ), Controls_Manager::TEXTAREA, array( 'video-grid', 'video-list' ) ),
+				'caption'  => array( __( 'Caption', 'videooptimizer' ), Controls_Manager::TEXT, array( 'video', 'spotlight', 'video-chapters', 'video-detail' ) ),
 				'ctaLabel' => array( __( 'Button text', 'videooptimizer' ), Controls_Manager::TEXT, array( 'media-split', 'background-hero' ) ),
 			) as $name => [ $label, $type, $layouts ]
 		) {
@@ -197,6 +250,79 @@ class Widget extends \Elementor\Widget_Base {
 				'label'     => __( 'Button link', 'videooptimizer' ),
 				'type'      => Controls_Manager::URL,
 				'condition' => array( 'layout' => array( 'media-split', 'background-hero' ) ),
+			)
+		);
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_format',
+			array(
+				'label'     => __( 'Format', 'videooptimizer' ),
+				'condition' => array( 'layout' => array( 'video', 'media-split' ) ),
+			)
+		);
+		$this->add_control(
+			'format',
+			array(
+				'label'       => __( 'Format', 'videooptimizer' ),
+				'type'        => Controls_Manager::SELECT,
+				'default'     => '',
+				'options'     => array(
+					''     => __( 'Original (video ratio)', 'videooptimizer' ),
+					'16:9' => '16:9',
+					'9:16' => '9:16',
+					'1:1'  => '1:1',
+					'4:5'  => '4:5',
+					'21:9' => '21:9',
+				),
+				'description' => __( 'Shows the same video in another ratio; the video fills the area and is cropped.', 'videooptimizer' ),
+			)
+		);
+		foreach (
+			array(
+				'focalX' => __( 'Focal point, horizontal (%)', 'videooptimizer' ),
+				'focalY' => __( 'Focal point, vertical (%)', 'videooptimizer' ),
+			) as $name => $label
+		) {
+			$this->add_control(
+				$name,
+				array(
+					'label'       => $label,
+					'type'        => Controls_Manager::NUMBER,
+					'min'         => 0,
+					'max'         => 100,
+					'default'     => 50,
+					'condition'   => array( 'format!' => '' ),
+					'description' => 'focalY' === $name ? __( 'Which part stays visible when the video is cropped. Not supported by the VideoOptimizer player (iframe): it always crops from the centre.', 'videooptimizer' ) : '',
+				)
+			);
+		}
+		$this->end_controls_section();
+
+		$this->start_controls_section(
+			'section_scenes',
+			array(
+				'label'     => __( 'Scenes', 'videooptimizer' ),
+				'condition' => array( 'layout' => 'video-chapters' ),
+			)
+		);
+		$this->add_control(
+			'scenes',
+			array(
+				'label'       => __( 'Number of scenes', 'videooptimizer' ),
+				'type'        => Controls_Manager::NUMBER,
+				'min'         => 3,
+				'max'         => 10,
+				'default'     => 5,
+				'description' => __( 'The scenes are the preview frames VideoOptimizer creates for every video, evenly spread over its length.', 'videooptimizer' ),
+			)
+		);
+		$this->add_control(
+			'sceneTitles',
+			array(
+				'label'       => __( 'Scene titles', 'videooptimizer' ),
+				'type'        => Controls_Manager::TEXTAREA,
+				'description' => __( 'Optional, one per line in the order of the scenes. Without a title a scene is called "Scene 1", "Scene 2" …', 'videooptimizer' ),
 			)
 		);
 		$this->end_controls_section();
@@ -227,7 +353,7 @@ class Widget extends \Elementor\Widget_Base {
 					'lightbox' => __( 'Poster, plays in a lightbox', 'videooptimizer' ),
 					'direct'   => __( 'Player directly', 'videooptimizer' ),
 				),
-				'condition' => array( 'layout!' => 'background-hero' ),
+				'condition' => array( 'layout!' => array( 'background-hero', 'video-chapters', 'video-list' ) ),
 			)
 		);
 		foreach (
@@ -245,7 +371,7 @@ class Widget extends \Elementor\Widget_Base {
 					'type'      => Controls_Manager::SELECT,
 					'default'   => '',
 					'options'   => $tri,
-					'condition' => array( 'layout!' => 'background-hero' ),
+					'condition' => array( 'layout!' => array( 'background-hero', 'video-list' ) ),
 				)
 			);
 		}
@@ -255,6 +381,26 @@ class Widget extends \Elementor\Widget_Base {
 				'label'        => __( 'Above the fold (load immediately)', 'videooptimizer' ),
 				'type'         => Controls_Manager::SWITCHER,
 				'return_value' => 'yes',
+			)
+		);
+		$this->add_control(
+			'scrollPlay',
+			array(
+				'label'        => __( 'Play while scrolling', 'videooptimizer' ),
+				'description'  => __( 'Only for "Player directly": starts muted when the video is half visible and pauses when it leaves. Not for visitors who prefer reduced motion or save data.', 'videooptimizer' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'condition'    => array( 'layout' => array( 'video', 'media-split' ) ),
+			)
+		);
+		$this->add_control(
+			'miniPlayer',
+			array(
+				'label'        => __( 'Floating mini player', 'videooptimizer' ),
+				'description'  => __( 'Only for "Player directly": once started, the video keeps playing as a small player in the bottom right when it scrolls out of view (screens from 600 px). Visitors can close it.', 'videooptimizer' ),
+				'type'         => Controls_Manager::SWITCHER,
+				'return_value' => 'yes',
+				'condition'    => array( 'layout' => array( 'video', 'video-chapters' ) ),
 			)
 		);
 		$this->add_control(
@@ -318,6 +464,48 @@ class Widget extends \Elementor\Widget_Base {
 	}
 
 	/**
+	 * Libraries for the list control; only fetched while editing (never on page views).
+	 *
+	 * @return array<string, string>
+	 */
+	private function library_options(): array {
+		$editor = \Elementor\Plugin::$instance->editor ?? null;
+		if ( ! $editor || ! $editor->is_edit_mode() ) {
+			return array();
+		}
+		try {
+			$options = array();
+			foreach ( Plugin::instance()->client->list_libraries() as $library ) {
+				if ( is_string( $library['id'] ?? null ) ) {
+					$options[ $library['id'] ] = esc_html( is_string( $library['name'] ?? null ) ? $library['name'] : $library['id'] );
+				}
+			}
+
+			return $options;
+		} catch ( \Throwable $e ) {
+			return array();
+		}
+	}
+
+	/**
+	 * Published pages for the detail page control (editor only).
+	 *
+	 * @return array<string, string>
+	 */
+	private function page_options(): array {
+		$editor = \Elementor\Plugin::$instance->editor ?? null;
+		if ( ! $editor || ! $editor->is_edit_mode() ) {
+			return array();
+		}
+		$options = array();
+		foreach ( get_pages( array( 'number' => 200 ) ) as $page ) {
+			$options[ (string) $page->ID ] = esc_html( $page->post_title );
+		}
+
+		return $options;
+	}
+
+	/**
 	 * The player markup depends on the video (changes in VideoOptimizer, token state): Elementor's
 	 * element cache must not keep it.
 	 */
@@ -334,7 +522,10 @@ class Widget extends \Elementor\Widget_Base {
 
 		$attrs             = $settings;
 		$attrs['priority'] = 'yes' === ( $settings['priority'] ?? '' );
-		$attrs['ctaUrl']   = is_array( $settings['ctaUrl'] ?? null ) ? (string) ( $settings['ctaUrl']['url'] ?? '' ) : '';
+		foreach ( array( 'scrollPlay', 'miniPlayer' ) as $flag ) {
+			$attrs[ $flag ] = 'yes' === ( $settings[ $flag ] ?? '' );
+		}
+		$attrs['ctaUrl'] = is_array( $settings['ctaUrl'] ?? null ) ? (string) ( $settings['ctaUrl']['url'] ?? '' ) : '';
 		if ( is_array( $settings['items'] ?? null ) ) {
 			$attrs['items'] = array_map(
 				static fn ( $item ): array => array(

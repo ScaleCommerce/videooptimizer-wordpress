@@ -2,6 +2,36 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
+## [2.2.0] - 2026-11-28
+
+### Upgrade
+- A video named by `?vo_video=` is shown only if it belongs to your organization (verified once with the API token, cached for an hour; "not found" for five minutes) and, when the detail element has a library, to that library; otherwise the page answers 404 without any video title. The verification is scoped by the API token and dropped when the video changes. New uuids and `vo_cursor` values from the URL share a site-wide budget of 30 uncached lookups a minute and never set the API-down marker; rate-limited, not-yet-ready and outage results are temporary ("temporarily unavailable", page flagged `DONOTCACHEPAGE`), only a verified 404 is a cacheable 404; temporary detail pages print `noindex` (core `wp_robots`, Yoast SEO, Rank Math). Videos listed by a video list count as verified for their detail page ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Detail pages override the document title, meta description and canonical URL with the video's (`document_title_parts`, `get_canonical_url`; with Yoast SEO or Rank Math through their `wpseo_*` / `rank_math/*` filters, and no second meta description is printed); turn it off with the `videooptimizer_detail_meta` filter or by removing the filters ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Elements print neutral public notices (`div.vo-notice.vo-notice--public`: "could not be found", "temporarily unavailable", list failures) for visitors; style or hide them in your theme ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Video lists skip videos that are not ready and fill the page from up to three API calls; `vo_cursor` values are limited to 200 base64 characters ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Pages with a video list or detail element are purged from page caches whenever any video changes; list pages are cached in transients for five minutes (generation counter option `videooptimizer_list_generation`), list and detail pages use the query arguments `vo_cursor`, `vo_video`. The match is a plain `video-list` / `video-detail` substring in content and Elementor data, so shared template parts, reusable blocks or widgets with such an element purge the whole site on every video change; `?vo_video=` variants are purged from WP Rocket, W3 Total Cache, SG Optimizer and LiteSpeed by URL ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Scene previews load `https://api.videooptimizer.eu/api/v1/videos/{uuid}/thumbnails/{n}` (public, redirects to the CDN); allow it in a restrictive `img-src` Content-Security-Policy ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
+- The mini player pins only after the visitor started playback (unmute, play, jump, scene click, or a click into a hosted player); autoplay and play-while-scrolling never pin, and opening a lightbox stops it. With a hosted player, keys typed inside the iframe do not reach the page, so Escape needs the close button there ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
+- Poster images now carry an explicit `alt=""` (a second or third `loading` attribute on them comes from Elementor's or core's image filters, not from the plugin) ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Directly shown videos with the mini player option are wrapped in `div.vo-mini > div.vo-mini__box`; the box is pinned with `position: fixed` (z-index 99990) while pinned, adjust custom CSS if needed ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
+- Frames with a format get `vo-frame--fit`, `data-vo-ratio` and the `--vo-focus` custom property; `vo-frame--narrow` limits 9:16 and 4:5 to 420 px ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
+- `POST /libraries/{id}/reprocess` answers 400 when `force` is present but not a boolean (it used to be treated as `false`) ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).
+
+### Added
+- Format option for the video and video + text elements (block, shortcode `format`, Elementor): original, 16:9, 9:16, 1:1, 4:5, 21:9 with a focal point (`focalX`/`focalY`); native video and poster use `object-fit: cover`, the hosted player gets `fit=cover` ([#22](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/22)).
+- Play while scrolling for direct players (video, video + text; `scrollPlay`): starts muted at 50 % visibility, pauses when it leaves, a visitor's pause sticks, no autoplay with `prefers-reduced-motion` or Save-Data, hls.js is attached on first play ([#23](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/23)).
+- Floating mini player for directly shown videos (`miniPlayer`): once playing and scrolled out of view the player is pinned bottom right (CSS only, from 600 px) with a close button, Escape support and a height placeholder; native and hosted ([#24](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/24)).
+- New element "Video with chapters" (block `videooptimizer/video-chapters`, shortcode `layout="video-chapters"`, Elementor layout): the video shown directly plus 3–10 scene previews (the video's thumbnails, start at `floor(duration / 11 * (i + 1))`, optional titles); a click starts the video at that scene (`currentTime` / hosted `t=…&autoplay=1`) ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
+- New elements "Video list" (`videooptimizer/video-list`, `layout="video-list"`: cards of a library's ready videos, optional tags, cursor paging, detail page or lightbox) and "Video detail" (`videooptimizer/video-detail`, `layout="video-detail"`: the video named by `?vo_video=<uuid>` with title, player and JSON-LD; unknown uuid answers 404, page title, meta description and canonical from the video), also as Elementor layouts ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Filter `videooptimizer_detail_meta` to turn off the detail page's meta description ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+
+### Fixed
+- Scene times use the exact (unrounded) video duration ([#21](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/21)).
+- Pagination links keep other query arguments and work in subfolder installs ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- Library names and page titles in the Elementor selects are escaped ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).
+- The reprocess route rejects a non-boolean `force` with 400 ([#25](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/25)).
+- The encoding quality field permanently says that existing videos need a reprocess with "Re-encode all qualities" ([#26](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/26)).
+
 ## [2.1.0] - 2026-11-28
 
 ### Upgrade

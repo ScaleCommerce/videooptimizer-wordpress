@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -18,7 +18,8 @@ This plugin connects WordPress and WooCommerce to your [VideoOptimizer](https://
 
 = Highlights =
 
-* **Five blocks** for the block editor: Video, Video + Text, Background Hero, Spotlight and Video Grid — plus the `[videooptimizer]` shortcode and an **Elementor widget** with the same options.
+* **Eight blocks** for the block editor: Video, Video + Text, Background Hero, Spotlight, Video Grid, Video with Chapters, Video List and Video Detail — plus the `[videooptimizer]` shortcode and an **Elementor widget** with the same options.
+* **Content elements**: chapters with scene previews, video lists with detail pages, every format (9:16, 1:1, 21:9 …) from one video, play while scrolling and a floating mini player.
 * **Poster first**: until visitors click play, only a lightweight poster image is loaded (responsive `srcset`). Choose between the themable VideoOptimizer player and a native HTML5 player, playing in place, in a lightbox or directly.
 * **Media library integration**: send existing videos to VideoOptimizer with one click (or in bulk). Video blocks, `[video]` shortcodes and Elementor video widgets are then delivered via VideoOptimizer automatically — no content changes.
 * **WooCommerce**: product and variation videos in the product gallery (works with zoom and the lightbox; the gallery jumps to a variation's video when it is selected), a "Video" product tab and muted hover previews in shop and category grids.
@@ -83,6 +84,13 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 2.2.0 =
+* New elements: video list (paged) and video detail (verified per video, title/meta for SEO plugins).
+* New element: video with chapters (scene previews jump to the scene).
+* Format option (16:9, 9:16, 1:1, 4:5, 21:9) with focal point.
+* Play while scrolling pauses when the video leaves the view.
+* Floating mini player once the visitor started the video.
 
 = 2.1.0 =
 * Native player follows the player theme (preload capped at metadata, interactive, fullscreen, playback speed, Picture-in-Picture).

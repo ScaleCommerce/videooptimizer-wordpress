@@ -10,6 +10,7 @@ import {
 import { PanelBody, SelectControl, ToolbarButton } from '@wordpress/components';
 import metadata from './block.json';
 import {
+	FormatPanel,
 	PlayerPanel,
 	VideoPanel,
 	VideoPlaceholder,
@@ -90,7 +91,12 @@ function Edit( { attributes, setAttributes } ) {
 						] }
 					/>
 				</PanelBody>
+				<FormatPanel
+					attributes={ attributes }
+					setAttributes={ setAttributes }
+				/>
 				<PlayerPanel
+					scrollPlay
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 					initialOpen={ false }

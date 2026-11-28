@@ -16,7 +16,12 @@ defined( 'ABSPATH' ) || exit;
  */
 final class Attributes {
 
-	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid' );
+	public const LAYOUTS = array( 'video', 'media-split', 'background-hero', 'spotlight', 'video-grid', 'video-chapters', 'video-list', 'video-detail' );
+
+	/**
+	 * Display formats of the "every format from one video" option ('' = original ratio).
+	 */
+	public const FORMATS = array( '', '16:9', '9:16', '1:1', '4:5', '21:9' );
 
 	/**
 	 * Layout-specific default presentation ('' = use the global default setting).
@@ -27,12 +32,15 @@ final class Attributes {
 		'background-hero' => 'direct',
 		'spotlight'       => 'lightbox',
 		'video-grid'      => 'lightbox',
+		'video-chapters'  => 'direct',
+		'video-list'      => '',
+		'video-detail'    => 'direct',
 	);
 
 	/**
 	 * Attribute schema: name => [type, default, allowed values?].
 	 *
-	 * @return array<string, array{0: string, 1: mixed, 2?: array<int, string>}>
+	 * @return array<string, array{0: string, 1: mixed, 2?: array<int, string|int>}>
 	 */
 	public static function schema(): array {
 		$tri = array( '', '1', '0' );
@@ -47,7 +55,13 @@ final class Attributes {
 			'loop'          => array( 'enum', '', $tri ),
 			'controls'      => array( 'enum', '', $tri ),
 			'priority'      => array( 'bool', false ),
+			'scrollPlay'    => array( 'bool', false ),
+			'miniPlayer'    => array( 'bool', false ),
 			'caption'       => array( 'text', '' ),
+			// Format: '' = the video's own ratio; focal point in percent (object-position).
+			'format'        => array( 'enum', '', self::FORMATS ),
+			'focalX'        => array( 'num', 50, array( 0, 100 ) ),
+			'focalY'        => array( 'num', 50, array( 0, 100 ) ),
 			// media-split / hero / spotlight / grid.
 			'side'          => array( 'enum', 'left', array( 'left', 'right' ) ),
 			'eyebrow'       => array( 'text', '' ),
@@ -63,6 +77,14 @@ final class Attributes {
 			'textColor'     => array( 'color', '' ),
 			'columns'       => array( 'int', 3 ),
 			'items'         => array( 'items', array() ),
+			// video-chapters.
+			'scenes'        => array( 'num', 5, array( 3, 10 ) ),
+			'sceneTitles'   => array( 'lines', '' ),
+			// video-list / video-detail.
+			'libraryId'     => array( 'uuid', '' ),
+			'tag'           => array( 'text', '' ),
+			'perPage'       => array( 'num', 12, array( 1, 48 ) ),
+			'detailPage'    => array( 'num', 0, array( 0, 2147483647 ) ),
 		);
 	}
 
@@ -82,16 +104,32 @@ final class Attributes {
 				'uuid'  => Embed::is_uuid( $value ) ? strtolower( (string) $value ) : '',
 				'text'  => is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '',
 				'html'  => is_scalar( $value ) ? wp_kses_post( (string) $value ) : '',
+				'lines' => is_scalar( $value ) ? implode( "\n", array_slice( array_map( 'sanitize_text_field', Scenes::titles( (string) $value ) ), 0, Scenes::FRAMES ) ) : '',
 				'url'   => self::safe_url( $value ),
 				'color' => self::safe_color( $value ),
 				'bool'  => self::to_bool( $value ),
 				'int'   => max( 1, min( 4, is_numeric( $value ) ? (int) $value : (int) $def[1] ) ),
+				'num'   => self::number( $value, (int) $def[1], $def[2] ?? array() ),
 				'items' => self::items( $value ),
-				default => self::enum( $value, $def[2] ?? array(), $def[1] ),
+				default => self::enum( $value, array_map( 'strval', $def[2] ?? array() ), $def[1] ),
 			};
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Integer within [min, max] (rounded), or the default when the value is not numeric.
+	 *
+	 * @param mixed                  $value    Candidate.
+	 * @param int                    $fallback Default.
+	 * @param array<int, string|int> $range  [min, max].
+	 */
+	private static function number( mixed $value, int $fallback, array $range ): int {
+		$min = (int) ( $range[0] ?? 0 );
+		$max = (int) ( $range[1] ?? 100 );
+
+		return max( $min, min( $max, is_numeric( $value ) ? (int) round( (float) $value ) : $fallback ) );
 	}
 
 	/**
@@ -213,6 +251,9 @@ final class Attributes {
 		}
 		$map['video'] = 'uuid';
 		$map['id']    = 'uuid';
+		// Shortcode-friendly names for the list element.
+		$map['library'] = 'libraryId';
+		$map['detail']  = 'detailPage';
 
 		$out = array();
 		foreach ( $raw as $key => $value ) {
