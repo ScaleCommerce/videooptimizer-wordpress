@@ -2,7 +2,7 @@
  * Play while scrolling: a direct player starts muted once it is at least half visible and pauses
  * when it leaves. A pause by the visitor sticks; reduced motion and Save-Data never autoplay.
  */
-import { pauseBySystem } from './playback-fallback';
+import { expectEvent, pauseBySystem } from './playback-fallback';
 import { sendCommand, watchHosted } from './hosted';
 
 const THRESHOLD = 0.5;
@@ -21,8 +21,11 @@ const saveData = () =>
  * @return {boolean} True when it is wrapped by an active mini player.
  */
 function miniTakesOver( element ) {
+	const mini = element.closest( '.vo-mini' );
+	// Only once the visitor took over (started or interacted); an autoplay is paused like any other.
 	return (
-		!! element.closest( '.vo-mini' ) &&
+		!! mini &&
+		!! mini.voVisitorStarted &&
 		!! window.matchMedia &&
 		window.matchMedia( '(min-width: 600px)' ).matches
 	);
@@ -145,6 +148,7 @@ export function initScrollPlay(
 				! frame.voPlaying &&
 				! frame.voUserPaused
 			) {
+				expectEvent( frame, 'play' );
 				sendCommand( iframe, 'play' );
 			}
 		} else if ( iframe && frame.voPlaying && ! miniTakesOver( frame ) ) {

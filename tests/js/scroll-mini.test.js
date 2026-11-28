@@ -164,6 +164,10 @@ describe( 'play while scrolling (native)', () => {
 			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame">${ scrollVideo() }</div></div></div>`
 		);
 		const video = document.querySelector( 'video' );
+		// The visitor took over (e.g. clicked a scene); an untouched autoplay is paused like any other.
+		document
+			.querySelector( '[data-vo-mini]' )
+			.dispatchEvent( new Event( 'vo:visitor-start' ) );
 		intersect( video, 1 );
 		await flush();
 		intersect( video, 0.2 );
@@ -369,28 +373,152 @@ describe( 'floating mini player', () => {
 		expect( el.classList ).not.toContain( 'is-pinned' );
 	} );
 
-	it( 'follows a hosted player through its events and pauses it by command on close', () => {
-		const { el } = setup(
-			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><iframe src="about:blank"></iframe></div><button type="button" class="vo-mini__close">x</button></div></div>`
+	it( 'does not pin for autoplay, scroll play or any play the plugin starts itself', async () => {
+		const { el, video } = setup(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box" tabindex="-1"><div class="vo-frame"><video class="vo-native" muted autoplay data-vo-scroll-play preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`
 		);
-		const iframe = el.querySelector( 'iframe' );
-		iframe.contentWindow.postMessage = jest.fn();
-		window.dispatchEvent(
-			new MessageEvent( 'message', {
-				data: { type: 'videooptimizer:event', event: 'play' },
-				source: iframe.contentWindow,
-			} )
+		// The browser's autoplay at load.
+		video.play();
+		intersect( el, 0 );
+		expect( el.classList ).not.toContain( 'is-pinned' );
+
+		// Play while scrolling: the plugin calls play() when the video is half visible.
+		video.pause();
+		intersect( video, 1 );
+		await flush();
+		intersect( el, 1 );
+		intersect( el, 0 );
+		expect( el.classList ).not.toContain( 'is-pinned' );
+		expect( video.pause ).toHaveBeenCalled(); // Not taken over: scroll play pauses it as usual.
+	} );
+
+	it( "clears its expectation when its own play() is rejected, so the visitor's next play counts", async () => {
+		const { el, video } = setup(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><video class="vo-native" muted data-vo-scroll-play preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`
 		);
+		// Autoplay is blocked: play() rejects and fires no event.
+		video.play = jest.fn( () => Promise.reject( new Error( 'blocked' ) ) );
+		intersect( video, 1 );
+		await flush();
+		await flush();
+
+		// The visitor presses the native play button.
+		video.dispatchEvent( new Event( 'play' ) );
+		intersect( el, 0 );
+
+		expect( el.classList ).toContain( 'is-pinned' );
+	} );
+
+	it( 'counts a visitor interaction with an autoplaying video: unmute takes over', async () => {
+		const { el, video } = setup(
+			`<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><video class="vo-native" muted autoplay data-vo-scroll-play preload="none" src="${ MP4 }"></video></div><button type="button" class="vo-mini__close">x</button></div></div>`
+		);
+		video.play(); // Autoplay.
+		video.dispatchEvent( new Event( 'volumechange' ) ); // The visitor unmutes.
+		intersect( video, 0.1 );
+		expect( video.pause ).not.toHaveBeenCalled(); // The mini player took over.
+		intersect( el, 0 );
+
+		expect( el.classList ).toContain( 'is-pinned' );
+	} );
+
+	it( 'ignores small seeks (hls.js nudges) but counts a visitor jump', () => {
+		const { el, video } = setup();
+		video.currentTime = 0;
+		video.dispatchEvent( new Event( 'timeupdate' ) );
+		video.dispatchEvent( new Event( 'seeking' ) ); // Same position.
+		video.pause();
+		video.play = jest.fn(); // Playing happens without a visitor event in this test.
+		expect( el.voVisitorStarted ).toBeFalsy();
+
+		video.currentTime = 30;
+		video.dispatchEvent( new Event( 'seeking' ) );
+		expect( el.voVisitorStarted ).toBe( true );
+	} );
+
+	it( 'a scene click is the visitor starting playback', () => {
+		const { el, video } = setup();
+		el.dispatchEvent( new Event( 'vo:visitor-start' ) );
+		// Started by the plugin from here on (e.g. the scene seek).
+		video.dispatchEvent( new Event( 'pause' ) );
+		window.dispatchEvent( new Event( 'resize' ) );
+		expect( el.voVisitorStarted ).toBe( true );
+	} );
+
+	it( 'a lightbox opening stops the pinned player (native paused, hosted reloaded without autoplay)', () => {
+		const { el, video } = setup();
+		video.play();
 		intersect( el, 0 );
 		expect( el.classList ).toContain( 'is-pinned' );
-		expect( el.contains( iframe ) ).toBe( true );
+
+		document.dispatchEvent( new CustomEvent( 'vo:lightbox-open' ) );
+
+		expect( el.classList ).not.toContain( 'is-pinned' );
+		expect( video.pause ).toHaveBeenCalled();
+	} );
+
+	it( 'moves the focus to the player after closing, never to the body', () => {
+		const { el, video } = setup();
+		video.focus = jest.fn();
+		video.play();
+		intersect( el, 0 );
 
 		el.querySelector( '.vo-mini__close' ).click();
 
-		expect( el.classList ).not.toContain( 'is-pinned' );
-		expect( iframe.contentWindow.postMessage ).toHaveBeenCalledWith(
-			{ type: 'videooptimizer:command', command: 'pause' },
-			'*'
-		);
+		expect( video.focus ).toHaveBeenCalledWith( { preventScroll: true } );
+	} );
+
+	describe( 'hosted', () => {
+		const hosted = `<div class="vo-mini" data-vo-mini><div class="vo-mini__box"><div class="vo-frame"><iframe src="https://player.example/embed/u?autoplay=1"></iframe></div><button type="button" class="vo-mini__close">x</button></div></div>`;
+		const send = ( iframe, event ) =>
+			window.dispatchEvent(
+				new MessageEvent( 'message', {
+					data: { type: 'videooptimizer:event', event },
+					source: iframe.contentWindow,
+				} )
+			);
+
+		it( 'does not pin an autoplaying hosted player the visitor never touched', () => {
+			const { el } = setup( hosted );
+			const iframe = el.querySelector( 'iframe' );
+			send( iframe, 'play' );
+			intersect( el, 0 );
+
+			expect( el.classList ).not.toContain( 'is-pinned' );
+		} );
+
+		it( 'pins once the visitor clicked into it (iframe focused) and it plays; close pauses by command', () => {
+			const { el } = setup( hosted );
+			const iframe = el.querySelector( 'iframe' );
+			iframe.contentWindow.postMessage = jest.fn();
+			iframe.focus();
+			send( iframe, 'play' );
+			intersect( el, 0 );
+
+			expect( el.classList ).toContain( 'is-pinned' );
+			expect( el.contains( iframe ) ).toBe( true );
+
+			el.querySelector( '.vo-mini__close' ).click();
+			expect( el.classList ).not.toContain( 'is-pinned' );
+			expect( iframe.contentWindow.postMessage ).toHaveBeenCalledWith(
+				{ type: 'videooptimizer:command', command: 'pause' },
+				'*'
+			);
+		} );
+
+		it( 'a lightbox stops a pinned hosted player by reloading it without autoplay', () => {
+			const { el } = setup( hosted );
+			const iframe = el.querySelector( 'iframe' );
+			iframe.focus();
+			send( iframe, 'play' );
+			intersect( el, 0 );
+
+			document.dispatchEvent( new CustomEvent( 'vo:lightbox-open' ) );
+
+			expect( new URL( iframe.src ).searchParams.get( 'autoplay' ) ).toBe(
+				'0'
+			);
+			expect( el.classList ).not.toContain( 'is-pinned' );
+		} );
 	} );
 } );

@@ -5,6 +5,8 @@
  */
 import './frontend.css';
 import {
+	clearExpected,
+	expectEvent,
 	fallbackToMp4,
 	markPlayIntent,
 	pauseBySystem,
@@ -147,8 +149,11 @@ function attachHls( video, { startLoad = true } = {} ) {
 function play( video ) {
 	markPlayIntent( video );
 	return attachHls( video ).then( () => {
+		expectEvent( video, 'play' ); // The plugin starts it (not a visitor).
 		const result = video.play();
-		return result && result.catch ? result.catch( () => {} ) : result;
+		return result && result.catch
+			? result.catch( () => clearExpected( video, 'play' ) )
+			: result;
 	} );
 }
 
@@ -426,6 +431,8 @@ function getLightbox() {
 
 	lightbox = {
 		open( trigger ) {
+			// A floating mini player must not keep playing behind the lightbox (double audio).
+			document.dispatchEvent( new CustomEvent( 'vo:lightbox-open' ) );
 			state.lastFocus = box.ownerDocument.activeElement || trigger;
 			state.holder = null;
 			const frame = trigger.closest( '.vo-frame' );

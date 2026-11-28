@@ -3,7 +3,11 @@
  * get `currentTime` (after the source is attached), hosted players a new iframe `src` with
  * `t=<seconds>&autoplay=1`. The scene that is playing is marked with aria-current.
  */
-import { markPlayIntent } from './playback-fallback';
+import {
+	clearExpected,
+	expectEvent,
+	markPlayIntent,
+} from './playback-fallback';
 import { watchHosted } from './hosted';
 
 /**
@@ -70,13 +74,15 @@ export function initChapters( root, { attachHls, embedIframe } ) {
 				markPlayIntent( video );
 				video.voUserPaused = false;
 				attachHls( video, { startLoad: true } ).then( () => {
+					expectEvent( video, 'seeking' );
 					video.currentTime = time;
 					if ( video.voHls ) {
 						video.voHls.startLoad( time );
 					}
+					expectEvent( video, 'play' );
 					const result = video.play();
 					if ( result && result.catch ) {
-						result.catch( () => {} );
+						result.catch( () => clearExpected( video, 'play' ) );
 					}
 				} );
 			};
@@ -101,8 +107,13 @@ export function initChapters( root, { attachHls, embedIframe } ) {
 				frame.replaceChildren( iframe );
 			};
 
+			const mini = chapters.querySelector( '[data-vo-mini]' );
 			scenes.forEach( ( scene, index ) => {
 				scene.addEventListener( 'click', () => {
+					// A scene click is the visitor starting playback: the mini player may pin.
+					if ( mini ) {
+						mini.dispatchEvent( new Event( 'vo:visitor-start' ) );
+					}
 					const time = starts[ index ];
 					if ( video ) {
 						seekNative( time );

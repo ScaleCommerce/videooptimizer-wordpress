@@ -80,9 +80,51 @@ export function fallbackToMp4(
 	}
 	video.load();
 	if ( resume ) {
+		expectEvent( video, 'play' );
 		const result = video.play();
 		if ( result && result.catch ) {
-			result.catch( () => {} );
+			result.catch( () => clearExpected( video, 'play' ) );
 		}
+	}
+}
+
+/**
+ * Marks an event that the plugin itself is about to cause (its own play(), seek or unmute), so
+ * listeners can tell it from a visitor's action. The mark is consumed by the first matching event
+ * and expires, because a call that changes nothing fires no event.
+ *
+ * @param {Object} target  Video element or hosted frame.
+ * @param {string} type    Event name: 'play', 'volumechange' or 'seeking'.
+ * @param {number} timeout Milliseconds the mark stays valid.
+ */
+export function expectEvent( target, type, timeout = 1000 ) {
+	target.voExpected = target.voExpected || {};
+	target.voExpected[ type ] = Date.now() + timeout;
+}
+
+/**
+ * @param {Object} target Video element or hosted frame.
+ * @param {string} type   Event name.
+ * @return {boolean} True when the event was expected (and consumes the mark).
+ */
+export function consumeExpected( target, type ) {
+	const until = target.voExpected && target.voExpected[ type ];
+	if ( until && until >= Date.now() ) {
+		delete target.voExpected[ type ];
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Drops an expectation (the call that should have caused the event was rejected, e.g. autoplay
+ * blocked), so the visitor's next real event is not mistaken for the plugin's.
+ *
+ * @param {Object} target Video element or hosted frame.
+ * @param {string} type   Event name.
+ */
+export function clearExpected( target, type ) {
+	if ( target.voExpected ) {
+		delete target.voExpected[ type ];
 	}
 }
