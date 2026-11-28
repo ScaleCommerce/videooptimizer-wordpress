@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "videooptimizer/video-list",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"title": "VideoOptimizer Video List",
 	"category": "videooptimizer",
 	"description": "Cards of the videos of a library, paged \u2014 each card opens a detail page or a lightbox.",

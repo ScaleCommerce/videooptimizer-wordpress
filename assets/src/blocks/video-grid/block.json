@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "videooptimizer/video-grid",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"title": "VideoOptimizer Video Grid",
 	"category": "videooptimizer",
 	"description": "Several videos in a grid \u2014 opens them in a lightbox.",

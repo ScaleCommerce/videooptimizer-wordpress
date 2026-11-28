@@ -2,7 +2,7 @@
 
 All notable changes to this package. Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), versioning: [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [2.2.0] - 2026-11-28
 
 ### Upgrade
 - A video named by `?vo_video=` is shown only if it belongs to your organization (verified once with the API token, cached for an hour; "not found" for five minutes) and, when the detail element has a library, to that library; otherwise the page answers 404 without any video title. The verification is scoped by the API token and dropped when the video changes. New uuids and `vo_cursor` values from the URL share a site-wide budget of 30 uncached lookups a minute and never set the API-down marker; rate-limited, not-yet-ready and outage results are temporary ("temporarily unavailable", page flagged `DONOTCACHEPAGE`), only a verified 404 is a cacheable 404; temporary detail pages print `noindex` (core `wp_robots`, Yoast SEO, Rank Math). Videos listed by a video list count as verified for their detail page ([#20](https://github.com/ScaleCommerce/videooptimizer-wordpress/issues/20)).

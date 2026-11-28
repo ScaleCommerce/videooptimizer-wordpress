@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 2.1.0
+Stable tag: 2.2.0
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -84,6 +84,13 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 2.2.0 =
+* New elements: video list (paged) and video detail (verified per video, title/meta for SEO plugins).
+* New element: video with chapters (scene previews jump to the scene).
+* Format option (16:9, 9:16, 1:1, 4:5, 21:9) with focal point.
+* Play while scrolling pauses when the video leaves the view.
+* Floating mini player once the visitor started the video.
 
 = 2.1.0 =
 * Native player follows the player theme (preload capped at metadata, interactive, fullscreen, playback speed, Picture-in-Picture).

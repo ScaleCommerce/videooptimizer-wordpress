@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "videooptimizer/video-detail",
-	"version": "2.1.0",
+	"version": "2.2.0",
 	"title": "VideoOptimizer Video Detail",
 	"category": "videooptimizer",
 	"description": "Shows the video named in the URL (?vo_video=\u2026) with its title and player \u2014 the target of a video list.",
