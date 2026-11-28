@@ -2,7 +2,7 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "videooptimizer/video-chapters",
-	"version": "2.2.0",
+	"version": "2.2.1",
 	"title": "VideoOptimizer Video with Chapters",
 	"category": "videooptimizer",
 	"description": "A video with a row of scene previews \u2014 a click starts the video at that scene.",

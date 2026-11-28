@@ -4,7 +4,7 @@ Tags: video, hls, woocommerce, product video, cdn
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 8.1
-Stable tag: 2.2.0
+Stable tag: 2.2.1
 License: MIT
 License URI: https://opensource.org/licenses/MIT
 
@@ -84,6 +84,9 @@ Videos embedded with VideoOptimizer blocks are no longer shown; media library vi
 5. Settings.
 
 == Changelog ==
+
+= 2.2.1 =
+* Same code as 2.2.0 with a working release build.
 
 = 2.2.0 =
 * New elements: video list (paged) and video detail (verified per video, title/meta for SEO plugins).
