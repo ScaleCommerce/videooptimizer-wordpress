@@ -22,7 +22,7 @@ final class Embed {
 	 *
 	 * @param string               $uuid Video uuid.
 	 * @param array<string, mixed> $data Raw `data` object of /embed/{uuid}.
-	 * @return array{uuid: string, title: string, poster: ?string, srcset: ?string, width: ?int, height: ?int, orientation: ?string, duration: ?int, hls: ?string, files: array<int, array{src: string, type: string, label: string, size: ?int}>, tracks: array<int, array{src: string, srclang: string, label: string, kind: string, default: bool}>, uploadDate: ?string, theme: array<string, mixed>, playable: bool}
+	 * @return array{uuid: string, title: string, poster: ?string, srcset: ?string, width: ?int, height: ?int, orientation: ?string, duration: ?int, durationExact: ?float, hls: ?string, files: array<int, array{src: string, type: string, label: string, size: ?int}>, tracks: array<int, array{src: string, srclang: string, label: string, kind: string, default: bool}>, uploadDate: ?string, theme: array<string, mixed>, playable: bool}
 	 */
 	public static function normalize( string $uuid, array $data ): array {
 		$hls   = null;
@@ -56,20 +56,22 @@ final class Embed {
 		$poster             = is_string( $data['poster'] ?? null ) && '' !== $data['poster'] ? $data['poster'] : null;
 
 		return array(
-			'uuid'        => $uuid,
-			'title'       => self::clean_title( $data['title'] ?? null ),
-			'poster'      => $poster,
-			'srcset'      => self::parse_poster_srcset( $data['posterSrcset'] ?? null ),
-			'width'       => $width,
-			'height'      => $height,
-			'orientation' => self::orientation( $width, $height ),
-			'duration'    => is_numeric( $data['duration'] ?? null ) ? (int) round( (float) $data['duration'] ) : null,
-			'hls'         => $hls,
-			'files'       => $files,
-			'tracks'      => self::parse_tracks( $data['tracks'] ?? null ),
-			'uploadDate'  => is_string( $data['uploadDate'] ?? null ) && preg_match( '/^\d{4}-\d{2}-\d{2}(T[\d:.+\-Z]+)?$/', $data['uploadDate'] ) ? $data['uploadDate'] : null,
-			'theme'       => is_array( $data['theme'] ?? null ) ? $data['theme'] : array(),
-			'playable'    => null !== $hls || array() !== $files,
+			'uuid'          => $uuid,
+			'title'         => self::clean_title( $data['title'] ?? null ),
+			'poster'        => $poster,
+			'srcset'        => self::parse_poster_srcset( $data['posterSrcset'] ?? null ),
+			'width'         => $width,
+			'height'        => $height,
+			'orientation'   => self::orientation( $width, $height ),
+			'duration'      => is_numeric( $data['duration'] ?? null ) ? (int) round( (float) $data['duration'] ) : null,
+			// Unrounded: scene times are floor( d / 11 * (i + 1) ) of the exact length.
+			'durationExact' => is_numeric( $data['duration'] ?? null ) && (float) $data['duration'] > 0 ? (float) $data['duration'] : null,
+			'hls'           => $hls,
+			'files'         => $files,
+			'tracks'        => self::parse_tracks( $data['tracks'] ?? null ),
+			'uploadDate'    => is_string( $data['uploadDate'] ?? null ) && preg_match( '/^\d{4}-\d{2}-\d{2}(T[\d:.+\-Z]+)?$/', $data['uploadDate'] ) ? $data['uploadDate'] : null,
+			'theme'         => is_array( $data['theme'] ?? null ) ? $data['theme'] : array(),
+			'playable'      => null !== $hls || array() !== $files,
 		);
 	}
 

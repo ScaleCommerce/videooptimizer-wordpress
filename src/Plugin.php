@@ -21,6 +21,7 @@ use ScaleCommerce\VideoOptimizer\Media\StatusSync;
 use ScaleCommerce\VideoOptimizer\Render\Assets;
 use ScaleCommerce\VideoOptimizer\Render\DetailPage;
 use ScaleCommerce\VideoOptimizer\Render\EmbedRepository;
+use ScaleCommerce\VideoOptimizer\Render\Ownership;
 use ScaleCommerce\VideoOptimizer\Render\Renderer;
 use ScaleCommerce\VideoOptimizer\Render\VideoLists;
 use ScaleCommerce\VideoOptimizer\Rest\AdminController;
@@ -79,6 +80,20 @@ final class Plugin {
 	public readonly VideoLists $lists;
 
 	/**
+	 * Ownership checks for videos named by a URL.
+	 *
+	 * @var Ownership
+	 */
+	public readonly Ownership $ownership;
+
+	/**
+	 * Video detail requests (video named by the URL).
+	 *
+	 * @var DetailPage
+	 */
+	public readonly DetailPage $detail;
+
+	/**
 	 * Renderer.
 	 *
 	 * @var Renderer
@@ -115,7 +130,9 @@ final class Plugin {
 		$this->embeds        = new EmbedRepository( $this->client );
 		$this->assets        = new Assets();
 		$this->lists         = new VideoLists( $this->client );
-		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets, $this->lists );
+		$this->ownership     = new Ownership( $this->client, fn (): string => substr( md5( (string) $this->settings->token() ), 0, 10 ) );
+		$this->detail        = new DetailPage( $this->embeds, $this->ownership );
+		$this->renderer      = new Renderer( $this->embeds, $this->settings, $this->assets, $this->lists, $this->detail );
 		$this->attachments   = new Attachments( $this->client, $this->embeds );
 		$this->delete_offers = new DeleteOffers( $this->settings, $this->client, $this->embeds, $this->attachments );
 		$this->page_cache    = new PageCache( $this->attachments );
@@ -141,7 +158,8 @@ final class Plugin {
 		$plugin->assets->register_hooks();
 		$plugin->page_cache->register_hooks();
 		$plugin->lists->register_hooks();
-		( new DetailPage( $plugin->embeds ) )->register_hooks();
+		$plugin->ownership->register_hooks();
+		$plugin->detail->register_hooks();
 		( new Blocks( $plugin->renderer ) )->register_hooks();
 		( new Shortcode( $plugin->renderer ) )->register_hooks();
 		( new AdminController( $plugin->settings, $plugin->client, $plugin->embeds, $plugin->attachments, $plugin->delete_offers ) )->register_hooks();

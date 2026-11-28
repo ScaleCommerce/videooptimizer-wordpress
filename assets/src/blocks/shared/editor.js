@@ -297,8 +297,9 @@ export function FormatPanel( { attributes, setAttributes } ) {
  * @param {Object}   props
  * @param {string}   props.value    Library uuid.
  * @param {Function} props.onChange Receives the uuid.
+ * @param {string}   props.help     Optional help text.
  */
-export function LibrarySelect( { value, onChange } ) {
+export function LibrarySelect( { value, onChange, help } ) {
 	const [ libraries, setLibraries ] = useState( null );
 	useEffect( () => {
 		let current = true;
@@ -328,10 +329,13 @@ export function LibrarySelect( { value, onChange } ) {
 					value: library.id,
 				} ) ),
 			] }
-			help={ __(
-				'Lists the videos of this library that are ready to play.',
-				'videooptimizer'
-			) }
+			help={
+				help ||
+				__(
+					'Lists the videos of this library that are ready to play.',
+					'videooptimizer'
+				)
+			}
 		/>
 	);
 }

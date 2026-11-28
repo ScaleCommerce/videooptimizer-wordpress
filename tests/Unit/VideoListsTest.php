@@ -32,6 +32,13 @@ final class VideoListsTest extends TestCase {
 	 */
 	public $result;
 
+	/**
+	 * Optional pages by cursor ('' = first); takes precedence over $result.
+	 *
+	 * @var array<string, array<string, mixed>>
+	 */
+	public array $pages = array();
+
 	protected function set_up(): void {
 		parent::set_up();
 		$this->calls  = array();
@@ -67,6 +74,13 @@ final class VideoListsTest extends TestCase {
 			}
 			public function list_videos_page( ?string $library_id = null, ?string $cursor = null, int $limit = 100, array $filters = array() ): array {
 				$this->test->calls[] = array( $library_id, $cursor, $limit, $filters );
+				if ( array() !== $this->test->pages ) {
+					$page = $this->test->pages[ (string) $cursor ] ?? null;
+					if ( $page instanceof ApiException ) {
+						throw $page;
+					}
+					return $page;
+				}
 				if ( $this->test->result instanceof ApiException ) {
 					throw $this->test->result;
 				}
@@ -78,9 +92,17 @@ final class VideoListsTest extends TestCase {
 	}
 
 	public function test_page_returns_only_ready_videos_as_cards(): void {
-		$page = $this->lists()->page( self::LIB, '', null, 12 );
+		$this->result['next_cursor'] = 'abc_DEF-123=';
+		$this->pages                 = array(
+			''             => $this->result,
+			'abc_DEF-123=' => array(
+				'items'       => array(),
+				'next_cursor' => null,
+			),
+		);
+		$page                        = $this->lists()->page( self::LIB, '', null, 12 );
 
-		$this->assertSame( 'abc_DEF-123=', $page['next'] );
+		$this->assertNull( $page['next'], 'the follow-up page was empty and last' );
 		$this->assertCount( 1, $page['items'] );
 		$this->assertSame(
 			array(
@@ -93,7 +115,8 @@ final class VideoListsTest extends TestCase {
 			),
 			$page['items'][0]
 		);
-		$this->assertSame( array( array( self::LIB, null, 12, array( 'tags' => array() ) ) ), $this->calls );
+		$this->assertSame( array( self::LIB, null, 12, array( 'tags' => array() ) ), $this->calls[0] );
+		$this->assertSame( 11, $this->calls[1][2], 'asks only for what is still missing' );
 	}
 
 	public function test_tags_are_split_and_sent_as_a_filter(): void {
@@ -103,7 +126,8 @@ final class VideoListsTest extends TestCase {
 	}
 
 	public function test_pages_are_cached_per_library_cursor_and_size(): void {
-		$lists = $this->lists();
+		$this->result['next_cursor'] = null;
+		$lists                       = $this->lists();
 		$lists->page( self::LIB, '', null, 12 );
 		$lists->page( self::LIB, '', null, 12 );
 		$this->assertCount( 1, $this->calls );
@@ -116,7 +140,8 @@ final class VideoListsTest extends TestCase {
 	}
 
 	public function test_a_video_change_invalidates_the_cached_pages(): void {
-		$lists = $this->lists();
+		$this->result['next_cursor'] = null;
+		$lists                       = $this->lists();
 		$lists->page( self::LIB, '', null, 12 );
 
 		$lists->bump();
@@ -149,12 +174,95 @@ final class VideoListsTest extends TestCase {
 		$this->assertCount( 1, $this->calls );
 	}
 
+	/**
+	 * Builds API items.
+	 *
+	 * @param array<int, string> $statuses Status per item.
+	 * @param int                $offset   Numbering offset.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function items( array $statuses, int $offset ): array {
+		$items = array();
+		foreach ( $statuses as $i => $status ) {
+			$items[] = array(
+				'uuid'   => sprintf( '00000000-0000-4000-8000-%012d', $offset + $i ),
+				'title'  => 'V' . ( $offset + $i ),
+				'status' => $status,
+			);
+		}
+
+		return $items;
+	}
+
+	public function test_a_page_is_filled_with_ready_videos_from_the_following_api_pages(): void {
+		$this->pages = array(
+			''   => array(
+				'items'       => $this->items( array( 'ready', 'processing', 'processing', 'ready' ), 0 ),
+				'next_cursor' => 'c1',
+			),
+			'c1' => array(
+				'items'       => $this->items( array( 'processing', 'ready' ), 10 ),
+				'next_cursor' => 'c2',
+			),
+			'c2' => array(
+				'items'       => $this->items( array( 'ready' ), 20 ),
+				'next_cursor' => 'c3',
+			),
+		);
+		$page = $this->lists()->page( '', '', null, 4 );
+
+		$this->assertCount( 4, $page['items'] );
+		$this->assertSame( 'c3', $page['next'], 'the cursor is right behind the last consumed API item' );
+		$this->assertSame( array( 4, 2, 1 ), array_column( $this->calls, 2 ), 'each call asks for what is missing' );
+		$this->assertSame( array( null, 'c1', 'c2' ), array_column( $this->calls, 1 ) );
+	}
+
+	public function test_filling_is_bounded_to_three_api_calls_and_never_hides_older_videos(): void {
+		$this->pages = array(
+			''   => array( 'items' => $this->items( array( 'processing', 'processing' ), 0 ), 'next_cursor' => 'c1' ),
+			'c1' => array( 'items' => $this->items( array( 'processing', 'processing' ), 10 ), 'next_cursor' => 'c2' ),
+			'c2' => array( 'items' => $this->items( array( 'processing', 'processing' ), 20 ), 'next_cursor' => 'c3' ),
+			'c3' => array( 'items' => $this->items( array( 'ready' ), 30 ), 'next_cursor' => null ),
+		);
+		$page = $this->lists()->page( '', '', null, 2 );
+
+		$this->assertCount( 3, $this->calls );
+		$this->assertSame( array(), $page['items'] );
+		$this->assertSame( 'c3', $page['next'], 'an empty page still points to the older ready videos' );
+	}
+
+	public function test_a_failure_after_some_videos_keeps_what_was_found(): void {
+		$this->pages = array(
+			''   => array( 'items' => $this->items( array( 'ready', 'processing' ), 0 ), 'next_cursor' => 'c1' ),
+			'c1' => new ApiException( 'boom', 500 ),
+		);
+		$lists = $this->lists();
+		$page  = $lists->page( '', '', null, 4 );
+
+		$this->assertCount( 1, $page['items'] );
+		$this->assertNull( $lists->failure() );
+	}
+
+	public function test_cursor_lookups_share_the_site_wide_budget_and_never_flag_the_api_as_down(): void {
+		$this->result = new ApiException( 'down', 503 );
+		$lists        = $this->lists();
+		$lists->page( '', '', 'visitor-chosen', 12 );
+		$this->assertArrayNotHasKey( EmbedRepository::DOWN_KEY, $this->transients, 'a visitor-chosen cursor must not trip the marker' );
+
+		$this->transients[ \ScaleCommerce\VideoOptimizer\Render\LookupLimit::KEY ] = 30;
+		$this->calls                                                                  = array();
+		$this->assertNull( $lists->page( '', '', 'another', 12 ) );
+		$this->assertSame( 404, $lists->failure() );
+		$this->assertSame( array(), $this->calls, 'over budget: no API call' );
+	}
+
 	public function test_cursor_validation(): void {
 		$this->assertTrue( VideoLists::is_cursor( 'MjAyNi0xMS0wNVQxMTo1NDoxMS43ODVafDEyNDM' ) );
 		$this->assertFalse( VideoLists::is_cursor( '' ) );
 		$this->assertFalse( VideoLists::is_cursor( 'a b' ) );
+		$this->assertTrue( VideoLists::is_cursor( 'ab+/cd==:1.2' ) );
+		$this->assertFalse( VideoLists::is_cursor( str_repeat( 'a', 201 ) ) );
 		$this->assertFalse( VideoLists::is_cursor( '"><script>' ) );
 		$this->assertFalse( VideoLists::is_cursor( array( 'x' ) ) );
-		$this->assertFalse( VideoLists::is_cursor( str_repeat( 'a', 513 ) ) );
-	}
+			}
 }

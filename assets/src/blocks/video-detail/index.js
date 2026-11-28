@@ -9,6 +9,7 @@ import { PanelBody, TextControl, ToolbarButton } from '@wordpress/components';
 import { useState } from '@wordpress/element';
 import metadata from './block.json';
 import {
+	LibrarySelect,
 	PlayerPanel,
 	VideoPanel,
 	VideoPlaceholder,
@@ -53,6 +54,18 @@ function Edit( { attributes, setAttributes } ) {
 					attributes={ attributes }
 					setAttributes={ setAttributes }
 				/>
+				<PanelBody title={ __( 'Library', 'videooptimizer' ) }>
+					<LibrarySelect
+						help={ __(
+							'Optional: only videos of this library can be shown, also when the URL names another video.',
+							'videooptimizer'
+						) }
+						value={ attributes.libraryId }
+						onChange={ ( libraryId ) =>
+							setAttributes( { libraryId } )
+						}
+					/>
+				</PanelBody>
 				<PanelBody
 					title={ __( 'Text', 'videooptimizer' ) }
 					initialOpen={ false }

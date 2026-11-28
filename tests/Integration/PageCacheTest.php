@@ -68,12 +68,17 @@ final class PageCacheTest extends IntegrationTestCase {
 		$shortcode = $this->post( '[videooptimizer layout="video-list" library="3293aeb1-64b7-42a8-b2f7-c5355dcdd58d"]' );
 		$elementor = $this->post( 'Builder page' );
 		update_post_meta( $elementor, '_elementor_data', '[{"settings":{"layout":"video-list"}}]' );
+		$single_quoted = $this->post( "[videooptimizer layout='video-list']" );
+		$unquoted      = $this->post( '[videooptimizer layout=video-list]' );
+		$detail        = $this->post( '<!-- wp:videooptimizer/video-detail /-->' );
+		$detail_code   = $this->post( "[videooptimizer layout='video-detail']" );
 		$this->post( 'Unrelated page' );
 		$this->post( '<!-- wp:videooptimizer/video-list /-->', 'draft' );
 
 		$found = $this->cache()->locate( self::UUID );
 
-		$this->assertEqualsCanonicalizing( array( $list, $shortcode, $elementor ), $found['ids'] );
+		$this->assertEqualsCanonicalizing( array( $list, $shortcode, $elementor, $single_quoted, $unquoted, $detail, $detail_code ), $found['ids'] );
+		$this->assertEqualsCanonicalizing( array( $detail, $detail_code ), $found['details'], 'detail pages are known for their ?vo_video= variants' );
 		$this->assertFalse( $found['all'] );
 	}
 
@@ -84,6 +89,15 @@ final class PageCacheTest extends IntegrationTestCase {
 		Plugin::instance()->embeds->forget( self::UUID );
 
 		$this->assertGreaterThan( $generation, (int) get_option( \ScaleCommerce\VideoOptimizer\Render\VideoLists::GENERATION_KEY, 0 ) );
+	}
+
+	public function test_a_video_change_drops_its_ownership_verification(): void {
+		$key = 'videooptimizer_own_' . substr( md5( (string) Plugin::instance()->settings->token() ), 0, 10 ) . '_' . self::UUID;
+		set_transient( $key, array( 'state' => 'found', 'library' => '' ), HOUR_IN_SECONDS );
+
+		Plugin::instance()->embeds->forget( self::UUID );
+
+		$this->assertFalse( get_transient( $key ) );
 	}
 
 	public function test_variation_videos_purge_the_parent_product(): void {

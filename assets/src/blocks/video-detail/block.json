@@ -81,6 +81,10 @@
 		"caption": {
 			"type": "string",
 			"default": ""
+		},
+		"libraryId": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"supports": {

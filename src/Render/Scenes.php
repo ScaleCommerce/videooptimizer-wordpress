@@ -39,10 +39,10 @@ final class Scenes {
 	/**
 	 * Start of a preview frame in seconds.
 	 *
-	 * @param int $duration Video duration in seconds.
-	 * @param int $index    Frame index 0–9.
+	 * @param float $duration Exact video duration in seconds (never rounded).
+	 * @param int   $index    Frame index 0–9.
 	 */
-	public static function start( int $duration, int $index ): int {
+	public static function start( float $duration, int $index ): int {
 		return (int) floor( $duration / ( self::FRAMES + 1 ) * ( $index + 1 ) );
 	}
 

@@ -177,7 +177,7 @@ class Widget extends \Elementor\Widget_Base {
 			'section_list',
 			array(
 				'label'     => __( 'Video list', 'videooptimizer' ),
-				'condition' => array( 'layout' => 'video-list' ),
+				'condition' => array( 'layout' => array( 'video-list', 'video-detail' ) ),
 			)
 		);
 		$this->add_control(
@@ -187,7 +187,7 @@ class Widget extends \Elementor\Widget_Base {
 				'type'        => Controls_Manager::SELECT,
 				'default'     => '',
 				'options'     => array( '' => __( 'All libraries', 'videooptimizer' ) ) + $this->library_options(),
-				'description' => __( 'Lists the videos of this library that are ready to play.', 'videooptimizer' ),
+				'description' => __( 'Lists the videos of this library that are ready to play. For a video detail element: only videos of this library can be shown.', 'videooptimizer' ),
 			)
 		);
 		$this->add_control(
@@ -196,16 +196,18 @@ class Widget extends \Elementor\Widget_Base {
 				'label'       => __( 'Tags', 'videooptimizer' ),
 				'type'        => Controls_Manager::TEXT,
 				'description' => __( 'Optional: only videos with all of these tags, separated by commas.', 'videooptimizer' ),
+				'condition'   => array( 'layout' => 'video-list' ),
 			)
 		);
 		$this->add_control(
 			'perPage',
 			array(
-				'label'   => __( 'Videos per page', 'videooptimizer' ),
-				'type'    => Controls_Manager::NUMBER,
-				'min'     => 1,
-				'max'     => 48,
-				'default' => 12,
+				'label'     => __( 'Videos per page', 'videooptimizer' ),
+				'type'      => Controls_Manager::NUMBER,
+				'min'       => 1,
+				'max'       => 48,
+				'default'   => 12,
+				'condition' => array( 'layout' => 'video-list' ),
 			)
 		);
 		$this->add_control(
@@ -216,6 +218,7 @@ class Widget extends \Elementor\Widget_Base {
 				'default'     => '0',
 				'options'     => array( '0' => __( 'None (open in a lightbox)', 'videooptimizer' ) ) + $this->page_options(),
 				'description' => __( 'The page with a "Video detail" element; a card opens it with the video in the URL. Without one, cards open the video in a lightbox.', 'videooptimizer' ),
+				'condition'   => array( 'layout' => 'video-list' ),
 			)
 		);
 		$this->end_controls_section();
@@ -474,7 +477,7 @@ class Widget extends \Elementor\Widget_Base {
 			$options = array();
 			foreach ( Plugin::instance()->client->list_libraries() as $library ) {
 				if ( is_string( $library['id'] ?? null ) ) {
-					$options[ $library['id'] ] = is_string( $library['name'] ?? null ) ? $library['name'] : $library['id'];
+					$options[ $library['id'] ] = esc_html( is_string( $library['name'] ?? null ) ? $library['name'] : $library['id'] );
 				}
 			}
 
@@ -496,7 +499,7 @@ class Widget extends \Elementor\Widget_Base {
 		}
 		$options = array();
 		foreach ( get_pages( array( 'number' => 200 ) ) as $page ) {
-			$options[ (string) $page->ID ] = $page->post_title;
+			$options[ (string) $page->ID ] = esc_html( $page->post_title );
 		}
 
 		return $options;

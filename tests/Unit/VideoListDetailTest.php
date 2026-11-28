@@ -8,11 +8,15 @@
 namespace ScaleCommerce\VideoOptimizer\Tests\Unit;
 
 use Brain\Monkey\Functions;
+use ScaleCommerce\VideoOptimizer\Api\ApiException;
+use ScaleCommerce\VideoOptimizer\Api\Client;
 use ScaleCommerce\VideoOptimizer\Cache\PageCache;
 use ScaleCommerce\VideoOptimizer\Render\Assets;
 use ScaleCommerce\VideoOptimizer\Render\DetailPage;
 use ScaleCommerce\VideoOptimizer\Render\Embed;
 use ScaleCommerce\VideoOptimizer\Render\EmbedRepository;
+use ScaleCommerce\VideoOptimizer\Render\LookupLimit;
+use ScaleCommerce\VideoOptimizer\Render\Ownership;
 use ScaleCommerce\VideoOptimizer\Render\Renderer;
 use ScaleCommerce\VideoOptimizer\Render\VideoLists;
 use ScaleCommerce\VideoOptimizer\Settings\Settings;
@@ -66,7 +70,27 @@ final class VideoListDetailTest extends TestCase {
 	 */
 	private array $list_calls = array();
 
+	/**
+	 * Videos of the organization: uuid => library id (an exception to throw instead).
+	 *
+	 * @var array<string, string|ApiException>
+	 */
+	public array $owned = array();
+
+	/**
+	 * Authenticated lookups that reached the API.
+	 *
+	 * @var array<int, string>
+	 */
+	public array $own_calls = array();
+
 	private Renderer $renderer;
+
+	private DetailPage $detail;
+
+	private Ownership $ownership;
+
+	private EmbedRepository $repo;
 
 	protected function set_up(): void {
 		parent::set_up();
@@ -76,6 +100,7 @@ final class VideoListDetailTest extends TestCase {
 		$this->embeds = array(
 			self::A => $this->embed( self::A, 'Demo Film' ),
 		);
+		$this->transients = array();
 		$this->page   = array(
 			'items' => array(
 				array(
@@ -120,7 +145,29 @@ final class VideoListDetailTest extends TestCase {
 		Functions\when( 'remove_query_arg' )->alias( static fn ( $key, $url ) => preg_replace( '/[?&]' . preg_quote( (string) $key, '/' ) . '=[^&]*/', '', $url ) );
 		Functions\when( 'wp_unslash' )->returnArg();
 
-		$this->renderer = new Renderer( $embeds, new Settings( new TokenCipher( 'k' ) ), $assets, $lists );
+		$this->owned     = array(
+			self::A => self::LIB,
+			self::B => self::LIB,
+		);
+		$this->own_calls = array();
+		$test            = $this;
+		$client          = new class( static fn () => 'tok', 'https://api.videooptimizer.eu/api/v1', $test ) extends Client {
+			public function __construct( callable $t, string $b, private $test ) {
+				parent::__construct( $t, $b );
+			}
+			public function get_video( string $uuid ): array {
+				$this->test->own_calls[] = $uuid;
+				$owned                   = $this->test->owned[ $uuid ] ?? new ApiException( 'Not found', 404 );
+				if ( $owned instanceof ApiException ) {
+					throw $owned;
+				}
+				return array( 'uuid' => $uuid, 'library_id' => $owned );
+			}
+		};
+		$this->ownership = new Ownership( $client );
+		$this->repo      = $embeds;
+		$this->detail    = new DetailPage( $embeds, $this->ownership );
+		$this->renderer  = new Renderer( $embeds, new Settings( new TokenCipher( 'k' ) ), $assets, $lists, $this->detail );
 	}
 
 	protected function tear_down(): void {
@@ -171,7 +218,7 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertStringContainsString( '<span class="vo-card__title">Demo &lt;b&gt;Film&lt;/b&gt;</span>', $html );
 		$this->assertStringContainsString( '<span class="vo-card__title">Video</span>', $html, 'untitled videos get a generic title' );
 		$this->assertStringContainsString( '--vo-grid-columns:2', $html );
-		$this->assertStringContainsString( 'loading="lazy" decoding="async" alt=""', $html );
+		$this->assertStringContainsString( 'alt="" loading="lazy" decoding="async"', $html );
 	}
 
 	public function test_cards_use_the_responsive_poster_when_the_embed_is_cached(): void {
@@ -217,6 +264,20 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertSame( 'CURSOR1', $this->list_calls[1][2] );
 		$this->assertStringContainsString( 'rel="first" href="https://shop.example/videos/"', $html );
 		$this->assertStringNotContainsString( 'rel="next"', $html );
+	}
+
+	public function test_pagination_keeps_other_query_arguments_but_not_the_detail_video(): void {
+		$_GET = array(
+			'lang'       => 'de',
+			'vo_cursor1' => 'OTHER',
+			'vo_video'   => 'zzz',
+		);
+		$html = $this->renderer->render( 'video-list', array() );
+
+		$this->assertStringContainsString( 'lang=de', $html );
+		$this->assertStringContainsString( 'vo_cursor1=OTHER', $html, 'the cursor of another list survives' );
+		$this->assertStringNotContainsString( 'vo_video', $html );
+		$this->assertStringContainsString( 'vo_cursor=CURSOR2', $html );
 	}
 
 	public function test_an_invalid_cursor_is_ignored(): void {
@@ -282,15 +343,134 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertStringContainsString( '<video', $html );
 	}
 
-	public function test_detail_with_an_invalid_or_unknown_uuid_is_a_neutral_not_found(): void {
+	public function test_detail_with_an_invalid_or_foreign_uuid_is_a_neutral_not_found_without_any_title(): void {
+		// A foreign video is public through /embed (an embed exists) but not in this organization.
+		unset( $this->owned[ self::B ] );
+		$this->embeds[ self::B ] = $this->embed( self::B, 'Foreign Secret Title' );
+
 		foreach ( array( 'not-a-uuid', self::B, "' OR 1=1" ) as $value ) {
 			$_GET['vo_video'] = $value;
 			$html             = $this->renderer->render( 'video-detail', array( 'uuid' => self::A ) );
 
 			$this->assertStringContainsString( 'This video could not be found.', $html );
 			$this->assertStringNotContainsString( 'Demo Film', $html, 'no fallback to the default video' );
+			$this->assertStringNotContainsString( 'Foreign Secret Title', $html );
 			$this->assertStringNotContainsString( 'VideoOptimizer:', $html, 'no internals for visitors' );
+			$this->assertStringNotContainsString( 'application/ld+json', $html );
 		}
+	}
+
+	public function test_detail_requires_the_library_of_the_element(): void {
+		$_GET['vo_video'] = self::A;
+
+		$this->assertStringContainsString( 'vo-detail__title', $this->renderer->render( 'video-detail', array( 'libraryId' => self::LIB ) ) );
+		$this->assertStringContainsString(
+			'could not be found',
+			$this->renderer->render( 'video-detail', array( 'libraryId' => '00000000-0000-4000-8000-000000000001' ) )
+		);
+	}
+
+	public function test_detail_ownership_is_cached_and_negative_results_too(): void {
+		$_GET['vo_video'] = self::A;
+		$this->renderer->render( 'video-detail', array() );
+		$this->assertSame( array( self::A ), $this->own_calls );
+		$this->assertSame( Ownership::TTL_FOUND, $this->transient_ttls[ 'videooptimizer_own__' . self::A ] );
+
+		unset( $this->owned[ self::B ] );
+		$this->ownership = new Ownership( $this->ownershipClient() );
+		$this->assertSame( Ownership::NOT_FOUND, $this->ownership->check( self::B ) );
+		$this->assertSame( Ownership::NOT_FOUND, ( new Ownership( $this->ownershipClient() ) )->check( self::B ) );
+		$this->assertSame( 1, count( array_keys( $this->own_calls, self::B, true ) ), 'the negative result is cached' );
+		$this->assertSame( Ownership::TTL_NOT_FOUND, $this->transient_ttls[ 'videooptimizer_own__' . self::B ] );
+	}
+
+	/**
+	 * A client wired to the fake organization (for fresh Ownership objects).
+	 */
+	private function ownershipClient(): Client {
+		$test = $this;
+
+		return new class( static fn () => 'tok', 'https://api.videooptimizer.eu/api/v1', $test ) extends Client {
+			public function __construct( callable $t, string $b, private $test ) {
+				parent::__construct( $t, $b );
+			}
+			public function get_video( string $uuid ): array {
+				$this->test->own_calls[] = $uuid;
+				$owned                   = $this->test->owned[ $uuid ] ?? new ApiException( 'Not found', 404 );
+				if ( $owned instanceof ApiException ) {
+					throw $owned;
+				}
+				return array( 'uuid' => $uuid, 'library_id' => $owned );
+			}
+		};
+	}
+
+	public function test_an_unavailable_api_says_so_never_not_found_and_never_trips_the_down_marker(): void {
+		$_GET['vo_video'] = self::A;
+		$this->owned[ self::A ] = new ApiException( 'down', 503 );
+		$html                   = $this->renderer->render( 'video-detail', array() );
+
+		$this->assertStringContainsString( 'This video is temporarily unavailable.', $html );
+		$this->assertStringNotContainsString( 'could not be found', $html );
+		$this->assertTrue( PageCache::is_degraded() );
+		$this->assertArrayNotHasKey( EmbedRepository::DOWN_KEY, $this->transients );
+	}
+
+	public function test_new_lookups_are_limited_site_wide_without_an_api_call(): void {
+		$this->transients[ LookupLimit::KEY ] = LookupLimit::MAX_PER_MINUTE;
+		$_GET['vo_video']                     = self::A;
+		$html                                 = $this->renderer->render( 'video-detail', array() );
+
+		$this->assertStringContainsString( 'temporarily unavailable', $html, 'rate limited is temporary, not a 404' );
+		$this->assertStringNotContainsString( 'could not be found', $html );
+		$this->assertTrue( PageCache::is_degraded() );
+		$this->assertArrayNotHasKey( 'videooptimizer_own__' . self::A, $this->transients, 'and never cached' );
+		$this->assertSame( array(), $this->own_calls );
+
+		$this->transients = array();
+		$count            = 0;
+		for ( $i = 0; $i < 40; $i++ ) {
+			$uuid = sprintf( '00000000-0000-4000-8000-%012d', $i );
+			( new Ownership( $this->ownershipClient() ) )->check( $uuid );
+		}
+		$this->assertCount( LookupLimit::MAX_PER_MINUTE, $this->own_calls, 'only 30 new uuids a minute reach the API' );
+		unset( $count );
+	}
+
+	public function test_a_video_that_is_not_ready_yet_is_temporary_not_a_404(): void {
+		$this->embeds[ self::A ] = Embed::normalize( self::A, array( 'title' => 'Still processing' ) );
+		$_GET['vo_video']        = self::A;
+		$html                    = $this->renderer->render( 'video-detail', array() );
+
+		$this->assertStringContainsString( 'temporarily unavailable', $html );
+		$this->assertStringNotContainsString( 'Still processing', $html );
+		$this->assertTrue( PageCache::is_degraded() );
+		$this->assertSame( 'Site', $this->detail_title_after( 'Site' ), 'and no title or 404 for the page' );
+	}
+
+	/**
+	 * Document title the detail page would use.
+	 *
+	 * @param string $title Title so far.
+	 */
+	private function detail_title_after( string $title ): string {
+		$this->detail_post();
+
+		return (string) $this->detail->seo_title( $title );
+	}
+
+	public function test_ownership_results_are_scoped_by_token_and_dropped_when_the_video_changes(): void {
+		$one = new Ownership( $this->ownershipClient(), static fn () => 'aaaa' );
+		$two = new Ownership( $this->ownershipClient(), static fn () => 'bbbb' );
+
+		$one->check( self::A );
+		$this->assertArrayHasKey( 'videooptimizer_own_aaaa_' . self::A, $this->transients );
+		$two->check( self::A );
+		$this->assertCount( 2, $this->own_calls, 'another token never reads the first token\'s result' );
+
+		$one->forget( self::A );
+		$this->assertArrayNotHasKey( 'videooptimizer_own_aaaa_' . self::A, $this->transients );
+		$this->assertArrayHasKey( 'videooptimizer_own_bbbb_' . self::A, $this->transients );
 	}
 
 	public function test_detail_without_any_video_is_an_editor_hint(): void {
@@ -307,30 +487,126 @@ final class VideoListDetailTest extends TestCase {
 		$this->assertTrue( PageCache::is_degraded() );
 	}
 
-	public function test_detail_page_title_comes_from_the_video(): void {
+	/**
+	 * A singular page with a detail block (and the fakes the page-level hooks need).
+	 *
+	 * @param string $content Post content.
+	 */
+	private function detail_post( string $content = '<!-- wp:videooptimizer/video-detail /-->' ): \WP_Post {
 		$post               = new \WP_Post();
 		$post->ID           = 5;
-		$post->post_content = '<!-- wp:videooptimizer/video-detail /-->';
+		$post->post_content = $content;
 		Functions\when( 'get_queried_object' )->justReturn( $post );
-		$embeds = $this->createMock( EmbedRepository::class );
-		$embeds->method( 'get' )->willReturnCallback( fn ( string $uuid ) => $this->embeds[ $uuid ] ?? null );
-		$detail = new DetailPage( $embeds );
+		Functions\when( 'get_post_meta' )->justReturn( '' );
+		Functions\when( 'shortcode_parse_atts' )->justReturn( array() );
 
-		$this->assertSame( array( 'title' => 'Site' ), $detail->title( array( 'title' => 'Site' ) ), 'no video in the URL' );
-
-		$_GET['vo_video'] = self::A;
-		$this->assertSame( array( 'title' => 'Demo Film' ), $detail->title( array( 'title' => 'Site' ) ) );
-		$this->assertSame( 'https://shop.example/video/?vo_video=' . self::A, $detail->canonical( 'https://shop.example/video/', $post ) );
-
-		ob_start();
-		$detail->description();
-		$this->assertSame( '<meta name="description" content="Demo Film">' . "\n", ob_get_clean() );
-
-		$_GET['vo_video'] = self::B;
-		$this->assertSame( array( 'title' => 'Site' ), $detail->title( array( 'title' => 'Site' ) ) );
+		return $post;
 	}
 
-	public function test_detail_page_detection(): void {
+	public function test_page_title_description_and_canonical_come_from_an_owned_video(): void {
+		$post = $this->detail_post();
+		$this->assertSame( array( 'title' => 'Site' ), $this->detail->title( array( 'title' => 'Site' ) ), 'no video in the URL' );
+
+		$_GET['vo_video'] = self::A;
+		$this->assertSame( array( 'title' => 'Demo Film' ), $this->detail->title( array( 'title' => 'Site' ) ) );
+		$this->assertSame( 'https://shop.example/video/?vo_video=' . self::A, $this->detail->canonical( 'https://shop.example/video/', $post ) );
+
+		ob_start();
+		$this->detail->description();
+		$this->assertSame( '<meta name="description" content="Demo Film">' . "\n", ob_get_clean() );
+	}
+
+	public function test_a_foreign_video_never_reaches_title_description_or_canonical(): void {
+		$post = $this->detail_post();
+		unset( $this->owned[ self::B ] );
+		$this->embeds[ self::B ] = $this->embed( self::B, 'Foreign Secret Title' );
+		$_GET['vo_video']        = self::B;
+
+		$this->assertSame( array( 'title' => 'Site' ), $this->detail->title( array( 'title' => 'Site' ) ) );
+		$this->assertSame( 'Site', $this->detail->seo_title( 'Site' ) );
+		$this->assertSame( 'Desc', $this->detail->seo_description( 'Desc' ) );
+		$this->assertSame( 'https://shop.example/video/', $this->detail->canonical( 'https://shop.example/video/', $post ) );
+		ob_start();
+		$this->detail->description();
+		$this->assertSame( '', ob_get_clean() );
+	}
+
+	public function test_the_library_of_the_element_limits_the_page_hooks_too(): void {
+		$this->detail_post( '<!-- wp:videooptimizer/video-detail {"libraryId":"00000000-0000-4000-8000-000000000009"} /-->' );
+		$_GET['vo_video'] = self::A;
+
+		$this->assertSame( 'Site', $this->detail->seo_title( 'Site' ), 'the video is not in the element\'s library' );
+
+		$this->detail_post( '<!-- wp:videooptimizer/video-detail {"libraryId":"' . self::LIB . '"} /-->' );
+		$this->detail = new DetailPage( $this->repo, new Ownership( $this->ownershipClient() ) );
+		$this->assertSame( 'Demo Film', $this->detail->seo_title( 'Site' ) );
+	}
+
+	public function test_the_library_of_an_element_is_read_from_every_editor(): void {
+		Functions\when( 'shortcode_parse_atts' )->alias(
+			static function ( $text ) {
+				preg_match_all( '/(\w+)\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|(\S+))/', (string) $text, $m, PREG_SET_ORDER );
+				$out = array();
+				foreach ( $m as $row ) {
+					$out[ $row[1] ] = $row[2] . ( $row[3] ?? '' ) . ( $row[4] ?? '' );
+				}
+				return $out;
+			}
+		);
+		$make = function ( string $content, string $meta = '' ): \WP_Post {
+			$post               = new \WP_Post();
+			$post->ID           = 1;
+			$post->post_content = $content;
+			Functions\when( 'get_post_meta' )->justReturn( $meta );
+			return $post;
+		};
+
+		$this->assertSame( self::LIB, DetailPage::library_of( $make( '<!-- wp:videooptimizer/video-detail {"libraryId":"' . self::LIB . '"} /-->' ) ) );
+		$this->assertSame( self::LIB, DetailPage::library_of( $make( "[videooptimizer layout='video-detail' library='" . self::LIB . "']" ) ) );
+		$this->assertSame( self::LIB, DetailPage::library_of( $make( '[videooptimizer layout=video-detail library=' . self::LIB . ']' ) ) );
+		$this->assertSame(
+			self::LIB,
+			DetailPage::library_of( $make( '', '[{"elements":[{"widgetType":"videooptimizer","settings":{"layout":"video-detail","libraryId":"' . self::LIB . '"}}]}]' ) )
+		);
+		$this->assertSame( '', DetailPage::library_of( $make( '<!-- wp:videooptimizer/video-detail /-->' ) ) );
+	}
+
+	public function test_seo_plugin_filters_get_the_video_values(): void {
+		$this->detail_post();
+		$_GET['vo_video'] = self::A;
+		$added            = array();
+		Functions\when( 'add_filter' )->alias(
+			static function ( $hook ) use ( &$added ) {
+				$added[] = $hook;
+			}
+		);
+		Functions\when( 'add_action' )->justReturn( true );
+		$this->detail->register_hooks();
+
+		foreach ( array( 'wpseo_title', 'wpseo_metadesc', 'wpseo_canonical', 'wpseo_opengraph_title', 'wpseo_opengraph_desc', 'wpseo_opengraph_url', 'rank_math/frontend/title', 'rank_math/frontend/description', 'rank_math/frontend/canonical', 'rank_math/opengraph/facebook/og_title', 'rank_math/opengraph/facebook/og_description', 'rank_math/opengraph/facebook/og_url' ) as $hook ) {
+			$this->assertContains( $hook, $added, $hook );
+		}
+		$this->assertSame( 'Demo Film', $this->detail->seo_title( 'Plugin title' ) );
+		$this->assertSame( 'Demo Film', $this->detail->seo_description( 'Plugin description' ) );
+		$this->assertSame( 'https://shop.example/video/?vo_video=' . self::A, $this->detail->seo_canonical( 'https://shop.example/video/' ) );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_no_second_meta_description_next_to_an_seo_plugin(): void {
+		define( 'WPSEO_VERSION', '99' );
+		$this->detail_post();
+		$_GET['vo_video'] = self::A;
+
+		$this->assertTrue( DetailPage::seo_plugin_active() );
+		ob_start();
+		$this->detail->description();
+		$this->assertSame( '', ob_get_clean() );
+	}
+
+	public function test_page_detection_covers_every_shortcode_quoting(): void {
 		Functions\when( 'get_post_meta' )->justReturn( '' );
 		$make = static function ( string $content ): \WP_Post {
 			$post               = new \WP_Post();
@@ -341,17 +617,13 @@ final class VideoListDetailTest extends TestCase {
 
 		$this->assertTrue( DetailPage::has_detail( $make( '<!-- wp:videooptimizer/video-detail {"uuid":"x"} /-->' ) ) );
 		$this->assertTrue( DetailPage::has_detail( $make( '[videooptimizer layout="video-detail"]' ) ) );
+		$this->assertTrue( DetailPage::has_detail( $make( "[videooptimizer layout='video-detail']" ) ) );
+		$this->assertTrue( DetailPage::has_detail( $make( '[videooptimizer layout=video-detail]' ) ) );
 		$this->assertFalse( DetailPage::has_detail( $make( '[videooptimizer uuid="x"]' ) ) );
 	}
 
-	public function test_not_found_for_an_unknown_video_sets_404(): void {
-		$post               = new \WP_Post();
-		$post->ID           = 5;
-		$post->post_content = '[videooptimizer layout="video-detail"]';
-		Functions\when( 'get_queried_object' )->justReturn( $post );
-		$embeds = $this->createMock( EmbedRepository::class );
-		$embeds->method( 'get' )->willReturn( null );
-		$embeds->method( 'failure' )->willReturnCallback( fn () => $this->failure );
+	public function test_a_foreign_unknown_or_invalid_video_sets_404_but_an_outage_does_not(): void {
+		$this->detail_post( '[videooptimizer layout="video-detail"]' );
 		$GLOBALS['wp_query'] = new class() {
 			public bool $is404 = false;
 			public function set_404(): void {
@@ -359,30 +631,33 @@ final class VideoListDetailTest extends TestCase {
 			}
 		};
 		$sent = array();
-		Functions\when( 'status_header' )->alias( static function ( $code ) use ( &$sent ) {
-			$sent[] = $code;
-		} );
+		Functions\when( 'status_header' )->alias(
+			static function ( $code ) use ( &$sent ) {
+				$sent[] = $code;
+			}
+		);
 		Functions\when( 'nocache_headers' )->justReturn( null );
-		$detail = new DetailPage( $embeds );
 
-		$_GET['vo_video'] = self::B;
-		$this->failure    = array( 'status' => 503, 'outage' => true );
-		$detail->maybe_not_found();
+		$_GET['vo_video'] = self::A;
+		$this->owned[ self::A ] = new ApiException( 'down', 503 );
+		$this->detail->maybe_not_found();
 		$this->assertSame( array(), $sent, 'an outage is not a 404' );
 
-		$this->failure = array( 'status' => 404, 'outage' => false );
-		$detail->maybe_not_found();
-		$this->assertSame( array( 404 ), $sent );
+		unset( $this->owned[ self::B ] );
+		$this->embeds[ self::B ] = $this->embed( self::B, 'Foreign' );
+		$_GET['vo_video']        = self::B;
+		$this->detail->maybe_not_found();
+		$this->assertSame( array( 404 ), $sent, 'a foreign video with a public embed is a 404' );
 		$this->assertTrue( $GLOBALS['wp_query']->is404 );
 
 		$sent             = array();
 		$_GET['vo_video'] = 'garbage';
-		$detail->maybe_not_found();
-		$this->assertSame( array( 404 ), $sent, 'an invalid uuid is a 404' );
+		$this->detail->maybe_not_found();
+		$this->assertSame( array( 404 ), $sent );
 
-		$sent             = array();
-		$_GET             = array();
-		$detail->maybe_not_found();
+		$sent = array();
+		$_GET = array();
+		$this->detail->maybe_not_found();
 		$this->assertSame( array(), $sent, 'the default video is fine' );
 		unset( $GLOBALS['wp_query'] );
 	}

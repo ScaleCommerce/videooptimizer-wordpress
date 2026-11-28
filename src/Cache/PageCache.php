@@ -143,16 +143,22 @@ final class PageCache {
 			// Not about one video (e.g. the API token changed): listeners get an empty uuid.
 			do_action( 'videooptimizer_purge_video', '', array(), true );
 		}
-		$ids = array();
-		$all = $site || count( $uuids ) > self::MAX_UUIDS;
+		$ids  = array();
+		$urls = array();
+		$all  = $site || count( $uuids ) > self::MAX_UUIDS;
 		foreach ( $uuids as $uuid ) {
 			// Once the whole site is purged anyway, no further search is needed.
 			$found = $all ? array(
-				'ids' => array(),
-				'all' => true,
+				'ids'     => array(),
+				'all'     => true,
+				'details' => array(),
 			) : $this->locate( $uuid );
-			$all   = $all || $found['all'];
-			$ids   = array_merge( $ids, $found['ids'] );
+			// A detail page also exists once per video (?vo_video=<uuid>): purge those URLs where supported.
+			foreach ( $found['details'] as $detail_id ) {
+				$urls[] = add_query_arg( array( 'vo_video' => $uuid ), (string) get_permalink( $detail_id ) );
+			}
+			$all = $all || $found['all'];
+			$ids = array_merge( $ids, $found['ids'] );
 
 			/**
 			 * Fires when the cached pages of a changed video should be purged.
@@ -168,6 +174,7 @@ final class PageCache {
 			$this->request_site_purge();
 		} elseif ( array() !== $ids ) {
 			Integrations::purge( array_values( array_unique( $ids ) ), false );
+			Integrations::purge_urls( array_values( array_unique( $urls ) ) );
 		}
 	}
 
@@ -176,7 +183,7 @@ final class PageCache {
 	 * library item.
 	 *
 	 * @param string $uuid Video uuid.
-	 * @return array{ids: array<int, int>, all: bool}
+	 * @return array{ids: array<int, int>, all: bool, details: array<int, int>}
 	 */
 	public function locate( string $uuid ): array {
 		global $wpdb;
@@ -200,25 +207,45 @@ final class PageCache {
 		);
 		// Video lists show whatever videos a library has right now and the detail element a video
 		// chosen by the URL: their pages cannot be found by uuid, so every video change purges them.
-		$lists  = (array) $wpdb->get_col(
+		// A plain substring covers blocks, shortcodes in any attribute quoting and Elementor data.
+		$content_like = array( '%' . $wpdb->esc_like( 'video-list' ) . '%', '%' . $wpdb->esc_like( 'video-detail' ) . '%' );
+		$lists        = (array) $wpdb->get_col(
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type NOT IN ('revision','attachment') AND (post_content LIKE %s OR post_content LIKE %s) LIMIT %d",
-				'%' . $wpdb->esc_like( 'videooptimizer/video-list' ) . '%',
-				'%' . $wpdb->esc_like( 'layout="video-list"' ) . '%',
+				$content_like[0],
+				$content_like[1],
 				$max
 			)
 		);
-		$lists  = array_merge(
+		$lists        = array_merge(
 			$lists,
 			(array) $wpdb->get_col(
 				$wpdb->prepare(
-					"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data' AND meta_value LIKE %s LIMIT %d",
-					'%' . $wpdb->esc_like( '"video-list"' ) . '%',
+					"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data' AND (meta_value LIKE %s OR meta_value LIKE %s) LIMIT %d",
+					$content_like[0],
+					$content_like[1],
 					$max
 				)
 			)
 		);
-		$widget = $wpdb->get_var(
+		$details      = (array) $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type NOT IN ('revision','attachment') AND post_content LIKE %s LIMIT %d",
+				$content_like[1],
+				$max
+			)
+		);
+		$details      = array_merge(
+			$details,
+			(array) $wpdb->get_col(
+				$wpdb->prepare(
+					"SELECT DISTINCT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_elementor_data' AND meta_value LIKE %s LIMIT %d",
+					$content_like[1],
+					$max
+				)
+			)
+		);
+		$widget       = $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT 1 FROM {$wpdb->options} WHERE option_name LIKE 'widget\_%' AND option_value LIKE %s LIMIT 1",
 				$like
@@ -250,8 +277,9 @@ final class PageCache {
 		$all = $all || count( $ids ) > self::LIMIT;
 
 		return array(
-			'ids' => $all ? array() : $ids,
-			'all' => $all,
+			'ids'     => $all ? array() : $ids,
+			'all'     => $all,
+			'details' => $all ? array() : array_values( array_intersect( array_unique( array_map( 'intval', $details ) ), $ids ) ),
 		);
 	}
 

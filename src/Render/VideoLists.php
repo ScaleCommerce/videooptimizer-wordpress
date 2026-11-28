@@ -24,6 +24,7 @@ class VideoLists {
 
 	public const TTL            = 5 * MINUTE_IN_SECONDS;
 	public const TTL_FAILURE    = MINUTE_IN_SECONDS;
+	public const MAX_CALLS      = 3;
 	public const GENERATION_KEY = 'videooptimizer_list_generation';
 
 	/**
@@ -69,7 +70,7 @@ class VideoLists {
 	 * @param mixed $cursor Candidate.
 	 */
 	public static function is_cursor( mixed $cursor ): bool {
-		return is_string( $cursor ) && 1 === preg_match( '/^[A-Za-z0-9_\-=]{1,512}$/D', $cursor );
+		return is_string( $cursor ) && 1 === preg_match( '/^[A-Za-z0-9_=+\/.:-]{1,200}$/D', $cursor );
 	}
 
 	/**
@@ -111,22 +112,48 @@ class VideoLists {
 
 			return null;
 		}
-
-		try {
-			$page = $this->client->list_videos_page( '' !== $library_id ? $library_id : null, $cursor, $limit, array( 'tags' => $tag_list ) );
-		} catch ( ApiException $e ) {
-			$this->failure = $e->status();
-			set_transient( $key, array( '__failed' => $e->status() ), self::TTL_FAILURE );
-			if ( in_array( $e->status(), array( ApiException::UNREACHABLE, 429, 502, 503, 504 ), true ) ) {
-				set_transient( EmbedRepository::DOWN_KEY, $e->status(), EmbedRepository::TTL_DOWN );
-			}
+		// A cursor comes from the query string: new ones share the site-wide lookup budget.
+		if ( null !== $cursor && ! LookupLimit::reserve() ) {
+			$this->failure = 404;
 
 			return null;
 		}
 
+		// Only ready videos are shown: when an API page holds fewer, ask for the missing ones from
+		// the following pages (at most MAX_CALLS calls). Each call asks for exactly what is still
+		// missing, so a page never exceeds its size and the next cursor is exact.
+		$items   = array();
+		$next    = null;
+		$from    = $cursor;
+		$missing = $limit;
+		for ( $call = 0; $call < self::MAX_CALLS && $missing > 0; $call++ ) {
+			try {
+				$page = $this->client->list_videos_page( '' !== $library_id ? $library_id : null, $from, $missing, array( 'tags' => $tag_list ) );
+			} catch ( ApiException $e ) {
+				if ( array() !== $items ) {
+					break; // Show what was found; the failed part is retried with the next request.
+				}
+				$this->failure = $e->status();
+				set_transient( $key, array( '__failed' => $e->status() ), self::TTL_FAILURE );
+				// Only the first page (no visitor-chosen cursor) may flag the API as down.
+				if ( null === $cursor && in_array( $e->status(), array( ApiException::UNREACHABLE, 429, 502, 503, 504 ), true ) ) {
+					set_transient( EmbedRepository::DOWN_KEY, $e->status(), EmbedRepository::TTL_DOWN );
+				}
+
+				return null;
+			}
+			$items   = array_merge( $items, self::cards( $page['items'] ) );
+			$missing = $limit - count( $items );
+			$from    = self::is_cursor( $page['next_cursor'] ) ? $page['next_cursor'] : null;
+			$next    = $from;
+			if ( null === $from ) {
+				break;
+			}
+		}
+
 		$result = array(
-			'items' => self::cards( $page['items'] ),
-			'next'  => self::is_cursor( $page['next_cursor'] ) ? $page['next_cursor'] : null,
+			'items' => $items,
+			'next'  => $next,
 		);
 		set_transient( $key, $result, self::TTL );
 

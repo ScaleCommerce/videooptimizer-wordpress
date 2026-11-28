@@ -70,6 +70,31 @@ final class Integrations {
 	}
 
 	/**
+	 * Purges single URLs (page variants such as `?vo_video=<uuid>`) from caches that can purge by
+	 * URL. Caches without that ability only drop the page itself (see purge()).
+	 *
+	 * @param array<int, string> $urls Absolute URLs.
+	 */
+	public static function purge_urls( array $urls ): void {
+		$urls = array_values( array_filter( $urls ) );
+		if ( array() === $urls ) {
+			return;
+		}
+		if ( function_exists( 'rocket_clean_files' ) ) {
+			rocket_clean_files( $urls );
+		}
+		foreach ( $urls as $url ) {
+			if ( function_exists( 'w3tc_flush_url' ) ) {
+				w3tc_flush_url( $url );
+			}
+			if ( function_exists( 'sg_cachepress_purge_cache' ) ) {
+				sg_cachepress_purge_cache( $url );
+			}
+			do_action( 'litespeed_purge_url', $url ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- third-party hook.
+		}
+	}
+
+	/**
 	 * Scheduled whole-site purge (several changes within a minute share one).
 	 */
 	public static function purge_site(): void {

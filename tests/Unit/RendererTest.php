@@ -166,7 +166,7 @@ final class RendererTest extends TestCase {
 	public function test_mini_player_wraps_a_direct_player_with_a_close_button(): void {
 		$html = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'direct', 'miniPlayer' => true, 'priority' => true ) );
 
-		$this->assertStringContainsString( '<div class="vo-mini vo-mini--narrow" data-vo-mini><div class="vo-mini__box"><div class="vo-frame', $html );
+		$this->assertStringContainsString( '<div class="vo-mini vo-mini--narrow" data-vo-mini><div class="vo-mini__box" tabindex="-1"><div class="vo-frame', $html );
 		$this->assertStringContainsString( 'class="vo-mini__close" aria-label="Close mini player"', $html );
 
 		$wide = $this->renderer->render( 'video', array( 'uuid' => self::UUID, 'presentation' => 'direct', 'miniPlayer' => true, 'format' => '16:9' ) );
@@ -192,8 +192,26 @@ final class RendererTest extends TestCase {
 		$this->assertStringContainsString( 'data-vo-seek="81"', $html );
 		$this->assertStringContainsString( 'aria-label="Scene 2 · 00:49"', $html );
 		$this->assertStringContainsString( 'src="https://api.videooptimizer.eu/api/v1/videos/' . self::UUID . '/thumbnails/5"', $html );
-		$this->assertStringContainsString( 'width="320" height="180" loading="lazy" decoding="async" alt=""', $html );
+		$this->assertStringContainsString( 'width="320" height="180" alt="" loading="lazy" decoding="async"', $html );
 		$this->assertStringContainsString( 'data-vo-embed-base="https://player.videooptimizer.eu/embed/' . self::UUID . '"', $html );
+	}
+
+	public function test_scene_times_use_the_exact_duration(): void {
+		// 87.9 s rounds to 88, whose first frame would be at 8 s; the encoder sampled floor( 87.9 / 11 ) = 7.
+		$this->embed = Embed::normalize( self::UUID, array( 'duration' => 87.9, 'poster' => 'https://cdn.example/p.jpg', 'sources' => array( array( 'src' => 'https://cdn.example/a/720p.mp4', 'type' => 'video/mp4', 'label' => '720p' ) ) ) );
+		$html        = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID, 'scenes' => 10 ) );
+
+		$this->assertStringContainsString( 'data-vo-seek="7"', $html );
+		$this->assertStringNotContainsString( 'data-vo-seek="8"', $html );
+	}
+
+	public function test_images_always_carry_an_empty_alt(): void {
+		$poster = $this->renderer->render( 'video', array( 'uuid' => self::UUID ) );
+		$scenes = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID ) );
+
+		$this->assertStringContainsString( 'class="vo-poster__img"', $poster );
+		$this->assertSame( substr_count( $poster, '<img' ), substr_count( $poster, ' alt=""' ) );
+		$this->assertSame( substr_count( $scenes, '<img' ), substr_count( $scenes, ' alt=""' ) );
 	}
 
 	public function test_chapters_use_scene_titles_and_the_hosted_player(): void {
@@ -215,8 +233,9 @@ final class RendererTest extends TestCase {
 	}
 
 	public function test_chapters_without_a_known_duration_show_only_the_video(): void {
-		$this->embed['duration'] = null;
-		$html                    = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID ) );
+		$this->embed['duration']      = null;
+		$this->embed['durationExact'] = null;
+		$html                         = $this->renderer->render( 'video-chapters', array( 'uuid' => self::UUID ) );
 
 		$this->assertStringNotContainsString( 'vo-scene', $html );
 		$this->assertStringNotContainsString( 'data-vo-chapters', $html );

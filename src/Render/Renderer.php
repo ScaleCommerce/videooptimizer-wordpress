@@ -56,6 +56,13 @@ class Renderer {
 	private ?VideoLists $lists;
 
 	/**
+	 * Detail request resolver (null: the detail element cannot show URL videos).
+	 *
+	 * @var DetailPage|null
+	 */
+	private ?DetailPage $detail;
+
+	/**
 	 * Lists rendered on this page (their cursor argument is numbered).
 	 *
 	 * @var int
@@ -83,12 +90,14 @@ class Renderer {
 	 * @param Settings        $settings Settings.
 	 * @param Assets          $assets   Asset loader.
 	 * @param VideoLists|null $lists    Video list pages.
+	 * @param DetailPage|null $detail   Detail request resolver.
 	 */
-	public function __construct( EmbedRepository $embeds, Settings $settings, Assets $assets, ?VideoLists $lists = null ) {
+	public function __construct( EmbedRepository $embeds, Settings $settings, Assets $assets, ?VideoLists $lists = null, ?DetailPage $detail = null ) {
 		$this->embeds   = $embeds;
 		$this->settings = $settings;
 		$this->assets   = $assets;
 		$this->lists    = $lists;
+		$this->detail   = $detail;
 	}
 
 	/**
@@ -228,7 +237,7 @@ class Renderer {
 		}
 
 		return sprintf(
-			'<div class="vo-mini%1$s" data-vo-mini><div class="vo-mini__box">%2$s<button type="button" class="vo-mini__close" aria-label="%3$s"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>',
+			'<div class="vo-mini%1$s" data-vo-mini><div class="vo-mini__box" tabindex="-1">%2$s<button type="button" class="vo-mini__close" aria-label="%3$s"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button></div></div>',
 			$narrow ? ' vo-mini--narrow' : '',
 			$html,
 			esc_attr__( 'Close mini player', 'videooptimizer' )
@@ -402,7 +411,8 @@ class Renderer {
 				PageCache::mark_degraded();
 			}
 		}
-		if ( '' === $cards && '' === $a['headline'] ) {
+		// An empty page with a next cursor still shows the link: older ready videos exist.
+		if ( '' === $cards && null === $page['next'] && '' === $a['headline'] ) {
 			return $this->list_notice( __( 'There are no videos yet.', 'videooptimizer' ) );
 		}
 
@@ -436,11 +446,12 @@ class Renderer {
 					'sizes'         => null !== ( $embed['srcset'] ?? null ) ? '(min-width: 900px) 33vw, (min-width: 560px) 50vw, 100vw' : null,
 					'width'         => 640,
 					'height'        => 360,
+					'alt'           => '',
 					'loading'       => $priority ? 'eager' : 'lazy',
 					'decoding'      => 'async',
 					'fetchpriority' => $priority ? 'high' : null,
 				)
-			) . ' alt="">';
+			) . '>';
 		}
 		$body = '<span class="vo-card__thumb">' . $thumb . self::play_icon()
 			. ( null !== $video['duration'] && $video['duration'] > 0 ? '<span class="vo-card__duration">' . esc_html( Scenes::clock( $video['duration'] ) ) . '</span>' : '' )
@@ -501,22 +512,25 @@ class Renderer {
 	 * @param array<string, mixed> $a Attributes.
 	 */
 	private function layout_detail( array $a ): string {
-		$requested = self::request_arg( DetailPage::PARAM );
-		if ( null !== $requested ) {
-			$uuid = Embed::is_uuid( $requested ) ? strtolower( $requested ) : '';
-			$page = true;
+		$request = null === $this->detail ? null : $this->detail->resolve( $a['libraryId'] );
+		if ( null !== $request ) {
+			// The URL names the video: it must belong to the organization (and library).
+			if ( Ownership::UNAVAILABLE === $request['state'] ) {
+				PageCache::mark_degraded();
+
+				return '<div class="vo-notice vo-notice--public" role="note">' . esc_html__( 'This video is temporarily unavailable.', 'videooptimizer' ) . '</div>';
+			}
+			if ( Ownership::FOUND !== $request['state'] ) {
+				return '<div class="vo-notice vo-notice--public" role="note">' . esc_html__( 'This video could not be found.', 'videooptimizer' ) . '</div>';
+			}
+			$uuid = $request['uuid'];
 		} else {
 			$uuid = (string) $a['uuid'];
-			$page = false;
 		}
 
 		$embed = $this->load_embed( $uuid );
 		if ( null === $embed ) {
-			if ( ! $page ) {
-				return $this->missing_notice( $uuid );
-			}
-
-			return '<div class="vo-notice vo-notice--public" role="note">' . esc_html__( 'This video could not be found.', 'videooptimizer' ) . '</div>';
+			return null === $request ? $this->missing_notice( $uuid ) : '<div class="vo-notice vo-notice--public" role="note">' . esc_html__( 'This video is temporarily unavailable.', 'videooptimizer' ) . '</div>';
 		}
 
 		$title = '' !== $embed['title'] ? $embed['title'] : __( 'Video', 'videooptimizer' );
@@ -540,13 +554,23 @@ class Renderer {
 	}
 
 	/**
-	 * URL of the current page without the video query argument (base for pagination links).
+	 * URL of the current page (base for pagination links): the permalink of a singular page, else
+	 * the request path below the site URL (subfolder installs keep working), with the current query
+	 * arguments (other lists, WPML's `lang`, …) except the detail video.
 	 */
 	private static function current_url(): string {
-		$id  = get_queried_object_id();
-		$url = $id > 0 && is_singular() ? (string) get_permalink( $id ) : home_url( add_query_arg( null, null ) );
+		global $wp;
+		$id   = get_queried_object_id();
+		$base = $id > 0 && is_singular() ? (string) get_permalink( $id ) : home_url( '/' . ltrim( (string) ( $wp->request ?? '' ), '/' ) );
+		$args = array();
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- read-only, values are sanitized.
+		foreach ( $_GET as $key => $value ) {
+			if ( is_string( $key ) && DetailPage::PARAM !== $key && is_string( $value ) ) {
+				$args[ sanitize_key( $key ) ] = sanitize_text_field( wp_unslash( $value ) );
+			}
+		}
 
-		return remove_query_arg( DetailPage::PARAM, $url );
+		return array() === $args ? $base : add_query_arg( $args, $base );
 	}
 
 	/**
@@ -556,7 +580,8 @@ class Renderer {
 	 * @param array<string, mixed> $a     Attributes.
 	 */
 	private function scene_list( array $embed, array $a ): string {
-		$duration = (int) ( $embed['duration'] ?? 0 );
+		// The exact length (cached embeds from before 2.2.0 only have the rounded one).
+		$duration = (float) ( $embed['durationExact'] ?? $embed['duration'] ?? 0 );
 		if ( $duration <= 0 ) {
 			return '';
 		}
@@ -589,10 +614,11 @@ class Renderer {
 					'src'      => Scenes::thumbnail_url( Settings::api_base_url(), $embed['uuid'], $frame ),
 					'width'    => 320,
 					'height'   => 180,
+					'alt'      => '',
 					'loading'  => 'lazy',
 					'decoding' => 'async',
 				)
-			) . ' alt=""><span class="vo-scene__time">' . esc_html( $clock ) . '</span>'
+			) . '><span class="vo-scene__time">' . esc_html( $clock ) . '</span>'
 				. ( '' !== $title ? '<span class="vo-scene__title">' . esc_html( $title ) . '</span>' : '' )
 				. '</button></li>';
 		}
@@ -1067,7 +1093,7 @@ class Renderer {
 	public static function attrs( array $attrs ): string {
 		$out = '';
 		foreach ( $attrs as $name => $value ) {
-			if ( null === $value || false === $value || '' === $value ) {
+			if ( null === $value || false === $value || ( '' === $value && 'alt' !== $name ) ) {
 				continue;
 			}
 			if ( true === $value ) {
